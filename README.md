@@ -12,6 +12,9 @@ The part of the community website hosting all the backend and the services
 - Install the latest dependencies
   - pip install -r requirements.txt
 
+# HOW TO RUN YOUR SERVER LOCALLY
+- `uvicorn main:app --reload`
+
 
 # HOW TO MAKE CODE CHANGES
 - Create a new branch from main with the format yourName/what-you-are-trying-to-do
