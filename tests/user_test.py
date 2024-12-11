@@ -1,32 +1,22 @@
 import os
+from typing import Generator
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, Session
 from models.user import Base
 from main import app
 from database import get_db
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
-
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-
-
-def override_get_db():
+def override_get_db() -> Generator[Session, None, None]:
     try:
         db = TestingSessionLocal()
         yield db
     finally:
         db.close()
 
-app.dependency_overrides[get_db] = override_get_db
-
-client = TestClient(app)
-
 @pytest.fixture(scope="module", autouse=True)
-def test_client():
+def setup_and_teardown_db() -> Generator[TestClient, None, None]:
     Base.metadata.create_all(bind=engine)
     # Run tests
     yield client
@@ -35,7 +25,14 @@ def test_client():
     engine.dispose()
     os.remove("test.db")
 
-def test_create_user():
+SQLALCHEMY_DATABASE_URL:str = "sqlite:///./test.db"
+
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+app.dependency_overrides[get_db] = override_get_db
+client = TestClient(app)
+
+def test_create_user() -> None:
     response = client.post(
         "/users/",
         json={
@@ -55,7 +52,7 @@ def test_create_user():
     assert response.status_code == 201
     assert response.json()["email"] == "test@example.com"
 
-def test_create_user_duplicate():
+def test_create_user_duplicate() -> None:
     response = client.post(
         "/users/",
         json={
