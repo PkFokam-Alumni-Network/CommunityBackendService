@@ -15,12 +15,14 @@ The part of the community website hosting all the backend and the services
 # HOW TO RUN YOUR SERVER LOCALLY
 - `uvicorn main:app --reload`
 
-
 # HOW TO MAKE CODE CHANGES
 - Create a new branch from main with the format yourName/what-you-are-trying-to-do
   - For example, `warren/create-user-object`
 - Make your code changes
 - Push and submit and PR
+
+# TESTING
+- [Postman](https://www.postman.com/)
 
 # HELPFUL RESOURCES
 - [FastAPI Documentation](https://fastapi.tiangolo.com/)
