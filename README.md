@@ -22,7 +22,7 @@ The part of the community website hosting all the backend and the services
 - Push and submit and PR
 
 # TESTING
-- [Postman](https://www.postman.com/)
+- [Postman Collections]([https://www.postman.com/](https://solar-shadow-655969.postman.co/workspace/Team-Workspace~b5dc0fe3-7281-4a8b-8693-293940ef7aff/collection/29422822-1d267a27-51a3-4860-893e-ed410410f187?action=share&creator=29422822))
 
 # HELPFUL RESOURCES
 - [FastAPI Documentation](https://fastapi.tiangolo.com/)
