@@ -20,6 +20,7 @@ The part of the community website hosting all the backend and the services
   - For example, `warren/create-user-object`
 - Make your code changes
 - Push and submit and PR
+[Example PR](https://github.com/PkFokam-Alumni-Network/CommunityBackendService/pull/9)
 
 # TESTING
 - [Postman Collections](https://solar-shadow-655969.postman.co/workspace/Team-Workspace~b5dc0fe3-7281-4a8b-8693-293940ef7aff/collection/29422822-1d267a27-51a3-4860-893e-ed410410f187?action=share&creator=29422822)
