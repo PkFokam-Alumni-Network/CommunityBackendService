@@ -28,5 +28,11 @@ The part of the community website hosting all the backend and the services
 # HELPFUL RESOURCES
 - [FastAPI Documentation](https://fastapi.tiangolo.com/)
 
+# CODE GUIDES
+- Always use static typing when possible.
+- Always use named parameters instead of positional parameters when a function takes more than 1 argument
+
 # DESIGN AND DATA MODEL
 - [Docs](https://docs.google.com/document/d/1tOZmcg-oa32PrtxE-sImnDYidz3Gw6cjE0YvSzqt7Bo/edit?usp=sharing)
+
+
