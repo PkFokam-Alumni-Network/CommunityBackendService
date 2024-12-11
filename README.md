@@ -24,3 +24,6 @@ The part of the community website hosting all the backend and the services
 
 # HELPFUL RESOURCES
 - [FastAPI Documentation](https://fastapi.tiangolo.com/)
+
+# DESIGN AND DATA MODEL
+- [Docs](https://docs.google.com/document/d/1tOZmcg-oa32PrtxE-sImnDYidz3Gw6cjE0YvSzqt7Bo/edit?usp=sharing)
