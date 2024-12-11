@@ -17,3 +17,6 @@ class UserOut(BaseModel):
     email: str
     first_name: str
     last_name: str
+
+class DeletionApproved(BaseModel):
+    message: str
