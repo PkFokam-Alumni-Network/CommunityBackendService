@@ -1,12 +1,12 @@
 import os
-from typing import Generator
 import pytest
+from typing import Generator
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
-from models.user import Base
 from main import app
-from database import get_db
+from database import get_db, Base
+from models.user import User
 
 def override_get_db() -> Generator[Session, None, None]:
     try:
@@ -17,11 +17,11 @@ def override_get_db() -> Generator[Session, None, None]:
 
 @pytest.fixture(scope="module", autouse=True)
 def setup_and_teardown_db() -> Generator[TestClient, None, None]:
-    Base.metadata.create_all(bind=engine)
+    User.metadata.create_all(bind=engine)
     # Run tests
     yield client
     # Drop the test database
-    Base.metadata.drop_all(bind=engine)
+    User.metadata.drop_all(bind=engine)
     engine.dispose()
     os.remove("test.db")
 
