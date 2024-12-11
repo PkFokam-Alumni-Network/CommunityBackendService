@@ -36,17 +36,15 @@ def create_user(user: user_schema.UserCreate, db: Session = Depends(get_db)) -> 
     return new_user
 
 @router.delete("/users/{user_email}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_user(user_email: str, db: Session = Depends(get_db)):
+def delete_user(user_email: str, db: Session = Depends(get_db)) -> None: 
     #Check if the user exists
     user = db.query(User).filter(User.email == user_email).first()
     
     if user is None:
         # if User does not exist, raise a 404 error
         raise HTTPException(status_code=404, detail = "User does not exist")
-    
     #Delete existing user from db
     db.delete(user)
     db.commit()
-    
-    return None
+    return {f"user with email{user_email}, was successfully deleted"}
     
