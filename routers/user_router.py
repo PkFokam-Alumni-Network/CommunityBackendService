@@ -35,8 +35,8 @@ def create_user(user: user_schema.UserCreate, db: Session = Depends(get_db)) -> 
     db.refresh(new_user)
     return new_user
 
-@router.delete("/users/{user_email}", status_code=status.HTTP_200_OK, response_model=Deletion_response)
-def delete_user(user_email: str, db: Session = Depends(get_db)) -> Deletion_response: 
+@router.delete("/users/{user_email}", status_code=status.HTTP_200_OK)
+def delete_user(user_email: str, db: Session = Depends(get_db)) -> : 
     #Check if the user exists
     user = db.query(User).filter(User.email == user_email).first()
     
