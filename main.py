@@ -1,12 +1,18 @@
-from fastapi import FastAPI
-from models.user import Base
-from database import engine
-from routers import user_router
 import uvicorn
+from fastapi import FastAPI
+from typing import AsyncGenerator
+from utils.init_db import create_tables
+from routers import user_router
+from contextlib import asynccontextmanager
 
-Base.metadata.create_all(bind=engine)
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncGenerator[None,None]:
+    # Startup
+    create_tables()
+    yield
+    print
 
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 
 app.include_router(user_router.router)
 
