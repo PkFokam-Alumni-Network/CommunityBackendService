@@ -91,14 +91,12 @@ def test_delete_existing_user() -> None:
     )
     assert create_response.status_code == 201  
     new_user = create_response.json()
-    user_email = new_user["email"]  
-    
-    
-    delete_response = client.delete(f"/users/{user_email}")
-    assert delete_response.status_code == 204  
-    
-    get_response = client.delete(f"/users/{user_email}")
-    print(get_response)
-    assert get_response.status_code == 404  
-    assert get_response.json()["detail"] == "User does not exist"
+    user_email = new_user["email"]
+    delete_route = f"/users/{user_email}" 
+    delete_response = client.delete(delete_route)
+    assert delete_response.status_code == 204 
+    #Check if the user still exists
+    delete_response = client.delete(delete_route)
+    assert delete_response.status_code == 404  
+    assert delete_response.json()["detail"] == "User does not exist"
     
