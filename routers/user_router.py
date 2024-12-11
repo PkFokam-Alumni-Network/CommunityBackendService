@@ -46,5 +46,5 @@ def delete_user(user_email: str, db: Session = Depends(get_db)) -> user_schema.D
     #Delete existing user from db
     db.delete(user)
     db.commit()
-    return DeletionApproved(message=f"user with email{user_email}, was successfully deleted"})
+    return user_schema.DeletionApproved(message=f"user with email{user_email}, was successfully deleted")
     
