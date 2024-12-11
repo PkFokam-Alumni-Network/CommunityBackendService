@@ -71,3 +71,32 @@ def test_create_user_duplicate() -> None:
     )
     assert response.status_code == 400
     assert response.json()["detail"] == "Email already registered"
+
+def test_delete_existing_user() -> None:
+    create_response = client.post(
+        "/users/",
+        json={
+            "email": "delete@example.com",
+            "first_name": "Delete",
+            "last_name": "User",
+            "graduation_year": 2023,
+            "degree": "B.Sc.",
+            "major": "Computer Science",
+            "phone": "1234567890",
+            "password": "securepassword",
+            "current_occupation": "Engineer",
+            "image": "test_image_url",
+            "linkedin_profile": "https://linkedin.com/in/delete"
+        },
+    )
+    assert create_response.status_code == 201  
+    new_user = create_response.json()
+    user_email = new_user["email"]
+    delete_route = f"/users/{user_email}" 
+    delete_response = client.delete(delete_route)
+    assert delete_response.status_code == 200 
+    #Check if the user still exists
+    delete_response = client.delete(delete_route)
+    assert delete_response.status_code == 404  
+    assert delete_response.json()["detail"] == "User does not exist"
+    

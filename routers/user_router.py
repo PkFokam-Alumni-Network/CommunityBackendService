@@ -5,6 +5,7 @@ from database import get_db
 from schemas import user_schema
 from utils.func_utils import get_password_hash
 
+
 router = APIRouter()
 
 @router.post("/users/", status_code=status.HTTP_201_CREATED, response_model=user_schema.UserOut)
@@ -34,3 +35,16 @@ def create_user(user: user_schema.UserCreate, db: Session = Depends(get_db)) -> 
     db.refresh(new_user)
     return new_user
 
+@router.delete("/users/{user_email}", status_code=status.HTTP_200_OK, response_model = user_schema.DeletionApproved)
+def delete_user(user_email: str, db: Session = Depends(get_db)) -> user_schema.DeletionApproved: 
+    #Check if the user exists
+    user = db.query(User).filter(User.email == user_email).first()
+    
+    if user is None:
+        # if User does not exist, raise a 404 error
+        raise HTTPException(status_code=404, detail = "User does not exist")
+    #Delete existing user from db
+    db.delete(user)
+    db.commit()
+    return user_schema.DeletionApproved(message=f"user with email{user_email}, was successfully deleted")
+    
