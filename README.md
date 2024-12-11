@@ -21,3 +21,6 @@ The part of the community website hosting all the backend and the services
   - For example, `warren/create-user-object`
 - Make your code changes
 - Push and submit and PR
+
+# HELPFUL RESOURCES
+- [FastAPI Documentation](https://fastapi.tiangolo.com/)
