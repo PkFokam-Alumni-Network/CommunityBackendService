@@ -35,8 +35,8 @@ def create_user(user: user_schema.UserCreate, db: Session = Depends(get_db)) -> 
     db.refresh(new_user)
     return new_user
 
-@router.delete("/users/{user_email}", status_code=status.HTTP_200_OK)
-def delete_user(user_email: str, db: Session = Depends(get_db)) -> : 
+@router.delete("/users/{user_email}", status_code=status.HTTP_200_OK, response_model = user_schema.DeletionApproved)
+def delete_user(user_email: str, db: Session = Depends(get_db)) -> user_schema.DeletionApproved: 
     #Check if the user exists
     user = db.query(User).filter(User.email == user_email).first()
     
@@ -46,5 +46,5 @@ def delete_user(user_email: str, db: Session = Depends(get_db)) -> :
     #Delete existing user from db
     db.delete(user)
     db.commit()
-    return {f"user with email{user_email}, was successfully deleted"}
+    return DeletionApproved(message=f"user with email{user_email}, was successfully deleted"})
     
