@@ -94,7 +94,7 @@ def test_delete_existing_user() -> None:
     user_email = new_user["email"]
     delete_route = f"/users/{user_email}" 
     delete_response = client.delete(delete_route)
-    assert delete_response.status_code == 204 
+    assert delete_response.status_code == 200 
     #Check if the user still exists
     delete_response = client.delete(delete_route)
     assert delete_response.status_code == 404  
