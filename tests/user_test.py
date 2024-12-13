@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from main import app
-from database import get_db, Base
+from database import get_db
 from models.user import User
 
 def override_get_db() -> Generator[Session, None, None]:
