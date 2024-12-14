@@ -1,49 +1,48 @@
 from fastapi import APIRouter, status, Depends, HTTPException
 from sqlalchemy.orm import Session
-from models.user import User
 from database import get_db
 from schemas import user_schema
-from utils.func_utils import get_password_hash
+from services.user_service import UserService
+from utils.func_utils import get_password_hash, provides_user_service
 
 
 router = APIRouter()
 
 @router.post("/users/", status_code=status.HTTP_201_CREATED, response_model=user_schema.UserCreatedResponse)
-def create_user(user: user_schema.UserCreate, db: Session = Depends(get_db)) -> user_schema.UserCreatedResponse:
-    # Check if user already exists
-    existing_user = db.query(User).filter(User.email == user.email).first()
-    if  existing_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
+def create_user(user: user_schema.UserCreate, session: Session = Depends(get_db)) -> user_schema.UserCreatedResponse:
 
+    service = UserService(session=session)
     hashed_password = get_password_hash(user.password)
-    new_user = User(
-        email=user.email,
-        first_name=user.first_name,
-        last_name=user.last_name,
-        graduation_year=user.graduation_year,
-        degree=user.degree,
-        major=user.major,
-        phone=user.phone,
-        password=hashed_password,
-        current_occupation=user.current_occupation,
-        image=user.image,
-        linkedin_profile=user.linkedin_profile,
-    )
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-    return new_user
+    try:
+        new_user = service.register_user(
+            email=user.email,
+            first_name=user.first_name,
+            last_name=user.last_name,
+            password=hashed_password,
+            graduation_year=user.graduation_year,
+            degree=user.degree,
+            major=user.major,
+            phone=user.phone,
+            current_occupation=user.current_occupation,
+            image=user.image,
+            linkedin_profile=user.linkedin_profile,
+        )
+        return new_user
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.get("/users/{user_email}", status_code=status.HTTP_200_OK, response_model=user_schema.UserCreatedResponse)
+def get_user(user_email: str, service: UserService = Depends(provides_user_service)):
+    user = service.get_user_details(user_email)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
 
 @router.delete("/users/{user_email}", status_code=status.HTTP_200_OK, response_model = user_schema.UserDeletedResponse)
-def delete_user(user_email: str, db: Session = Depends(get_db)) -> user_schema.UserDeletedResponse: 
-    #Check if the user exists
-    user = db.query(User).filter(User.email == user_email).first()
-    
-    if user is None:
-        # if User does not exist, raise a 404 error
-        raise HTTPException(status_code=404, detail = "User does not exist")
-    
-    db.delete(user)
-    db.commit()
+def delete_user(user_email: str, service: UserService = Depends(provides_user_service)) -> user_schema.UserDeletedResponse:
+    try:
+        service.remove_user(user_email)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
     return user_schema.UserDeletedResponse(message=f"user with email{user_email}, was successfully deleted")
     

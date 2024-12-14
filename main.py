@@ -10,7 +10,6 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None,None]:
     # Startup
     create_tables()
     yield
-    print
 
 app = FastAPI(lifespan=lifespan)
 
