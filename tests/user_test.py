@@ -20,9 +20,9 @@ def setup_and_teardown_db() -> Generator[TestClient, None, None]:
     User.metadata.create_all(bind=engine)
     yield client
     app.dependency_overrides.clear()
+    User.metadata.drop_all(bind=engine)  
     engine.dispose()
-    User.metadata.drop_all(bind=engine)   
-
+     
 temp_db_file = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
 SQLALCHEMY_TEST_DATABASE_URL = f"sqlite:///{temp_db_file.name}"
 engine = create_engine(SQLALCHEMY_TEST_DATABASE_URL)
