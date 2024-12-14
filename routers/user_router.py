@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 from schemas import user_schema
 from services.user_service import UserService
-from utils.func_utils import get_password_hash, provides_user_service
+from utils.func_utils import get_password_hash
 
 
 router = APIRouter()
@@ -32,14 +32,16 @@ def create_user(user: user_schema.UserCreate, session: Session = Depends(get_db)
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.get("/users/{user_email}", status_code=status.HTTP_200_OK, response_model=user_schema.UserCreatedResponse)
-def get_user(user_email: str, service: UserService = Depends(provides_user_service)):
+def get_user(user_email: str, session: Session = Depends(get_db)):
+    service = UserService(session=session)
     user = service.get_user_details(user_email)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
 @router.delete("/users/{user_email}", status_code=status.HTTP_200_OK, response_model = user_schema.UserDeletedResponse)
-def delete_user(user_email: str, service: UserService = Depends(provides_user_service)) -> user_schema.UserDeletedResponse:
+def delete_user(user_email: str, session: Session = Depends(get_db)) -> user_schema.UserDeletedResponse:
+    service = UserService(session=session)
     try:
         service.remove_user(user_email)
     except ValueError as e:
