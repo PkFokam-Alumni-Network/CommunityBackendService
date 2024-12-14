@@ -1,4 +1,4 @@
-import os
+import tempfile
 import pytest
 from typing import Generator
 from fastapi.testclient import TestClient
@@ -18,25 +18,24 @@ def override_get_db() -> Generator[Session, None, None]:
 @pytest.fixture(scope="module", autouse=True)
 def setup_and_teardown_db() -> Generator[TestClient, None, None]:
     User.metadata.create_all(bind=engine)
-    # Run tests
     yield client
-    # Drop the test database
-    User.metadata.drop_all(bind=engine)
+    app.dependency_overrides.clear()
+    User.metadata.drop_all(bind=engine)  
     engine.dispose()
-    os.remove("test.db")
+     
+temp_db_file = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+SQLALCHEMY_TEST_DATABASE_URL = f"sqlite:///{temp_db_file.name}"
+engine = create_engine(SQLALCHEMY_TEST_DATABASE_URL)
 
-SQLALCHEMY_DATABASE_URL:str = "sqlite:///./test.db"
-
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 app.dependency_overrides[get_db] = override_get_db
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 client = TestClient(app)
 
-def test_create_user() -> None:
+def test_create_get_user() -> None:
     response = client.post(
         "/users/",
         json={
-            "email": "test@example.com",
+            "email": "test_email@example.com",
             "first_name": "Test",
             "last_name": "User",
             "graduation_year": 2023,
@@ -50,27 +49,30 @@ def test_create_user() -> None:
         },
     )
     assert response.status_code == 201
-    assert response.json()["email"] == "test@example.com"
+    email: str = response.json()["email"]
+    assert  email == "test_email@example.com"
+
+    response = client.get(f"/users/{email}")
+    assert response.status_code == 200
+    assert response.json()["email"] == email
+
+def test_get_non_existing_user() -> None:
+    response = client.get("/users/fake_email")
+    assert response.status_code == 404
+    assert response.json()["detail"] == "User not found"
 
 def test_create_user_duplicate() -> None:
     response = client.post(
         "/users/",
         json={
-            "email": "test@example.com",
+            "email": "test_email@example.com",
             "first_name": "Duplicate",
             "last_name": "User",
-            "graduation_year": 2023,
-            "degree": "B.Sc.",
-            "major": "Computer Science",
-            "phone": "1234567890",
             "password": "securepassword",
-            "current_occupation": "Engineer",
-            "image": "test_image_url",
-            "linkedin_profile": "https://linkedin.com/in/duplicate"
         },
     )
     assert response.status_code == 400
-    assert response.json()["detail"] == "Email already registered"
+    assert response.json()["detail"] == "User with this email already exists."
 
 def test_delete_existing_user() -> None:
     create_response = client.post(
@@ -79,14 +81,7 @@ def test_delete_existing_user() -> None:
             "email": "delete@example.com",
             "first_name": "Delete",
             "last_name": "User",
-            "graduation_year": 2023,
-            "degree": "B.Sc.",
-            "major": "Computer Science",
-            "phone": "1234567890",
             "password": "securepassword",
-            "current_occupation": "Engineer",
-            "image": "test_image_url",
-            "linkedin_profile": "https://linkedin.com/in/delete"
         },
     )
     assert create_response.status_code == 201  
@@ -95,8 +90,7 @@ def test_delete_existing_user() -> None:
     delete_route = f"/users/{user_email}" 
     delete_response = client.delete(delete_route)
     assert delete_response.status_code == 200 
-    #Check if the user still exists
     delete_response = client.delete(delete_route)
     assert delete_response.status_code == 404  
-    assert delete_response.json()["detail"] == "User does not exist"
+    assert delete_response.json()["detail"] == "User does not exist."
     
