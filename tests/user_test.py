@@ -38,6 +38,7 @@ def test_create_get_user() -> None:
             "email": "test_email@example.com",
             "first_name": "Test",
             "last_name": "User",
+            "role": "None",
             "graduation_year": 2023,
             "degree": "B.Sc.",
             "major": "Computer Science",
@@ -45,7 +46,9 @@ def test_create_get_user() -> None:
             "password": "securepassword",
             "current_occupation": "Engineer",
             "image": "test_image_url",
-            "linkedin_profile": "https://linkedin.com/in/test"
+            "linkedin_profile": "https://linkedin.com/in/test",
+            "mentor_email": "test_email1@example.com",
+            # "mentee_email": "test_email2@example.com"
         },
     )
     assert response.status_code == 201
@@ -93,4 +96,45 @@ def test_delete_existing_user() -> None:
     delete_response = client.delete(delete_route)
     assert delete_response.status_code == 404  
     assert delete_response.json()["detail"] == "User does not exist."
+
+def test_assign_mentor() -> None:
+    mentor_response = client.post(
+        "/users/",
+        json={
+            "email": "mentor@example.com",
+            "first_name": "Mentor",
+            "last_name": "User",
+            "role":"mentor",
+            "password": "securepassword",
+        },
+    )
+    assert mentor_response.status_code == 201
+    mentor_data = mentor_response.json()
+    mentor_email = mentor_data["email"]
+
+    mentee_response = client.post(
+        "/users/",
+        json={
+            "email": "mentee@example.com",
+            "first_name": "Mentee",
+            "last_name": "User",
+            "role": "Null",
+            "password": "securepassword",
+        },
+    )
+    assert mentee_response.status_code == 201
+    mentee_data = mentee_response.json()
+    mentee_email = mentee_data["email"]
+    mentor_route = f"/users/{mentor_email}/{mentee_email}"
+    assign_mentor_response = client.put(mentor_route) 
+    assert assign_mentor_response.status_code == 200
+    assert "mentee with email" in assign_mentor_response.json()["message"]
+    mentee_updated = client.get(f"/users/{mentee_email}")
+    assert mentee_updated.status_code == 200
+    mentee_updated_data = mentee_updated.json()
+    assert mentee_updated_data["role"] == "mentee"
+    mentor_updated = client.get(f"/users/{mentor_email}")
+    assert mentor_updated.status_code == 200
+    mentor_updated_data = mentor_updated.json()
+    assert mentor_updated_data["role"] == "mentor"
     

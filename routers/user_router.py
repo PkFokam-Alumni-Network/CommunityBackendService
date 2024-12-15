@@ -18,6 +18,7 @@ def create_user(user: user_schema.UserCreate, session: Session = Depends(get_db)
             email=user.email,
             first_name=user.first_name,
             last_name=user.last_name,
+            role=user.role,
             password=hashed_password,
             graduation_year=user.graduation_year,
             degree=user.degree,
@@ -26,13 +27,14 @@ def create_user(user: user_schema.UserCreate, session: Session = Depends(get_db)
             current_occupation=user.current_occupation,
             image=user.image,
             linkedin_profile=user.linkedin_profile,
+            mentor_email=user.mentor_email,
         )
         return new_user
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.get("/users/{user_email}", status_code=status.HTTP_200_OK, response_model=user_schema.UserCreatedResponse)
-def get_user(user_email: str, session: Session = Depends(get_db)):
+def get_user(user_email: str, session: Session = Depends(get_db)) -> user_schema.UserCreatedResponse:
     service = UserService(session=session)
     user = service.get_user_details(user_email)
     if not user:
@@ -47,4 +49,16 @@ def delete_user(user_email: str, session: Session = Depends(get_db)) -> user_sch
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     return user_schema.UserDeletedResponse(message=f"user with email{user_email}, was successfully deleted")
+
+@router.put("/users/{mentor_email}/{mentee_email}", status_code=status.HTTP_200_OK, response_model=user_schema.MentorAssignedResponse)
+def assign_mentor(mentor_email: str, mentee_email: str, session: Session = Depends(get_db)) -> user_schema.MentorAssignedResponse:
+    service = UserService(session=session)
+    try:
+        service.register_mentor(mentor_email, mentee_email)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    return user_schema.MentorAssignedResponse(message=f"mentee with email {mentee_email}, was assigned mentor with email {mentor_email}.")
+
+
+    
     
