@@ -23,6 +23,16 @@ class UserService(metaclass=SingletonMeta):
         )
         return self.user_repository.add_user(new_user)
     
+    def update_user(self, email: str, updated_data: dict) -> Optional[User]:
+        user = self.user_repository.get_user_by_email(email)
+        if not user:
+            raise ValueError(f"User with email {email} not found.")
+
+        for key, value in updated_data.items():
+            if hasattr(user, key):
+                setattr(user, key, value)
+        return self.user_repository.update_user(user)
+
     def get_user_details(self, email: str) -> Optional[User]:
         return self.user_repository.get_user_by_email(email)
 
