@@ -12,5 +12,5 @@ class User(Base):
     phone = Column(String)
     password = Column(String, nullable=False)
     current_occupation = Column(String)
-    image = Column(String)
+    image = Column(String, nullable=True)
     linkedin_profile = Column(String)

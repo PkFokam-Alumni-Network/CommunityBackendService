@@ -24,3 +24,9 @@ class UserCreatedResponse(BaseModel):
 
 class UserDeletedResponse(BaseModel):
     message: str
+
+class UpdatedProfilePictureResponse(BaseModel):
+    message: str #Your profile picture has been updated
+
+class DeletedProfilePictureResponse(BaseModel):
+    message: str #Your profile picture has been deleted

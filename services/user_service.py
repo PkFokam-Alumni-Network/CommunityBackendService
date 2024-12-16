@@ -31,3 +31,6 @@ class UserService(metaclass=SingletonMeta):
         if user is None:
             raise ValueError("User does not exist.")
         return self.user_repository.delete_user(email)
+
+    def store_profile_pic(self, pp: ):
+    def update_profile_pic()
