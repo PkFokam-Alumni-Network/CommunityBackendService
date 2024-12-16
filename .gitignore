@@ -6,6 +6,8 @@ __pycache__/
 # C extensions
 *.so
 
+
+
 # Distribution / packaging
 .Python
 build/
@@ -25,6 +27,13 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+.idea/.gitignore
+.idea/CommunityBackendService.iml
+.idea/inspectionProfiles/Project_Default.xml
+.idea/inspectionProfiles/profiles_settings.xml
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
