@@ -3,17 +3,11 @@ from sqlalchemy.orm import relationship
 from database import Base
 from enum import Enum as PyEnum
 
-class Role(str, PyEnum):
-    mentor = "mentor"
-    mentee = "mentee"
-    Null = None
-
 class User(Base):
     __tablename__ = "users"
     email = Column(String, primary_key=True, unique=True, index=True)
     first_name = Column(String, nullable=False)
     last_name = Column(String, nullable=False)
-    role = Column(SQLEnum(Role), default=Role.Null)
     graduation_year = Column(Integer)
     degree = Column(String)
     major = Column(String)

@@ -103,7 +103,6 @@ def test_assign_mentor() -> None:
             "email": "mentor@example.com",
             "first_name": "Mentor",
             "last_name": "User",
-            "role":"mentor",
             "password": "securepassword",
         },
     )
@@ -116,7 +115,6 @@ def test_assign_mentor() -> None:
             "email": "mentee@example.com",
             "first_name": "Mentee",
             "last_name": "User",
-            "role": "Null",
             "password": "securepassword",
         },
     )
@@ -134,9 +132,5 @@ def test_assign_mentor() -> None:
     mentee_updated = client.get(f"/users/{mentee_email}")
     assert mentee_updated.status_code == 200
     mentee_updated_data = mentee_updated.json()
-    assert mentee_updated_data["role"] == "mentee"
-    mentor_updated = client.get(f"/users/{mentor_email}")
-    assert mentor_updated.status_code == 200
-    mentor_updated_data = mentor_updated.json()
-    assert mentor_updated_data["role"] == "mentor"
+    assert mentee_updated_data["mentor_email"] == mentor_email
     

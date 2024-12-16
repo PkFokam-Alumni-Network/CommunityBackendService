@@ -21,8 +21,7 @@ class UserCreatedResponse(BaseModel):
     email: str
     first_name: str
     last_name: str
-    role: str
-    # mentor_email: str
+    mentor_email: Optional[str]
     
     model_config = ConfigDict(from_attributes=True)
 

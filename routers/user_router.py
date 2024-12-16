@@ -18,7 +18,6 @@ def create_user(user: user_schema.UserCreate, session: Session = Depends(get_db)
             email=user.email,
             first_name=user.first_name,
             last_name=user.last_name,
-            role=user.role,
             password=hashed_password,
             graduation_year=user.graduation_year,
             degree=user.degree,

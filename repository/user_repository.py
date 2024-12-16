@@ -27,14 +27,11 @@ class UserRepository(metaclass=SingletonMeta):
         mentee = self.get_user_by_email(mentee_email)
         mentor = self.get_user_by_email(mentor_email)
         if mentee and mentor:
-            mentee.mentor_email = mentor_email
-            mentee.role = "mentee"  
-            mentor.role = "mentor"  
+            mentee.mentor_email = mentor_email  
             self.db.commit()
     
     def unassign_mentor(self, mentor_email: str) -> None:
         mentees = self.db.query(User).filter(User.mentor_email == mentor_email).all()
         for mentee in mentees:
             mentee.mentor_email = None
-            mentee.role = "Null"
         self.db.commit()
