@@ -36,5 +36,5 @@ class UserRepository(metaclass=SingletonMeta):
         mentees = self.db.query(User).filter(User.mentor_email == mentor_email).all()
         for mentee in mentees:
             mentee.mentor_email = None
-            mentee.role = "null"
+            mentee.role = "Null"
         self.db.commit()
