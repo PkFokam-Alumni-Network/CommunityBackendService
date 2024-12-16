@@ -2,7 +2,6 @@ from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from datetime import datetime
 
-
 class AnnouncementCreate(BaseModel):
     id: Optional[int] = None
     title: str
@@ -12,7 +11,6 @@ class AnnouncementCreate(BaseModel):
     image: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
-
 
 class AnnouncementUpdate(BaseModel):
     title: Optional[str] = None
