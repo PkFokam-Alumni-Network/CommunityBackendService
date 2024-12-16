@@ -13,7 +13,6 @@ class UserService(metaclass=SingletonMeta):
         user = self.user_repository.get_user_by_email(email)
         if user:
             raise ValueError("User with this email already exists.")
-
         new_user = User(
             email=email,
             first_name=first_name,
@@ -30,13 +29,13 @@ class UserService(metaclass=SingletonMeta):
         user = self.user_repository.get_user_by_email(email)
         if user is None:
             raise ValueError("User does not exist.")
-        self.user_repository.reinitialize_mentees_mentor(email)
+        self.user_repository.unassign_mentor(email)
         return self.user_repository.delete_user(email)
     
-    def register_mentor(self, mentor_email: str, mentee_email: str):
+    def assign_mentor(self, mentor_email: str, mentee_email: str):
         mentor = self.user_repository.get_user_by_email(mentor_email)
         if mentor is None:
-            raise ValueError("User does not exist !!!")
+            raise ValueError("Cannot assign mentor with email", {mentor_email}, "because user does not exist !!!")
         mentee = self.user_repository.get_user_by_email(mentee_email)
         if mentee.mentor_email:
             raise ValueError("Mentee already has mentor !!!")
@@ -45,10 +44,6 @@ class UserService(metaclass=SingletonMeta):
         if mentor == mentee:
             raise ValueError("A mentor cannot be its own mentee !!!")
         return self.user_repository.assign_mentor(mentor_email, mentee_email)
-        
-        
-        
-    
         
 
     

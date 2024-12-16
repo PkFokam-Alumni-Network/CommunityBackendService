@@ -50,15 +50,14 @@ def delete_user(user_email: str, session: Session = Depends(get_db)) -> user_sch
         raise HTTPException(status_code=404, detail=str(e))
     return user_schema.UserDeletedResponse(message=f"user with email{user_email}, was successfully deleted")
 
-@router.put("/users/{mentor_email}/{mentee_email}", status_code=status.HTTP_200_OK, response_model=user_schema.MentorAssignedResponse)
+@router.put("/users/", status_code=status.HTTP_200_OK, response_model=user_schema.MentorAssignedResponse)
 def assign_mentor(mentor_email: str, mentee_email: str, session: Session = Depends(get_db)) -> user_schema.MentorAssignedResponse:
     service = UserService(session=session)
     try:
-        service.register_mentor(mentor_email, mentee_email)
+        service.assign_mentor(mentor_email, mentee_email)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     return user_schema.MentorAssignedResponse(message=f"mentee with email {mentee_email}, was assigned mentor with email {mentor_email}.")
-
 
     
     

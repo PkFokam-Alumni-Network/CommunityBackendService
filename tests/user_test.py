@@ -48,7 +48,6 @@ def test_create_get_user() -> None:
             "image": "test_image_url",
             "linkedin_profile": "https://linkedin.com/in/test",
             "mentor_email": "test_email1@example.com",
-            # "mentee_email": "test_email2@example.com"
         },
     )
     assert response.status_code == 201
@@ -111,7 +110,6 @@ def test_assign_mentor() -> None:
     assert mentor_response.status_code == 201
     mentor_data = mentor_response.json()
     mentor_email = mentor_data["email"]
-
     mentee_response = client.post(
         "/users/",
         json={
@@ -125,8 +123,12 @@ def test_assign_mentor() -> None:
     assert mentee_response.status_code == 201
     mentee_data = mentee_response.json()
     mentee_email = mentee_data["email"]
-    mentor_route = f"/users/{mentor_email}/{mentee_email}"
-    assign_mentor_response = client.put(mentor_route) 
+    assign_mentor_response = client.put(f"/users/",
+        params={
+            "mentor_email": mentor_email,
+            "mentee_email": mentee_email
+        }            
+    ) 
     assert assign_mentor_response.status_code == 200
     assert "mentee with email" in assign_mentor_response.json()["message"]
     mentee_updated = client.get(f"/users/{mentee_email}")
