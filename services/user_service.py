@@ -3,6 +3,8 @@ from models.user import User
 from repository.user_repository import UserRepository
 from utils.singleton_meta import SingletonMeta
 from sqlalchemy.orm import Session
+from fastapi import UploadFile
+import os, shutil
 
 
 class UserService(metaclass=SingletonMeta):
@@ -24,13 +26,41 @@ class UserService(metaclass=SingletonMeta):
         return self.user_repository.add_user(new_user)
     
     def get_user_details(self, email: str) -> Optional[User]:
-        return self.user_repository.get_user_by_email(email)
-
+        user = self.user_repository.get_user_by_email(email)
+        if not user:
+            raise ValueError("User does not exist")
+        return user
+    
     def remove_user(self, email: str):
         user = self.user_repository.get_user_by_email(email)
         if user is None:
             raise ValueError("User does not exist.")
         return self.user_repository.delete_user(email)
 
-    def store_profile_pic(self, pp: ):
-    def update_profile_pic()
+    def Update_profile_picture(self, email:str, image: UploadFile ):
+        user = self.user_repository.get_user_by_email(email)
+        if user is None:
+            raise ValueError("User does not exist.")
+        file_path = f"uploads/profile_pictures/{email}/{image.filename}"
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(image.file, buffer)
+        return self.user_repository.update_profile_picture_path(email, file_path)
+    
+    def delete_profile_picture(self, email:str):
+        user = self.user_repository.get_user_by_email(email)
+        if user is None:
+            raise ValueError("User does not exist.")
+        if not user.image:
+            raise ValueError("This user does not have a profile picture.")
+        if not os.path.exists(user.image):
+            raise ValueError("File not found.")
+        os.remove(user.image)
+        return self.user_repository.update_profile_picture_path(email, None)
+        
+        
+        
+        
+        
+         
+        

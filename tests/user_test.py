@@ -7,7 +7,7 @@ from sqlalchemy.orm import sessionmaker, Session
 from main import app
 from database import get_db
 from models.user import User
-
+from io import BytesIO
 def override_get_db() -> Generator[Session, None, None]:
     try:
         db = TestingSessionLocal()
@@ -94,3 +94,19 @@ def test_delete_existing_user() -> None:
     assert delete_response.status_code == 404  
     assert delete_response.json()["detail"] == "User does not exist."
     
+def test_update_profile_picture() -> None:
+    client_response = client.post(
+        "/users/",
+        json={
+            "email": "delete@example.com",
+            "first_name": "Delete",
+            "last_name": "User",
+            "password": "securepassword",
+        },
+    )
+    assert client_response.status_code == 200
+    new_user = client_response.json()
+    user_email = new_user["email"]
+    fake_image = BytesIO(b"fake image")
+    
+    update_response = client.post(f"/users/")

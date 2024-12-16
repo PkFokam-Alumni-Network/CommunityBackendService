@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status, Depends, HTTPException
+from fastapi import APIRouter, status, Depends, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 from database import get_db
 from schemas import user_schema
@@ -47,4 +47,24 @@ def delete_user(user_email: str, session: Session = Depends(get_db)) -> user_sch
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     return user_schema.UserDeletedResponse(message=f"user with email{user_email}, was successfully deleted")
-    
+  
+@router.post("/users/{user_email}/profile-picture", status_code=200,response_model=user_schema.UpdatedProfilePictureResponse)  
+def Update_profile_picture(user_email: str, image: UploadFile, session: Session = Depends(get_db)) -> user_schema.UpdatedProfilePictureResponse:
+    service = UserService(session=session)
+    try:
+        service.Update_profile_picture(user_email, image)
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=f"Error saving the file: {str(e)}")
+    return user_schema.UpdatedProfilePictureResponse(message="Profile picture was successfully Updated")
+
+@router.delete("/users/{user_email}/profile-picture", status_code=200, response_model=user_schema.DeletedProfilePictureResponse) 
+def delete_profile_picture(user_email: str, session: Session = Depends(get_db)) -> user_schema.DeletedProfilePictureResponse:
+    service = UserService(session=session)
+    try:
+        service.delete_profile_picture(user_email)
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=f"Error deleting the file: {str(e)}")
+    return user_schema.DeletedProfilePictureResponse(message="Profile picture was successfully deleted")
+
+        
+            
