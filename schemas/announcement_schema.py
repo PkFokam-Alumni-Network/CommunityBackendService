@@ -1,5 +1,4 @@
-# schemas/announcement_schema.py
-from pydantic import BaseModel, root_validator, model_validator, ConfigDict
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from datetime import datetime
 
@@ -12,9 +11,7 @@ class AnnouncementCreate(BaseModel):
     announcement_deadline: Optional[datetime] = None
     image: Optional[str] = None
 
-    class Config:
-        orm_mode = True
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AnnouncementUpdate(BaseModel):
@@ -24,14 +21,10 @@ class AnnouncementUpdate(BaseModel):
     announcement_deadline: Optional[datetime] = None
     image: Optional[str] = None
 
-    model_config = ConfigDict(from_attributes=True, orm_mode=True)
-
-
-
+    model_config = ConfigDict(from_attributes=True)
 
 class AnnouncementResponse(BaseModel):
     id: Optional[int] = None
     message: Optional[str] = None
 
-
-    model_config = ConfigDict(from_attributes=True, orm_mode=True)
+    model_config = ConfigDict(from_attributes=True)
