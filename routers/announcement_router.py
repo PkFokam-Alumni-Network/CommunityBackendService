@@ -33,7 +33,7 @@ def get_announcement_by_id(announcement_id: int, session: Session = Depends(get_
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
 
-@router.put("/announcements/{announcement_id}", status_code=status.HTTP_200_OK, response_model=AnnouncementUpdate)
+@router.put("/announcements/{announcement_id}", status_code=status.HTTP_200_OK, response_model=AnnouncementCreate)
 def update_announcement(announcement_id: int, announcement: AnnouncementUpdate,
                         session: Session = Depends(get_db)) -> AnnouncementUpdate:
     service = AnnouncementService(session=session)

@@ -2,12 +2,13 @@ from typing import Generator
 from fastapi.testclient import TestClient
 import pytest
 from models.announcement import Announcement
-from tests.test_fixtures import create_and_teardown_tables,client
+from tests.test_fixtures import create_and_teardown_tables, client
 
 
 @pytest.fixture(scope="function", autouse=True)
 def setup_and_teardown_db() -> Generator[TestClient, None, None]:
     yield from create_and_teardown_tables(Announcement.metadata)
+
 
 def test_create_get_announcement() -> None:
     create_route = "/announcements/"

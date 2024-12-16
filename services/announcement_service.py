@@ -1,6 +1,5 @@
-from typing import Optional, List, Type
+from typing import Optional
 from sqlalchemy.orm import Session
-from models.announcement import Announcement
 from repository.announcement_repository import AnnouncementRepository
 from schemas.announcement_schema import AnnouncementCreate, AnnouncementUpdate, AnnouncementResponse
 
@@ -11,7 +10,6 @@ class AnnouncementService:
         self.repository = AnnouncementRepository(session)
 
     def create_announcement(self, announcement: AnnouncementCreate) -> AnnouncementResponse:
-        # check if announcement already exists
         if self.repository.get_announcement_by_title(announcement.title):
             raise ValueError("Announcement with this title already exists.")
 
@@ -29,8 +27,9 @@ class AnnouncementService:
         return AnnouncementCreate.from_orm(self.repository.get_announcement_by_id(announcement_id))
 
     def update_announcement(self, announcement_id: int, announcement: AnnouncementUpdate) -> Optional[
-        AnnouncementUpdate]:
-        return AnnouncementUpdate.from_orm(self.repository.update_announcement(announcement_id, announcement))
+        AnnouncementCreate]:
+        updated_announcement = self.repository.update_announcement(announcement_id, announcement)
+        return AnnouncementCreate.model_validate(updated_announcement)
 
     def delete_announcement(self, announcement_id: int) -> None:
         announcement = self.repository.delete_announcement(announcement_id)
