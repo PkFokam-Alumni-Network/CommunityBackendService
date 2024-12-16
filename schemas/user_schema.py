@@ -25,8 +25,20 @@ class UserCreatedResponse(BaseModel):
 class UserDeletedResponse(BaseModel):
     message: str
 
+class UserUpdate(BaseModel):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    graduation_year: Optional[int] = None
+    degree: Optional[str] = None
+    major: Optional[str] = None
+    phone: Optional[str] = None
+    current_occupation: Optional[str] = None
+    image: Optional[str] = None
+    linkedin_profile: Optional[str] = None
+    mentor_email: Optional[EmailStr] = None
+
 class UpdatedProfilePictureResponse(BaseModel):
     message: str
 
 class DeletedProfilePictureResponse(BaseModel):
-    message: str 
+    message: str

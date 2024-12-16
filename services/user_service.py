@@ -25,11 +25,18 @@ class UserService(metaclass=SingletonMeta):
         )
         return self.user_repository.add_user(new_user)
     
-    def get_user_details(self, email: str) -> Optional[User]:
+    def update_user(self, email: str, updated_data: dict) -> Optional[User]:
         user = self.user_repository.get_user_by_email(email)
         if not user:
-            raise ValueError("User does not exist")
-        return user
+            raise ValueError(f"User with email {email} not found.")
+
+        for key, value in updated_data.items():
+            if hasattr(user, key):
+                setattr(user, key, value)
+        return self.user_repository.update_user(user)
+
+    def get_user_details(self, email: str) -> Optional[User]:
+        return self.user_repository.get_user_by_email(email)
     
     def remove_user(self, email: str):
         user = self.user_repository.get_user_by_email(email)
@@ -37,15 +44,15 @@ class UserService(metaclass=SingletonMeta):
             raise ValueError("User does not exist.")
         return self.user_repository.delete_user(email)
 
-    def Update_profile_picture(self, email:str, image: UploadFile ):
+    def generate_profile_picture_path(self, email:str, image: UploadFile ):
         user = self.user_repository.get_user_by_email(email)
         if user is None:
             raise ValueError("User does not exist.")
-        file_path = f"uploads/profile_pictures/{email}/{image.filename}"
+        file_path = f"uploads/profile_pictures/{email}/{image.filename}" 
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(image.file, buffer)
-        return self.user_repository.update_profile_picture_path(email, file_path)
+        return file_path
     
     def delete_profile_picture(self, email:str):
         user = self.user_repository.get_user_by_email(email)
@@ -56,7 +63,7 @@ class UserService(metaclass=SingletonMeta):
         if not os.path.exists(user.image):
             raise ValueError("File not found.")
         os.remove(user.image)
-        return self.user_repository.update_profile_picture_path(email, None)
+        
         
         
         

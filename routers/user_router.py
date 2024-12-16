@@ -39,6 +39,18 @@ def get_user(user_email: str, session: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
+@router.put("/users/{user_email}", status_code=status.HTTP_200_OK, response_model=user_schema.UserUpdate)
+def update_user(user_email: str, user_data: user_schema.UserUpdate, session: Session = Depends(get_db)) -> user_schema.UserUpdate:
+    user_service = UserService(session=session)
+    try:
+        updated_user = user_service.update_user(email=user_email, updated_data=user_data.model_dump(exclude_unset=True))
+        return updated_user
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
+
+
 @router.delete("/users/{user_email}", status_code=status.HTTP_200_OK, response_model = user_schema.UserDeletedResponse)
 def delete_user(user_email: str, session: Session = Depends(get_db)) -> user_schema.UserDeletedResponse:
     service = UserService(session=session)
@@ -48,23 +60,23 @@ def delete_user(user_email: str, session: Session = Depends(get_db)) -> user_sch
         raise HTTPException(status_code=404, detail=str(e))
     return user_schema.UserDeletedResponse(message=f"user with email{user_email}, was successfully deleted")
   
-@router.post("/users/{user_email}/profile-picture", status_code=200,response_model=user_schema.UpdatedProfilePictureResponse)  
-def Update_profile_picture(user_email: str, image: UploadFile, session: Session = Depends(get_db)) -> user_schema.UpdatedProfilePictureResponse:
+@router.put("/users/{user_email}/profile-picture", status_code=200,response_model=user_schema.UserUpdate)  
+def Update_profile_picture(user_email: str, image: UploadFile, session: Session = Depends(get_db)) -> user_schema.UserUpdate:
     service = UserService(session=session)
     try:
-        service.Update_profile_picture(user_email, image)
+        image_path = service.generate_profile_picture_path(user_email, image)
     except ValueError as e:
         raise HTTPException(status_code=500, detail=f"Error saving the file: {str(e)}")
-    return user_schema.UpdatedProfilePictureResponse(message="Profile picture was successfully Updated")
+    return service.update_user(user_email, {"image":image_path})
 
-@router.delete("/users/{user_email}/profile-picture", status_code=200, response_model=user_schema.DeletedProfilePictureResponse) 
-def delete_profile_picture(user_email: str, session: Session = Depends(get_db)) -> user_schema.DeletedProfilePictureResponse:
+@router.delete("/users/{user_email}/profile-picture", status_code=200, response_model=user_schema.UserUpdate) 
+def delete_profile_picture(user_email: str, session: Session = Depends(get_db)) -> user_schema.UserUpdate:
     service = UserService(session=session)
     try:
         service.delete_profile_picture(user_email)
     except ValueError as e:
         raise HTTPException(status_code=500, detail=f"Error deleting the file: {str(e)}")
-    return user_schema.DeletedProfilePictureResponse(message="Profile picture was successfully deleted")
+    return service.update_user(user_email, {"image":None})
 
         
             
