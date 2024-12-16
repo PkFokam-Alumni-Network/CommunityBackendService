@@ -36,9 +36,3 @@ class UserUpdate(BaseModel):
     image: Optional[str] = None
     linkedin_profile: Optional[str] = None
     mentor_email: Optional[EmailStr] = None
-
-class UpdatedProfilePictureResponse(BaseModel):
-    message: str
-
-class DeletedProfilePictureResponse(BaseModel):
-    message: str
