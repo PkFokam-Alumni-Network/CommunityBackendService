@@ -1,35 +1,13 @@
-import tempfile
 import pytest
 from typing import Generator
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session
-from main import app
-from database import get_db
 from models.user import User
+from tests.test_fixtures import create_and_teardown_tables, client
 
-def override_get_db() -> Generator[Session, None, None]:
-    try:
-        db = TestingSessionLocal()
-        yield db
-    finally:
-        db.close()
 
-@pytest.fixture(scope="module", autouse=True)
+@pytest.fixture(scope="function", autouse=True)
 def setup_and_teardown_db() -> Generator[TestClient, None, None]:
-    User.metadata.create_all(bind=engine)
-    yield client
-    app.dependency_overrides.clear()
-    User.metadata.drop_all(bind=engine)  
-    engine.dispose()
-     
-temp_db_file = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
-SQLALCHEMY_TEST_DATABASE_URL = f"sqlite:///{temp_db_file.name}"
-engine = create_engine(SQLALCHEMY_TEST_DATABASE_URL)
-
-app.dependency_overrides[get_db] = override_get_db
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-client = TestClient(app)
+    yield from create_and_teardown_tables(User.metadata)
 
 def test_create_get_user() -> None:
     response = client.post(
@@ -62,6 +40,16 @@ def test_get_non_existing_user() -> None:
     assert response.json()["detail"] == "User not found"
 
 def test_create_user_duplicate() -> None:
+    response = client.post(
+        "/users/",
+        json={
+            "email": "test_email@example.com",
+            "first_name": "Duplicate",
+            "last_name": "User",
+            "password": "securepassword",
+        },
+    )
+    assert response.status_code == 201
     response = client.post(
         "/users/",
         json={
