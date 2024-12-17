@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List, Type
 from models.user import User
 from repository.user_repository import UserRepository
 from utils.singleton_meta import SingletonMeta
@@ -22,28 +22,55 @@ class UserService(metaclass=SingletonMeta):
         )
         return self.user_repository.add_user(new_user)
     
+    def update_user(self, email: str, updated_data: dict) -> Optional[User]:
+        user = self.user_repository.get_user_by_email(email)
+        if not user:
+            raise ValueError(f"User with email {email} not found.")
+
+        for key, value in updated_data.items():
+            if hasattr(user, key):
+                setattr(user, key, value)
+        return self.user_repository.update_user(user)
+
     def get_user_details(self, email: str) -> Optional[User]:
         return self.user_repository.get_user_by_email(email)
+
+    def get_users(self) -> list[Type[User]]:
+        return self.user_repository.get_users()
 
     def remove_user(self, email: str):
         user = self.user_repository.get_user_by_email(email)
         if user is None:
             raise ValueError("User does not exist.")
-        self.user_repository.unassign_mentor(email)
+        mentees = self.get_mentees(email)
+        if not mentees:
+            return self.user_repository.delete_user(email)
+        for mentee in mentees:
+            self.unassign_mentor(mentee.email)
         return self.user_repository.delete_user(email)
     
     def assign_mentor(self, mentor_email: str, mentee_email: str):
         mentor = self.user_repository.get_user_by_email(mentor_email)
-        if mentor is None:
-            raise ValueError("Cannot assign mentor with email", {mentor_email}, "because user does not exist !!!")
         mentee = self.user_repository.get_user_by_email(mentee_email)
-        if mentee.mentor_email:
-            raise ValueError("Mentee already has mentor !!!")
+        if mentor is None:
+            raise ValueError(f"Cannot assign mentor with email, {mentor_email} because user does not exist !!!")
         if mentee is None:
-            raise ValueError("User does not exist !!!")
+            raise ValueError(f"Cannot assign mentee with email, {mentee_email}because user does not exist !!!")
         if mentor == mentee:
             raise ValueError("A mentor cannot be its own mentee !!!")
-        return self.user_repository.assign_mentor(mentor_email, mentee_email)
+        return self.update_user(mentee_email, {"mentor_email": mentor_email})
+    
+    def get_mentees(self, mentor_email: str) -> List[type[User]]:
+        return self.user_repository.get_all_mentees(mentor_email)
+    
+    def unassign_mentor(self, mentee_email: str):
+        mentee = self.user_repository.get_user_by_email(mentee_email)
+        if not mentee.mentor_email:
+            return 
+        return self.update_user(mentee_email, {"mentor_email": None})
+    
+    
+            
         
 
     
