@@ -8,7 +8,6 @@ from typing import List
 
 router = APIRouter()
 
-
 @router.post("/users/", status_code=status.HTTP_201_CREATED, response_model=user_schema.UserCreatedResponse)
 def create_user(user: user_schema.UserCreate, session: Session = Depends(get_db)) -> user_schema.UserCreatedResponse:
     service = UserService(session=session)
@@ -32,7 +31,6 @@ def create_user(user: user_schema.UserCreate, session: Session = Depends(get_db)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-
 @router.get("/users/{user_email}", status_code=status.HTTP_200_OK, response_model=user_schema.UserCreatedResponse)
 def get_user(user_email: str, session: Session = Depends(get_db)) -> user_schema.UserCreatedResponse:
     service = UserService(session=session)
@@ -41,13 +39,11 @@ def get_user(user_email: str, session: Session = Depends(get_db)) -> user_schema
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
-
 @router.get("/users/", status_code=status.HTTP_200_OK, response_model= list[user_schema.UserCreatedResponse])
 def get_user(session: Session = Depends(get_db)):
     service = UserService(session=session)
     users = service.get_users()
     return users
-
 
 @router.put("/users/{user_email}", status_code=status.HTTP_200_OK, response_model=user_schema.UserUpdate)
 def update_user(user_email: str, user_data: user_schema.UserUpdate,
@@ -61,7 +57,6 @@ def update_user(user_email: str, user_data: user_schema.UserUpdate,
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
 
-
 @router.delete("/users/{user_email}", status_code=status.HTTP_200_OK, response_model=user_schema.UserDeletedResponse)
 def delete_user(user_email: str, session: Session = Depends(get_db)) -> user_schema.UserDeletedResponse:
     service = UserService(session=session)
@@ -71,20 +66,8 @@ def delete_user(user_email: str, session: Session = Depends(get_db)) -> user_sch
         raise HTTPException(status_code=404, detail=str(e))
     return user_schema.UserDeletedResponse(message=f"user with email{user_email}, was successfully deleted")
 
-@router.put("/users/", status_code=status.HTTP_200_OK, response_model=user_schema.MentorAssignedResponse)
-def assign_mentor(mentor_email: str, mentee_email: str, session: Session = Depends(get_db)) -> user_schema.MentorAssignedResponse:
-    service = UserService(session=session)
-    try:
-        service.assign_mentor(mentor_email, mentee_email)
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    return user_schema.MentorAssignedResponse(message=f"mentee with email {mentee_email}, was assigned mentor with email {mentor_email}.")
-
-@router.get("/users/mentees", status_code=status.HTTP_200_OK, response_model= list[user_schema.UserCreatedResponse])
+@router.get("/users/{user_email}/mentees", status_code=status.HTTP_200_OK, response_model= list[user_schema.UserCreatedResponse])
 def get_mentees(mentor_email: str, session: Session = Depends(get_db)) -> user_schema.UserCreatedResponse:
     service = UserService(session=session)
     mentees = service.get_mentees(mentor_email)
     return mentees
-
-    
-    

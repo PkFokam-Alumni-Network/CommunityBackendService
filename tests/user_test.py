@@ -4,11 +4,9 @@ from fastapi.testclient import TestClient
 from models.user import User
 from tests.test_fixtures import create_and_teardown_tables, client
 
-
 @pytest.fixture(scope="function", autouse=True)
 def setup_and_teardown_db() -> Generator[TestClient, None, None]:
     yield from create_and_teardown_tables(User.metadata)
-
 
 def test_get_users() -> None:
     users_data = [
@@ -159,14 +157,12 @@ def test_assign_mentor() -> None:
     assert mentee_response.status_code == 201
     mentee_data = mentee_response.json()
     mentee_email = mentee_data["email"]
-    assign_mentor_response = client.put(f"/users/",
-        params={
-            "mentor_email": mentor_email,
-            "mentee_email": mentee_email
+    assign_mentor_response = client.put(f"/users/{mentee_email}",
+        json={
+            "mentor_email": mentor_email
         }            
     ) 
     assert assign_mentor_response.status_code == 200
-    assert "mentee with email" in assign_mentor_response.json()["message"]
     mentee_updated = client.get(f"/users/{mentee_email}")
     assert mentee_updated.status_code == 200
     mentee_updated_data = mentee_updated.json()

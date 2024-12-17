@@ -4,7 +4,6 @@ from repository.user_repository import UserRepository
 from utils.singleton_meta import SingletonMeta
 from sqlalchemy.orm import Session
 
-
 class UserService(metaclass=SingletonMeta):
     def __init__(self, session: Session):
         self.user_repository = UserRepository(session=session)
@@ -26,7 +25,14 @@ class UserService(metaclass=SingletonMeta):
         user = self.user_repository.get_user_by_email(email)
         if not user:
             raise ValueError(f"User with email {email} not found.")
-
+        if "mentor_email" in updated_data:
+            mentor_email = updated_data["mentor_email"]
+            mentor = self.user_repository.get_user_by_email(mentor_email)
+            if not mentor:
+                raise ValueError(f"Cannot assign mentor with email, {mentor_email} because user does not exist ")
+            if mentor.email == email:
+                raise ValueError("A mentor cannot be its own mentee!")
+            user.mentor_email = mentor_email
         for key, value in updated_data.items():
             if hasattr(user, key):
                 setattr(user, key, value)
@@ -49,17 +55,6 @@ class UserService(metaclass=SingletonMeta):
             self.unassign_mentor(mentee.email)
         return self.user_repository.delete_user(email)
     
-    def assign_mentor(self, mentor_email: str, mentee_email: str):
-        mentor = self.user_repository.get_user_by_email(mentor_email)
-        mentee = self.user_repository.get_user_by_email(mentee_email)
-        if mentor is None:
-            raise ValueError(f"Cannot assign mentor with email, {mentor_email} because user does not exist !!!")
-        if mentee is None:
-            raise ValueError(f"Cannot assign mentee with email, {mentee_email}because user does not exist !!!")
-        if mentor == mentee:
-            raise ValueError("A mentor cannot be its own mentee !!!")
-        return self.update_user(mentee_email, {"mentor_email": mentor_email})
-    
     def get_mentees(self, mentor_email: str) -> List[type[User]]:
         return self.user_repository.get_all_mentees(mentor_email)
     
@@ -68,10 +63,3 @@ class UserService(metaclass=SingletonMeta):
         if not mentee.mentor_email:
             return 
         return self.update_user(mentee_email, {"mentor_email": None})
-    
-    
-            
-        
-
-    
-    
