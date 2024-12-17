@@ -25,8 +25,15 @@ class UserCreatedResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+    role: str = 'user'
+
+
 class UserDeletedResponse(BaseModel):
     message: str
+
 
 class UserUpdate(BaseModel):
     first_name: Optional[str] = None

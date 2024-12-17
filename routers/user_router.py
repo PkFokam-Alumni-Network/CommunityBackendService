@@ -5,12 +5,21 @@ from schemas import user_schema
 from services.user_service import UserService
 from utils.func_utils import get_password_hash
 
-
 router = APIRouter()
+
+
+@router.post("/login/", status_code=status.HTTP_200_OK)
+def login(user: user_schema.UserLogin, session: Session = Depends(get_db)):
+    service = UserService(session=session)
+    try:
+        token = service.login(user.email, user.password)
+        return {"access_token": token, "token_type": "bearer"}
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+
 
 @router.post("/users/", status_code=status.HTTP_201_CREATED, response_model=user_schema.UserCreatedResponse)
 def create_user(user: user_schema.UserCreate, session: Session = Depends(get_db)) -> user_schema.UserCreatedResponse:
-
     service = UserService(session=session)
     hashed_password = get_password_hash(user.password)
     try:
@@ -31,6 +40,7 @@ def create_user(user: user_schema.UserCreate, session: Session = Depends(get_db)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+
 @router.get("/users/{user_email}", status_code=status.HTTP_200_OK, response_model=user_schema.UserCreatedResponse)
 def get_user(user_email: str, session: Session = Depends(get_db)):
     service = UserService(session=session)
@@ -39,8 +49,10 @@ def get_user(user_email: str, session: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
+
 @router.put("/users/{user_email}", status_code=status.HTTP_200_OK, response_model=user_schema.UserUpdate)
-def update_user(user_email: str, user_data: user_schema.UserUpdate, session: Session = Depends(get_db)) -> user_schema.UserUpdate:
+def update_user(user_email: str, user_data: user_schema.UserUpdate,
+                session: Session = Depends(get_db)) -> user_schema.UserUpdate:
     user_service = UserService(session=session)
     try:
         updated_user = user_service.update_user(email=user_email, updated_data=user_data.model_dump(exclude_unset=True))
@@ -51,7 +63,7 @@ def update_user(user_email: str, user_data: user_schema.UserUpdate, session: Ses
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
 
 
-@router.delete("/users/{user_email}", status_code=status.HTTP_200_OK, response_model = user_schema.UserDeletedResponse)
+@router.delete("/users/{user_email}", status_code=status.HTTP_200_OK, response_model=user_schema.UserDeletedResponse)
 def delete_user(user_email: str, session: Session = Depends(get_db)) -> user_schema.UserDeletedResponse:
     service = UserService(session=session)
     try:

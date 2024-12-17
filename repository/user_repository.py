@@ -17,15 +17,12 @@ class UserRepository(metaclass=SingletonMeta):
     def get_user_by_email(self, email: str) -> Optional[User]:
         return self.db.query(User).filter(User.email == email).first()
 
-<<<<<<< HEAD
-=======
     def update_user(self, user: User) -> Optional[User]:
         self.db.merge(user)
         self.db.commit()
         self.db.refresh(user)
         return user
-      
->>>>>>> 27214e2d18cbe41a6430a4345e6d356bf2c6f46f
+
     def delete_user(self, email: str) -> None:
         user = self.get_user_by_email(email)
         if user:

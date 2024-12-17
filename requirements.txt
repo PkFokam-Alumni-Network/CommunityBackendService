@@ -46,3 +46,5 @@ ujson==5.10.0
 uvicorn==0.32.1
 watchfiles==1.0.0
 websockets==14.1
+
+PyJWT~=2.10.1
