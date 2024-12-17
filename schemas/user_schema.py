@@ -26,9 +26,6 @@ class UserCreatedResponse(BaseModel):
 class UserDeletedResponse(BaseModel):
     message: str
     
-class MentorAssignedResponse(BaseModel):
-    message: str
-    
 class UserUpdate(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
