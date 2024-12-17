@@ -11,7 +11,7 @@ def setup_and_teardown_db() -> Generator[TestClient, None, None]:
     yield from create_and_teardown_tables(User.metadata)
 
 
-def test_login() -> None:
+def test_correct_login() -> None:
     user_data = {
         "email": "login_test@example.com",
         "first_name": "Login",
