@@ -9,6 +9,56 @@ from tests.test_fixtures import create_and_teardown_tables, client
 def setup_and_teardown_db() -> Generator[TestClient, None, None]:
     yield from create_and_teardown_tables(User.metadata)
 
+
+def test_get_users() -> None:
+    users_data = [
+        {
+            "email": "test_email1@example.com",
+            "first_name": "Test1",
+            "last_name": "User1",
+            "graduation_year": 2023,
+            "degree": "B.Sc.",
+            "major": "Computer Science",
+            "phone": "1234567890",
+            "password": "securepassword",
+            "current_occupation": "Engineer",
+            "image": "test_image_url1",
+            "linkedin_profile": "https://linkedin.com/in/test1"
+        },
+        {
+            "email": "test_email2@example.com",
+            "first_name": "Test2",
+            "last_name": "User2",
+            "graduation_year": 2024,
+            "degree": "M.Sc.",
+            "major": "Data Science",
+            "phone": "0987654321",
+            "password": "anothersecurepassword",
+            "current_occupation": "Data Analyst",
+            "image": "test_image_url2",
+            "linkedin_profile": "https://linkedin.com/in/test2"
+        }
+    ]
+
+    for user in users_data:
+        response = client.post("/users/", json=user)
+        assert response.status_code == 201
+        assert response.json()["email"] == user["email"]
+
+    response = client.get("/users/")
+    assert response.status_code == 200
+
+
+    response_data = response.json()
+    assert isinstance(response_data, list)
+    assert len(response_data) == len(users_data)
+
+
+    for i, user in enumerate(users_data):
+        assert response_data[i]["email"] == user["email"]
+        assert response_data[i]["first_name"] == user["first_name"]
+        assert response_data[i]["last_name"] == user["last_name"]
+
 def test_create_get_user() -> None:
     response = client.post(
         "/users/",
