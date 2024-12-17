@@ -106,16 +106,15 @@ def test_get_users() -> None:
     response = client.get("/users/")
     assert response.status_code == 200
 
-
     response_data = response.json()
     assert isinstance(response_data, list)
     assert len(response_data) == len(users_data)
-
 
     for i, user in enumerate(users_data):
         assert response_data[i]["email"] == user["email"]
         assert response_data[i]["first_name"] == user["first_name"]
         assert response_data[i]["last_name"] == user["last_name"]
+
 
 def test_create_get_user() -> None:
     response = client.post(
