@@ -4,6 +4,7 @@ from database import get_db
 from schemas import user_schema
 from services.user_service import UserService
 from utils.func_utils import get_password_hash
+from typing import List
 
 router = APIRouter()
 
@@ -16,6 +17,7 @@ def login(user: user_schema.UserLogin, session: Session = Depends(get_db)):
         return {"access_token": token, "token_type": "bearer"}
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+
 
 
 @router.post("/users/", status_code=status.HTTP_201_CREATED, response_model=user_schema.UserCreatedResponse)
@@ -48,6 +50,14 @@ def get_user(user_email: str, session: Session = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
+
+
+=======
+@router.get("/users/", status_code=status.HTTP_200_OK, response_model= list[user_schema.UserCreatedResponse])
+def get_user(session: Session = Depends(get_db)):
+    service = UserService(session=session)
+    users = service.get_users()
+    return users
 
 
 @router.put("/users/{user_email}", status_code=status.HTTP_200_OK, response_model=user_schema.UserUpdate)
