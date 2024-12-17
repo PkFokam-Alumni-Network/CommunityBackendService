@@ -17,7 +17,7 @@ def check_password(password: str, hashed: str) -> bool:
 
 
 load_dotenv()
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = os.getenv('SECRET_KEY', 'DEFAULT_KEY')
 
 
 def create_jwt(user_email: str) -> str:
