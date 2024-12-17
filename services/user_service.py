@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List, Type
 from models.user import User
 from repository.user_repository import UserRepository
 from utils.singleton_meta import SingletonMeta
@@ -38,6 +38,9 @@ class UserService(metaclass=SingletonMeta):
     def get_user_details(self, email: str) -> Optional[User]:
         return self.user_repository.get_user_by_email(email)
     
+    def get_users(self) -> list[Type[User]]:
+        return self.user_repository.get_users()
+
     def remove_user(self, email: str):
         user = self.user_repository.get_user_by_email(email)
         if user is None:
