@@ -52,7 +52,6 @@ def get_user(user_email: str, session: Session = Depends(get_db)):
     return user
 
 
-=======
 @router.get("/users/", status_code=status.HTTP_200_OK, response_model= list[user_schema.UserCreatedResponse])
 def get_user(session: Session = Depends(get_db)):
     service = UserService(session=session)
