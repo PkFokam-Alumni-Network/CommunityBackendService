@@ -1,5 +1,7 @@
-from sqlalchemy import Column, String, Integer
+from sqlalchemy import Column, String, Integer,ForeignKey, Enum as SQLEnum
+from sqlalchemy.orm import relationship
 from database import Base
+from enum import Enum as PyEnum
 
 class User(Base):
     __tablename__ = "users"
@@ -14,3 +16,6 @@ class User(Base):
     current_occupation = Column(String)
     image = Column(String, nullable=True)
     linkedin_profile = Column(String)
+    mentor_email = Column(String, ForeignKey("users.email"), nullable=True)
+    mentor = relationship("User", remote_side=[email], backref="mentees", foreign_keys=[mentor_email])
+    

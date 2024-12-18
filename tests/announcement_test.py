@@ -4,11 +4,9 @@ import pytest
 from models.announcement import Announcement
 from tests.test_fixtures import create_and_teardown_tables, client
 
-
 @pytest.fixture(scope="function", autouse=True)
 def setup_and_teardown_db() -> Generator[TestClient, None, None]:
     yield from create_and_teardown_tables(Announcement.metadata)
-
 
 def test_create_get_announcement() -> None:
     create_route = "/announcements/"
@@ -31,11 +29,9 @@ def test_create_get_announcement() -> None:
     assert response.json()["id"] == announcement_id
     assert response.json()["title"] == "Test Announcement"
 
-
 def test_get_non_existing_announcement() -> None:
     response = client.get("/announcements/999")
     assert response.status_code == 404
-
 
 def test_create_announcement_duplicate() -> None:
     response = client.post(
@@ -61,7 +57,6 @@ def test_create_announcement_duplicate() -> None:
     )
     assert response.status_code == 400
     assert response.json()["detail"] == "Announcement with this title already exists."
-
 
 def test_create_announcement_date_before_deadline() -> None:
     response = client.post(

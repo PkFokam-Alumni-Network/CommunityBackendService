@@ -2,20 +2,11 @@ import pytest
 from typing import Generator
 from fastapi.testclient import TestClient
 from models.user import User
-from io import BytesIO
-def override_get_db() -> Generator[Session, None, None]:
-    try:
-        db = TestingSessionLocal()
-        yield db
-    finally:
-        db.close()
 from tests.test_fixtures import create_and_teardown_tables, client
-
-
+from io import BytesIO
 @pytest.fixture(scope="function", autouse=True)
 def setup_and_teardown_db() -> Generator[TestClient, None, None]:
     yield from create_and_teardown_tables(User.metadata)
-
 
 def test_get_users() -> None:
     users_data = [
@@ -73,6 +64,7 @@ def test_create_get_user() -> None:
             "email": "test_email@example.com",
             "first_name": "Test",
             "last_name": "User",
+            "role": "None",
             "graduation_year": 2023,
             "degree": "B.Sc.",
             "major": "Computer Science",
@@ -80,7 +72,8 @@ def test_create_get_user() -> None:
             "password": "securepassword",
             "current_occupation": "Engineer",
             "image": "test_image_url",
-            "linkedin_profile": "https://linkedin.com/in/test"
+            "linkedin_profile": "https://linkedin.com/in/test",
+            "mentor_email": "test_email1@example.com",
         },
     )
     assert response.status_code == 201
@@ -138,6 +131,42 @@ def test_delete_existing_user() -> None:
     delete_response = client.delete(delete_route)
     assert delete_response.status_code == 404  
     assert delete_response.json()["detail"] == "User does not exist."
+
+def test_assign_mentor() -> None:
+    mentor_response = client.post(
+        "/users/",
+        json={
+            "email": "mentor@example.com",
+            "first_name": "Mentor",
+            "last_name": "User",
+            "password": "securepassword",
+        },
+    )
+    assert mentor_response.status_code == 201
+    mentor_data = mentor_response.json()
+    mentor_email = mentor_data["email"]
+    mentee_response = client.post(
+        "/users/",
+        json={
+            "email": "mentee@example.com",
+            "first_name": "Mentee",
+            "last_name": "User",
+            "password": "securepassword",
+        },
+    )
+    assert mentee_response.status_code == 201
+    mentee_data = mentee_response.json()
+    mentee_email = mentee_data["email"]
+    assign_mentor_response = client.put(f"/users/{mentee_email}",
+        json={
+            "mentor_email": mentor_email
+        }            
+    ) 
+    assert assign_mentor_response.status_code == 200
+    mentee_updated = client.get(f"/users/{mentee_email}")
+    assert mentee_updated.status_code == 200
+    mentee_updated_data = mentee_updated.json()
+    assert mentee_updated_data["mentor_email"] == mentor_email
     
 def test_update_user():
     user_data = {
@@ -211,5 +240,6 @@ def test_delete_profile_picture() -> None:
     assert delete_response.status_code == 200
     update_user = delete_response.json()
     assert update_user["image"] == None
+
         
 

@@ -6,7 +6,6 @@ from sqlalchemy.orm import Session
 from fastapi import UploadFile
 import os, shutil
 
-
 class UserService(metaclass=SingletonMeta):
     def __init__(self, session: Session):
         self.user_repository = UserRepository(session=session)
@@ -15,7 +14,6 @@ class UserService(metaclass=SingletonMeta):
         user = self.user_repository.get_user_by_email(email)
         if user:
             raise ValueError("User with this email already exists.")
-
         new_user = User(
             email=email,
             first_name=first_name,
@@ -29,7 +27,14 @@ class UserService(metaclass=SingletonMeta):
         user = self.user_repository.get_user_by_email(email)
         if not user:
             raise ValueError(f"User with email {email} not found.")
-
+        if "mentor_email" in updated_data:
+            mentor_email = updated_data["mentor_email"]
+            mentor = self.user_repository.get_user_by_email(mentor_email)
+            if not mentor:
+                raise ValueError(f"Cannot assign mentor with email, {mentor_email} because user does not exist ")
+            if mentor.email == email:
+                raise ValueError("A mentor cannot be its own mentee!")
+            user.mentor_email = mentor_email
         for key, value in updated_data.items():
             if hasattr(user, key):
                 setattr(user, key, value)
