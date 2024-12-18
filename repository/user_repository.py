@@ -3,7 +3,6 @@ from sqlalchemy.orm import Session
 from models.user import User
 from utils.singleton_meta import SingletonMeta
 
-
 class UserRepository(metaclass=SingletonMeta):
     def __init__(self, session):
         self.db: Session = session
@@ -31,3 +30,7 @@ class UserRepository(metaclass=SingletonMeta):
         if user:
             self.db.delete(user)
             self.db.commit()
+    
+    def get_all_mentees(self, mentor_email: str) -> list[Type[User]]:
+        return self.db.query(User).filter(User.mentor_email == mentor_email).all()
+        
