@@ -1,13 +1,23 @@
-import tempfile
+import os
 from typing import Generator
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from fastapi.testclient import TestClient
 from main import app
 from database import get_db
+import os
+from dotenv import load_dotenv
 
-temp_db_file = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
-SQLALCHEMY_TEST_DATABASE_URL = f"sqlite:///{temp_db_file.name}"
+
+
+load_dotenv(dotenv_path="repository/.database_url")
+
+
+SQLALCHEMY_TEST_DATABASE_URL = os.getenv("SQLALCHEMY_TEST_DATABASE_URL")
+
+if not SQLALCHEMY_TEST_DATABASE_URL:
+    raise ValueError("SQLALCHEMY_TEST_DATABASE_URL   environment variable is not set!")
+
 engine = create_engine(SQLALCHEMY_TEST_DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 client = TestClient(app)
