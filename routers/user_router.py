@@ -9,6 +9,7 @@ from typing import List
 router = APIRouter()
 
 
+
 @router.post("/login/", status_code=status.HTTP_200_OK)
 def login(user: user_schema.UserLogin, session: Session = Depends(get_db)):
     service = UserService(session=session)
@@ -17,6 +18,7 @@ def login(user: user_schema.UserLogin, session: Session = Depends(get_db)):
         return {"access_token": token, "token_type": "bearer"}
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+
 
 
 
@@ -37,27 +39,25 @@ def create_user(user: user_schema.UserCreate, session: Session = Depends(get_db)
             current_occupation=user.current_occupation,
             image=user.image,
             linkedin_profile=user.linkedin_profile,
+            mentor_email=user.mentor_email,
         )
         return new_user
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-
 @router.get("/users/{user_email}", status_code=status.HTTP_200_OK, response_model=user_schema.UserCreatedResponse)
-def get_user(user_email: str, session: Session = Depends(get_db)):
+def get_user(user_email: str, session: Session = Depends(get_db)) -> user_schema.UserCreatedResponse:
     service = UserService(session=session)
     user = service.get_user_details(user_email)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
-
 @router.get("/users/", status_code=status.HTTP_200_OK, response_model= list[user_schema.UserCreatedResponse])
 def get_user(session: Session = Depends(get_db)):
     service = UserService(session=session)
     users = service.get_users()
     return users
-
 
 @router.put("/users/{user_email}", status_code=status.HTTP_200_OK, response_model=user_schema.UserUpdate)
 def update_user(user_email: str, user_data: user_schema.UserUpdate,
@@ -71,7 +71,6 @@ def update_user(user_email: str, user_data: user_schema.UserUpdate,
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
 
-
 @router.delete("/users/{user_email}", status_code=status.HTTP_200_OK, response_model=user_schema.UserDeletedResponse)
 def delete_user(user_email: str, session: Session = Depends(get_db)) -> user_schema.UserDeletedResponse:
     service = UserService(session=session)
@@ -80,3 +79,9 @@ def delete_user(user_email: str, session: Session = Depends(get_db)) -> user_sch
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     return user_schema.UserDeletedResponse(message=f"user with email{user_email}, was successfully deleted")
+
+@router.get("/users/{user_email}/mentees", status_code=status.HTTP_200_OK, response_model= list[user_schema.UserCreatedResponse])
+def get_mentees(mentor_email: str, session: Session = Depends(get_db)) -> user_schema.UserCreatedResponse:
+    service = UserService(session=session)
+    mentees = service.get_mentees(mentor_email)
+    return mentees
