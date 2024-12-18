@@ -16,14 +16,7 @@ def test_correct_login() -> None:
         "email": "login_test@example.com",
         "first_name": "Login",
         "last_name": "User",
-        "password": "testpassword",
-        "graduation_year": 2023,
-        "degree": "B.Sc.",
-        "major": "Computer Science",
-        "phone": "1234567890",
-        "current_occupation": "Engineer",
-        "image": "test_image_url",
-        "linkedin_profile": "https://linkedin.com/in/test"
+        "password": "testpassword"
     }
     response = client.post("/users/", json=user_data)
     assert response.status_code == 201
@@ -47,14 +40,7 @@ def test_bad_login() -> None:
         "email": "bad_login_test@example.com",
         "first_name": "BadLogin",
         "last_name": "User",
-        "password": "correctpassword",
-        "graduation_year": 2023,
-        "degree": "B.Sc.",
-        "major": "Computer Science",
-        "phone": "1234567890",
-        "current_occupation": "Engineer",
-        "image": "test_image_url",
-        "linkedin_profile": "https://linkedin.com/in/test"
+        "password": "correctpassword"
     }
     response = client.post("/users/", json=user_data)
     assert response.status_code == 201
