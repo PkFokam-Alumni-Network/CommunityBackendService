@@ -139,6 +139,25 @@ def test_delete_existing_user() -> None:
     assert delete_response.status_code == 404  
     assert delete_response.json()["detail"] == "User does not exist."
     
+def test_update_user():
+    user_data = {
+        "email": "testuser@example.com",
+        "first_name": "John",
+        "last_name": "Doe",
+        "password": "securepassword123"
+    }
+    response = client.post("/users/", json=user_data)
+    assert response.status_code == 201
+    user = response.json()
+
+    update_data = {"first_name": "UpdatedJohn"}
+    email = user['email']
+    response = client.put(f"/users/{email}", json=update_data)
+    assert response.status_code == 200
+    updated_user = response.json()
+    assert updated_user["first_name"] == "UpdatedJohn"
+    assert updated_user["last_name"] == "Doe"
+
 def test_update_profile_picture() -> None:
     client_response = client.post(
         "/users/",
@@ -164,25 +183,6 @@ def test_update_profile_picture() -> None:
     expected_path = f"uploads/profile_pictures/{user_email}/profile_pic.jpg"
     assert user_image_path == expected_path
     
-def test_update_user():
-    user_data = {
-        "email": "testuser@example.com",
-        "first_name": "John",
-        "last_name": "Doe",
-        "password": "securepassword123"
-    }
-    response = client.post("/users/", json=user_data)
-    assert response.status_code == 201
-    user = response.json()
-
-    update_data = {"first_name": "UpdatedJohn"}
-    email = user['email']
-    response = client.put(f"/users/{email}", json=update_data)
-    assert response.status_code == 200
-    updated_user = response.json()
-    assert updated_user["first_name"] == "UpdatedJohn"
-    assert updated_user["last_name"] == "Doe"
-
 def test_delete_profile_picture() -> None:
     client_response = client.post(
         "/users/",
