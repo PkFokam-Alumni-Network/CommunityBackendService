@@ -1,0 +1,2 @@
+DATABASE_URL=sqlite:///./test.db
+SQLALCHEMY_TEST_DATABASE_URL=sqlite:///./test.db
