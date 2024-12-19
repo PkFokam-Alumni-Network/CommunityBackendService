@@ -107,6 +107,7 @@ def test_get_users() -> None:
         assert response_data[i]["last_name"] == user["last_name"]
 
 
+
 def test_create_get_user() -> None:
     response = client.post(
         "/users/",
@@ -129,16 +130,19 @@ def test_create_get_user() -> None:
     assert response.status_code == 201
     email: str = response.json()["email"]
     assert email == "test_email@example.com"
+    assert email == "test_email@example.com"
 
     response = client.get(f"/users/{email}")
     assert response.status_code == 200
     assert response.json()["email"] == email
 
 
+
 def test_get_non_existing_user() -> None:
     response = client.get("/users/fake_email")
     assert response.status_code == 404
     assert response.json()["detail"] == "User not found"
+
 
 
 def test_create_user_duplicate() -> None:
@@ -165,6 +169,7 @@ def test_create_user_duplicate() -> None:
     assert response.json()["detail"] == "User with this email already exists."
 
 
+
 def test_delete_existing_user() -> None:
     create_response = client.post(
         "/users/",
@@ -176,14 +181,19 @@ def test_delete_existing_user() -> None:
         },
     )
     assert create_response.status_code == 201
+    assert create_response.status_code == 201
     new_user = create_response.json()
     user_email = new_user["email"]
     delete_route = f"/users/{user_email}"
+    delete_route = f"/users/{user_email}"
     delete_response = client.delete(delete_route)
+    assert delete_response.status_code == 200
     assert delete_response.status_code == 200
     delete_response = client.delete(delete_route)
     assert delete_response.status_code == 404
+    assert delete_response.status_code == 404
     assert delete_response.json()["detail"] == "User does not exist."
+
 
 
 def test_assign_mentor() -> None:
@@ -221,6 +231,8 @@ def test_assign_mentor() -> None:
     assert mentee_updated.status_code == 200
     mentee_updated_data = mentee_updated.json()
     assert mentee_updated_data["mentor_email"] == mentor_email
+    
+
     
 
 def test_update_user():
