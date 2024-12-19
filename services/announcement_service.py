@@ -13,18 +13,19 @@ class AnnouncementService:
         if self.repository.get_announcement_by_title(announcement.title):
             raise ValueError("Announcement with this title already exists.")
 
-        # Check if announcement date is before announcement deadline
         if announcement.announcement_date >= announcement.announcement_deadline:
             raise ValueError("Announcement date must be before announcement deadline.")
 
-        return AnnouncementResponse.model_validate(self.repository.add_announcement(announcement))
+        db_announcement = self.repository.add_announcement(announcement)
+        return AnnouncementResponse.model_validate(db_announcement)
 
     def get_all_announcements(self) -> list[AnnouncementCreate]:
         announcements = self.repository.get_announcements()
         return [AnnouncementCreate.model_validate(announcement) for announcement in announcements]
 
     def get_announcement_by_id(self, announcement_id: int) -> Optional[AnnouncementCreate]:
-        return AnnouncementCreate.model_validate(self.repository.get_announcement_by_id(announcement_id))
+        db_announcement = self.repository.get_announcement_by_id(announcement_id)
+        return AnnouncementCreate.model_validate(db_announcement)
 
     def update_announcement(self, announcement_id: int, announcement: AnnouncementUpdate) -> Optional[
         AnnouncementCreate]:

@@ -1,6 +1,7 @@
 from typing import Optional, Type
 from models.user import User
 from repository.user_repository import UserRepository
+from utils.func_utils import check_password, create_jwt
 from utils.singleton_meta import SingletonMeta
 from sqlalchemy.orm import Session
 from fastapi import UploadFile
@@ -10,6 +11,12 @@ import os, shutil, hashlib
 class UserService(metaclass=SingletonMeta):
     def __init__(self, session: Session):
         self.user_repository = UserRepository(session=session)
+
+    def login(self, email: str, password: str) -> str:
+        user = self.user_repository.get_user_by_email(email)
+        if not user or not check_password(password, user.password):
+            raise ValueError("Invalid email or password")
+        return create_jwt(user.email)
 
     def register_user(self, email: str, first_name: str, last_name: str, password: str, **kwargs) -> User:
         user = self.user_repository.get_user_by_email(email)
