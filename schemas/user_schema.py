@@ -28,7 +28,6 @@ class UserCreatedResponse(BaseModel):
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
-    role: str = 'user'
 
 
 class UserDeletedResponse(BaseModel):
