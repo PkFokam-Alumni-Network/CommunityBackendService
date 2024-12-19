@@ -4,9 +4,13 @@ from fastapi.testclient import TestClient
 from models.user import User
 from tests.test_fixtures import create_and_teardown_tables, client
 from io import BytesIO
+import os, hashlib
 @pytest.fixture(scope="function", autouse=True)
 def setup_and_teardown_db() -> Generator[TestClient, None, None]:
     yield from create_and_teardown_tables(User.metadata)
+    
+def hash_email(email: str) -> str:
+    return hashlib.sha256(email.encode('utf-8')).hexdigest()
 
 def test_get_users() -> None:
     users_data = [
@@ -160,7 +164,7 @@ def test_assign_mentor() -> None:
     assign_mentor_response = client.put(f"/users/{mentee_email}",
         json={
             "mentor_email": mentor_email
-        }            
+        },     
     ) 
     assert assign_mentor_response.status_code == 200
     mentee_updated = client.get(f"/users/{mentee_email}")
@@ -206,10 +210,13 @@ def test_update_profile_picture() -> None:
         f"/users/{user_email}/profile-picture",
         files={"image": ("profile_pic.jpg", fake_image, "image/jpeg")}
     )
+    path_dir ="uploads/profile_pictures"
     assert update_response.status_code == 200
     update_user = update_response.json()
     user_image_path = update_user["image"]
-    expected_path = f"uploads/profile_pictures/{user_email}/profile_pic.jpg"
+    hashed_email = hash_email(user_email)
+    file_name = f"{hashed_email}.jpg"
+    expected_path = os.path.join(path_dir, file_name)
     assert user_image_path == expected_path
     
 def test_delete_profile_picture() -> None:
@@ -229,12 +236,16 @@ def test_delete_profile_picture() -> None:
     fake_image.name = "profile_pic.jpg"
     update_response = client.put(
         f"/users/{user_email}/profile-picture",
-        files={"image": ("profile_pic.jpg", fake_image, "image/jpeg")}
+        files={"image": ("profile_pic.jpg", fake_image, "image/jpeg")},
+        json={"email": user_email}
     )
     assert update_response.status_code == 200
     update_user = update_response.json()
     user_image_path = update_user["image"]
-    expected_path = f"uploads/profile_pictures/{user_email}/profile_pic.jpg"
+    path_dir ="uploads/profile_pictures"
+    hashed_email = hash_email(user_email)
+    file_name = f"{hashed_email}.jpg"
+    expected_path = os.path.join(path_dir, file_name)
     assert user_image_path == expected_path
     delete_response = client.delete( f"/users/{user_email}/profile-picture")
     assert delete_response.status_code == 200

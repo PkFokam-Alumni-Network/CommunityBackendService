@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status, Depends, HTTPException, UploadFile
+from fastapi import APIRouter, status, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 from database import get_db
 from schemas import user_schema
@@ -67,7 +67,7 @@ def delete_user(user_email: str, session: Session = Depends(get_db)) -> user_sch
     return user_schema.UserDeletedResponse(message=f"user with email{user_email}, was successfully deleted")
   
 @router.put("/users/{user_email}/profile-picture", status_code=200,response_model=user_schema.UserUpdate)  
-def Update_profile_picture(user_email: str, image: UploadFile, session: Session = Depends(get_db)) -> user_schema.UserUpdate:
+def update_picture(user_email: str, image: UploadFile, session: Session = Depends(get_db)) -> user_schema.UserUpdate:
     service = UserService(session=session)
     try:
         image_path = service.generate_profile_picture_path(user_email, image)
