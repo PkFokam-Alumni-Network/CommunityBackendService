@@ -24,7 +24,7 @@ class UserRepository(metaclass=SingletonMeta):
         self.db.commit()
         self.db.refresh(user)
         return user
-      
+
     def delete_user(self, email: str) -> None:
         user = self.get_user_by_email(email)
         if user:

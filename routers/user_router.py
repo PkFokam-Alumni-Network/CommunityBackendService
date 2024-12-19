@@ -8,6 +8,20 @@ from typing import List
 
 router = APIRouter()
 
+
+
+@router.post("/login/", status_code=status.HTTP_200_OK)
+def login(user: user_schema.UserLogin, session: Session = Depends(get_db)):
+    service = UserService(session=session)
+    try:
+        token = service.login(user.email, user.password)
+        return {"access_token": token, "token_type": "bearer"}
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+
+
+
+
 @router.post("/users/", status_code=status.HTTP_201_CREATED, response_model=user_schema.UserCreatedResponse)
 def create_user(user: user_schema.UserCreate, session: Session = Depends(get_db)) -> user_schema.UserCreatedResponse:
     service = UserService(session=session)
