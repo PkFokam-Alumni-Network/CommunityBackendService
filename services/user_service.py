@@ -65,10 +65,10 @@ class UserService(metaclass=SingletonMeta):
         if user is None:
             raise ValueError("User does not exist.")
         max_file_size = 5 * 1024 * 1024
-        # allowed_types = ["image/jpeg", "image/png","image/jpg"]
-        # if image.content_type not in allowed_types:
-        #     print(image.content_type)
-        #     raise ValueError("Invalide file type. Only JPEG,JPG, PNG images are allowed")
+        allowed_types = ["image/jpeg", "image/png","image/jpg"]
+        if image.content_type not in allowed_types:
+            print(image.content_type)
+            raise ValueError("Invalide file type. Only JPEG,JPG, PNG images are allowed")
         file_size = len(image.file.read())
         image.file.seek(0)
         if file_size > max_file_size:
