@@ -281,6 +281,7 @@ def test_update_profile_picture() -> None:
     file_name = f"{hashed_email}.jpg"
     expected_path = os.path.join(path_dir, file_name)
     assert user_image_path == expected_path
+    os.remove(expected_path)
     
 def test_delete_profile_picture() -> None:
     client_response = client.post(
@@ -314,6 +315,7 @@ def test_delete_profile_picture() -> None:
     assert delete_response.status_code == 200
     update_user = delete_response.json()
     assert update_user["image"] == None
+    
 
         
 
