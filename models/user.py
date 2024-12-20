@@ -14,3 +14,4 @@ class User(Base):
     current_occupation = Column(String)
     image = Column(String)
     linkedin_profile = Column(String)
+    bio = Column(String, nullable=True)

@@ -26,6 +26,8 @@ def create_user(user: user_schema.UserCreate, session: Session = Depends(get_db)
             current_occupation=user.current_occupation,
             image=user.image,
             linkedin_profile=user.linkedin_profile,
+            bio=user.bio,
+
         )
         return new_user
     except ValueError as e:

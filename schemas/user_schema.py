@@ -15,6 +15,7 @@ class UserCreate(BaseModel):
     image: Optional[str] = None
     linkedin_profile: Optional[str] = None
     mentor_email: Optional[str] = None
+    bio: Optional[str] = None
 
 
 class UserCreatedResponse(BaseModel):
@@ -39,3 +40,4 @@ class UserUpdate(BaseModel):
     image: Optional[str] = None
     linkedin_profile: Optional[str] = None
     mentor_email: Optional[EmailStr] = None
+    bio: Optional[str] = None

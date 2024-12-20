@@ -73,8 +73,10 @@ def test_create_get_user() -> None:
             "password": "securepassword",
             "current_occupation": "Engineer",
             "image": "test_image_url",
-            "linkedin_profile": "https://linkedin.com/in/test"
-        },
+            "linkedin_profile": "https://linkedin.com/in/test",
+            "bio": "A passionate software developer with a love for building impactful solutions.",
+
+    },
     )
     assert response.status_code == 201
     email: str = response.json()["email"]
