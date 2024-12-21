@@ -3,11 +3,16 @@ from typing import Generator
 from fastapi.testclient import TestClient
 from models.user import User
 from tests.test_fixtures import create_and_teardown_tables, client
+from io import BytesIO
+import os, hashlib
 from utils.func_utils import verify_jwt
 
 @pytest.fixture(scope="function", autouse=True)
 def setup_and_teardown_db() -> Generator[TestClient, None, None]:
     yield from create_and_teardown_tables(User.metadata)
+    
+def hash_email(email: str) -> str:
+    return hashlib.sha256(email.encode('utf-8')).hexdigest()
 
 
 def test_correct_login() -> None:
@@ -102,6 +107,7 @@ def test_get_users() -> None:
         assert response_data[i]["last_name"] == user["last_name"]
 
 
+
 def test_create_get_user() -> None:
     response = client.post(
         "/users/",
@@ -124,16 +130,19 @@ def test_create_get_user() -> None:
     assert response.status_code == 201
     email: str = response.json()["email"]
     assert email == "test_email@example.com"
+    assert email == "test_email@example.com"
 
     response = client.get(f"/users/{email}")
     assert response.status_code == 200
     assert response.json()["email"] == email
 
 
+
 def test_get_non_existing_user() -> None:
     response = client.get("/users/fake_email")
     assert response.status_code == 404
     assert response.json()["detail"] == "User not found"
+
 
 
 def test_create_user_duplicate() -> None:
@@ -160,6 +169,7 @@ def test_create_user_duplicate() -> None:
     assert response.json()["detail"] == "User with this email already exists."
 
 
+
 def test_delete_existing_user() -> None:
     create_response = client.post(
         "/users/",
@@ -171,14 +181,19 @@ def test_delete_existing_user() -> None:
         },
     )
     assert create_response.status_code == 201
+    assert create_response.status_code == 201
     new_user = create_response.json()
     user_email = new_user["email"]
     delete_route = f"/users/{user_email}"
+    delete_route = f"/users/{user_email}"
     delete_response = client.delete(delete_route)
+    assert delete_response.status_code == 200
     assert delete_response.status_code == 200
     delete_response = client.delete(delete_route)
     assert delete_response.status_code == 404
+    assert delete_response.status_code == 404
     assert delete_response.json()["detail"] == "User does not exist."
+
 
 
 def test_assign_mentor() -> None:
@@ -209,13 +224,15 @@ def test_assign_mentor() -> None:
     assign_mentor_response = client.put(f"/users/{mentee_email}",
         json={
             "mentor_email": mentor_email
-        }            
+        },     
     ) 
     assert assign_mentor_response.status_code == 200
     mentee_updated = client.get(f"/users/{mentee_email}")
     assert mentee_updated.status_code == 200
     mentee_updated_data = mentee_updated.json()
     assert mentee_updated_data["mentor_email"] == mentor_email
+    
+
     
 
 def test_update_user():
@@ -236,4 +253,69 @@ def test_update_user():
     updated_user = response.json()
     assert updated_user["first_name"] == "UpdatedJohn"
     assert updated_user["last_name"] == "Doe"
+
+def test_update_profile_picture() -> None:
+    client_response = client.post(
+        "/users/",
+        json={
+            "email": "user@example.com",
+            "first_name": "Delete",
+            "last_name": "User",
+            "password": "securepassword",
+        },
+    )
+    assert client_response.status_code == 201
+    new_user = client_response.json()
+    user_email = new_user["email"]
+    fake_image = BytesIO(b"fake image")
+    fake_image.name = "profile_pic.jpg"
+    update_response = client.put(
+        f"/users/{user_email}/profile-picture",
+        files={"image": ("profile_pic.jpg", fake_image, "image/jpeg")}
+    )
+    path_dir ="uploads/profile_pictures"
+    assert update_response.status_code == 200
+    update_user = update_response.json()
+    user_image_path = update_user["image"]
+    hashed_email = hash_email(user_email)
+    file_name = f"{hashed_email}.jpg"
+    expected_path = os.path.join(path_dir, file_name)
+    assert user_image_path == expected_path
+    os.remove(expected_path)
+    
+def test_delete_profile_picture() -> None:
+    client_response = client.post(
+        "/users/",
+        json={
+            "email": "user1@example.com",
+            "first_name": "User",
+            "last_name": "User",
+            "password": "securepassword",
+        },
+    )
+    assert client_response.status_code == 201
+    new_user = client_response.json()
+    user_email = new_user["email"]
+    fake_image = BytesIO(b"fake image")
+    fake_image.name = "profile_pic.jpg"
+    update_response = client.put(
+        f"/users/{user_email}/profile-picture",
+        files={"image": ("profile_pic.jpg", fake_image, "image/jpeg")},
+        json={"email": user_email}
+    )
+    assert update_response.status_code == 200
+    update_user = update_response.json()
+    user_image_path = update_user["image"]
+    path_dir ="uploads/profile_pictures"
+    hashed_email = hash_email(user_email)
+    file_name = f"{hashed_email}.jpg"
+    expected_path = os.path.join(path_dir, file_name)
+    assert user_image_path == expected_path
+    delete_response = client.delete( f"/users/{user_email}/profile-picture")
+    assert delete_response.status_code == 200
+    update_user = delete_response.json()
+    assert update_user["image"] == None
+    
+
+        
 

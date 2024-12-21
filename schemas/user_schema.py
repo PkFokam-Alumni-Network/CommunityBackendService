@@ -23,22 +23,12 @@ class UserCreatedResponse(BaseModel):
     
     model_config = ConfigDict(from_attributes=True)
 
-
-
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
 
-
 class UserDeletedResponse(BaseModel):
     message: str
-
-
-
-    
-class UserDeletedResponse(BaseModel):
-    message: str
-    
 
 class UserUpdate(BaseModel):
     first_name: Optional[str] = None
@@ -51,3 +41,4 @@ class UserUpdate(BaseModel):
     image: Optional[str] = None
     linkedin_profile: Optional[str] = None
     mentor_email: Optional[EmailStr] = None
+
