@@ -2,18 +2,15 @@ import pytest
 from typing import Generator
 from fastapi.testclient import TestClient
 from models.user import User
+from schemas.user_schema import UserCreatedResponse
 from tests.test_fixtures import create_and_teardown_tables, client
 from io import BytesIO
-import os, hashlib
-from utils.func_utils import verify_jwt
+import os
+from utils.func_utils import verify_jwt, hash_email
 
 @pytest.fixture(scope="function", autouse=True)
 def setup_and_teardown_db() -> Generator[TestClient, None, None]:
     yield from create_and_teardown_tables(User.metadata)
-    
-def hash_email(email: str) -> str:
-    return hashlib.sha256(email.encode('utf-8')).hexdigest()
-
 
 def test_correct_login() -> None:
     user_data = {
@@ -59,40 +56,25 @@ def test_bad_login() -> None:
 
 
 
-def test_get_users() -> None:
+def test_get_all_users() -> None:
     users_data = [
         {
             "email": "test_email1@example.com",
             "first_name": "Test1",
             "last_name": "User1",
-            "graduation_year": 2023,
-            "degree": "B.Sc.",
-            "major": "Computer Science",
-            "phone": "1234567890",
             "password": "securepassword",
-            "current_occupation": "Engineer",
-            "image": "test_image_url1",
-            "linkedin_profile": "https://linkedin.com/in/test1"
         },
         {
             "email": "test_email2@example.com",
             "first_name": "Test2",
             "last_name": "User2",
-            "graduation_year": 2024,
-            "degree": "M.Sc.",
-            "major": "Data Science",
-            "phone": "0987654321",
             "password": "anothersecurepassword",
-            "current_occupation": "Data Analyst",
-            "image": "test_image_url2",
-            "linkedin_profile": "https://linkedin.com/in/test2"
         }
     ]
 
     for user in users_data:
         response = client.post("/users/", json=user)
         assert response.status_code == 201
-        assert response.json()["email"] == user["email"]
 
     response = client.get("/users/")
     assert response.status_code == 200
@@ -105,7 +87,6 @@ def test_get_users() -> None:
         assert response_data[i]["email"] == user["email"]
         assert response_data[i]["first_name"] == user["first_name"]
         assert response_data[i]["last_name"] == user["last_name"]
-
 
 
 def test_create_get_user() -> None:
@@ -128,13 +109,12 @@ def test_create_get_user() -> None:
         },
     )
     assert response.status_code == 201
-    email: str = response.json()["email"]
-    assert email == "test_email@example.com"
-    assert email == "test_email@example.com"
+    user:UserCreatedResponse = UserCreatedResponse.model_validate(response.json())
+    assert user.email == "test_email@example.com"
 
-    response = client.get(f"/users/{email}")
+    response = client.get(f"/users/{user.email}")
     assert response.status_code == 200
-    assert response.json()["email"] == email
+    assert response.json()["email"] == "test_email@example.com"
 
 
 
@@ -142,8 +122,6 @@ def test_get_non_existing_user() -> None:
     response = client.get("/users/fake_email")
     assert response.status_code == 404
     assert response.json()["detail"] == "User not found"
-
-
 
 def test_create_user_duplicate() -> None:
     response = client.post(
@@ -182,18 +160,13 @@ def test_delete_existing_user() -> None:
     )
     assert create_response.status_code == 201
     assert create_response.status_code == 201
-    new_user = create_response.json()
-    user_email = new_user["email"]
-    delete_route = f"/users/{user_email}"
-    delete_route = f"/users/{user_email}"
+    new_user:UserCreatedResponse = UserCreatedResponse.model_validate(create_response.json())
+    delete_route = f"/users/{new_user.email}"
     delete_response = client.delete(delete_route)
     assert delete_response.status_code == 200
-    assert delete_response.status_code == 200
     delete_response = client.delete(delete_route)
-    assert delete_response.status_code == 404
     assert delete_response.status_code == 404
     assert delete_response.json()["detail"] == "User does not exist."
-
 
 
 def test_assign_mentor() -> None:
@@ -232,9 +205,6 @@ def test_assign_mentor() -> None:
     mentee_updated_data = mentee_updated.json()
     assert mentee_updated_data["mentor_email"] == mentor_email
     
-
-    
-
 def test_update_user():
     user_data = {
         "email": "testuser@example.com",
