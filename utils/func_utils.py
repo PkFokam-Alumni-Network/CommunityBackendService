@@ -1,3 +1,4 @@
+import hashlib
 from typing import Any
 from dotenv import load_dotenv
 import os
@@ -5,16 +6,16 @@ import bcrypt
 import jwt
 import datetime
 
-
 def get_password_hash(password: str) -> str:
     salt = bcrypt.gensalt()
     hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
     return hashed.decode('utf-8')
 
-
 def check_password(password: str, hashed: str) -> bool:
     return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
 
+def hash_email(email: str) -> str:
+    return hashlib.sha256(email.encode('utf-8')).hexdigest()
 
 load_dotenv()
 SECRET_KEY = os.getenv('SECRET_KEY', 'DEFAULT_KEY')

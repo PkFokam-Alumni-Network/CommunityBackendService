@@ -1,10 +1,9 @@
-from fastapi import APIRouter, status, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, status, Depends, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 from database import get_db
 from schemas import user_schema
 from services.user_service import UserService
 from utils.func_utils import get_password_hash
-from typing import List
 
 router = APIRouter()
 
@@ -49,7 +48,7 @@ def get_user(user_email: str, session: Session = Depends(get_db)) -> user_schema
     return user
 
 @router.get("/users/", status_code=status.HTTP_200_OK, response_model= list[user_schema.UserCreatedResponse])
-def get_user(session: Session = Depends(get_db)):
+def get_all_users(session: Session = Depends(get_db)):
     service = UserService(session=session)
     users = service.get_users()
     return users

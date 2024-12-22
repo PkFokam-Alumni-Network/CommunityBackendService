@@ -8,7 +8,6 @@ from models.announcement import Announcement
 
 router = APIRouter()
 
-
 @router.post("/announcements/", status_code=status.HTTP_201_CREATED, response_model=AnnouncementResponse)
 def create_announcement(announcement: AnnouncementCreate, session: Session = Depends(get_db)) -> AnnouncementResponse:
     service = AnnouncementService(session=session)
@@ -35,7 +34,7 @@ def get_announcement_by_id(announcement_id: int, session: Session = Depends(get_
 
 @router.put("/announcements/{announcement_id}", status_code=status.HTTP_200_OK, response_model=AnnouncementCreate)
 def update_announcement(announcement_id: int, announcement: AnnouncementUpdate,
-                        session: Session = Depends(get_db)) -> AnnouncementUpdate:
+    session: Session = Depends(get_db)) -> AnnouncementUpdate:
     service = AnnouncementService(session=session)
     try:
         return service.update_announcement(announcement_id, announcement)
