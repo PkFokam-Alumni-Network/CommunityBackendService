@@ -6,7 +6,7 @@ from utils.singleton_meta import SingletonMeta
 from sqlalchemy.orm import Session
 from fastapi import UploadFile
 from werkzeug.utils import secure_filename
-import os, shutil, hashlib
+import os, shutil, hashlib, logging
 
 class UserService(metaclass=SingletonMeta):
     def __init__(self, session: Session):
@@ -65,10 +65,6 @@ class UserService(metaclass=SingletonMeta):
         if user is None:
             raise ValueError("User does not exist.")
         max_file_size = 5 * 1024 * 1024
-        allowed_types = ["image/jpeg", "image/png","image/jpg"]
-        if image.content_type not in allowed_types:
-            print(image.content_type)
-            raise ValueError("Invalide file type. Only JPEG,JPG, PNG images are allowed")
         file_size = len(image.file.read())
         image.file.seek(0)
         if file_size > max_file_size:
@@ -100,6 +96,30 @@ class UserService(metaclass=SingletonMeta):
         if not os.path.exists(user.image):
             raise ValueError("File not found.")
         os.remove(user.image)
+    
+    def update_email(self, email: str, new_email: str) -> Optional[User]:
+        user = self.user_repository.get_user_by_email(email)
+        if user is None:
+            raise ValueError("User does not exist.")
+        if self.user_repository.get_user_by_email(new_email):
+            raise ValueError("Email already exists.")
+        if user.email == new_email:
+            raise ValueError("New email is the same as the old email.")
+        user.email = new_email
+        if user.image:
+            old_image_path = user.image
+            hashed_email = hashlib.sha256(new_email.encode('utf-8')).hexdigest()
+            Base_upload_dir = "uploads/profile_pictures"
+            new_image_path = os.path.join(Base_upload_dir, f"{hashed_email}.jpg")
+            if os.path.exists(old_image_path):
+                new_dir = os.path.dirname(new_image_path)
+                os.makedirs(new_dir, exist_ok=True)
+                shutil.move(old_image_path, new_image_path)
+                old_dir = os.path.dirname(old_image_path)
+                if not os.listdir(old_dir):
+                    os.rmdir(old_dir)
+            user.image = new_image_path
+        return self.user_repository.update_user(user)
         
         
         
