@@ -42,3 +42,6 @@ class UserUpdate(BaseModel):
     linkedin_profile: Optional[str] = None
     mentor_email: Optional[EmailStr] = None
 
+class UserEmailUpdate(BaseModel):
+    email: EmailStr
+

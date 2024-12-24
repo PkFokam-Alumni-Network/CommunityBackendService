@@ -5,7 +5,7 @@ from models.user import User
 from schemas.user_schema import UserCreatedResponse
 from tests.test_fixtures import create_and_teardown_tables, client
 from io import BytesIO
-import os
+import os, hashlib
 from utils.func_utils import verify_jwt, hash_email
 
 @pytest.fixture(scope="function", autouse=True)
@@ -286,6 +286,43 @@ def test_delete_profile_picture() -> None:
     update_user = delete_response.json()
     assert update_user["image"] == None
     
-
+def test_update_user_email_with_image_no_id() -> None:
+    client_response = client.post(
+        "/users/",
+        json={
+            "email": "user@example.com",
+            "first_name": "Delete",
+            "last_name": "User",
+            "password": "securepassword",
+        },
+    )
+    assert client_response.status_code == 201
+    new_user = client_response.json()
+    user_email = new_user["email"]
+    fake_image = BytesIO(b"fake image")
+    fake_image.name = "profile_pic.jpg"
+    update_response = client.put(
+        f"/users/{user_email}/profile-picture",
+        files={"image": ("profile_pic.jpg", fake_image, "image/jpeg")}
+    )
+    path_dir ="uploads/profile_pictures"
+    assert update_response.status_code == 200
+    update_user = update_response.json()
+    user_image_path = update_user["image"]
+    hashed_email = hash_email(user_email)
+    file_name = f"{hashed_email}.jpg"
+    expected_path = os.path.join(path_dir, file_name)
+    assert user_image_path == expected_path
+    new_email = "test1@example.com"
+    email_update_response = client.put(
+        f"/users/{user_email}/email", json={"email": new_email}
+    )
+    assert email_update_response.status_code == 200
+    updated_user = email_update_response.json()
+    updated_image_path = updated_user["image"]
+    updated_hashed_email = hash_email(new_email)
+    updated_file_name = f"{updated_hashed_email}.jpg"
+    updated_expected_path = os.path.join(path_dir, updated_file_name)
+    assert updated_image_path == updated_expected_path
         
 

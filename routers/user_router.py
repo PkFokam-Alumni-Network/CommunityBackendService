@@ -4,7 +4,7 @@ from database import get_db
 from schemas import user_schema
 from services.user_service import UserService
 from utils.func_utils import get_password_hash
-
+import logging
 router = APIRouter()
 
 @router.post("/login/", status_code=status.HTTP_200_OK)
@@ -97,3 +97,15 @@ def get_mentees(mentor_email: str, session: Session = Depends(get_db)) -> user_s
     service = UserService(session=session)
     mentees = service.get_mentees(mentor_email)
     return mentees
+
+@router.put("/users/{user_email}/email", status_code=status.HTTP_200_OK, response_model=user_schema.UserUpdate)
+def update_email(user_email: str, new_email: user_schema.UserEmailUpdate, session: Session = Depends(get_db)) -> user_schema.UserUpdate:
+    service = UserService(session=session)
+    try:
+        updated_user = service.update_email(user_email, new_email.email)
+        return updated_user
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
+    
