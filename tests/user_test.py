@@ -252,6 +252,8 @@ def test_update_profile_picture() -> None:
     expected_path = os.path.join(path_dir, file_name)
     assert user_image_path == expected_path
     os.remove(expected_path)
+    if os.path.exists(path_dir) and not os.listdir(path_dir):
+        os.rmdir(path_dir)
     
 def test_delete_profile_picture() -> None:
     client_response = client.post(
@@ -285,6 +287,10 @@ def test_delete_profile_picture() -> None:
     assert delete_response.status_code == 200
     update_user = delete_response.json()
     assert update_user["image"] == None
+    if os.path.exists(expected_path):
+        os.remove(expected_path)
+    if os.path.exists(path_dir) and not os.listdir(path_dir):
+        os.rmdir(path_dir)
     
 def test_update_user_email_with_image_no_id() -> None:
     client_response = client.post(
@@ -324,5 +330,9 @@ def test_update_user_email_with_image_no_id() -> None:
     updated_file_name = f"{updated_hashed_email}.jpg"
     updated_expected_path = os.path.join(path_dir, updated_file_name)
     assert updated_image_path == updated_expected_path
+    os.remove(updated_expected_path)
+    if os.path.exists(path_dir) and not os.listdir(path_dir):
+        os.rmdir(path_dir)
+    
         
 
