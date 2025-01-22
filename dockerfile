@@ -18,3 +18,4 @@ EXPOSE 443
 
 # Command to run the FastAPI app using uvicorn
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
+
