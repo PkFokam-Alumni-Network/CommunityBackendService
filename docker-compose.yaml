@@ -5,5 +5,4 @@ services:
       dockerfile: Dockerfile
     container_name: fastapi_app
     ports:
-      - "443:443"
-      - "80:80"
+      - "9000:9000"
