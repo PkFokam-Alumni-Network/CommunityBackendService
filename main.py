@@ -5,22 +5,27 @@ from utils.init_db import create_tables
 from routers import user_router, announcement_router
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
-
+from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     create_tables()
     yield
 
-
+origins = [
+    "https://pkfalumni.com",
+    "http://localhost:3000",
+]
 app = FastAPI(lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.add_middleware(HTTPSRedirectMiddleware)
 
 app.include_router(user_router.router)
 app.include_router(announcement_router.router)
@@ -32,4 +37,4 @@ def read_root():
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run(app, host="127.0.0.1", port=80)
