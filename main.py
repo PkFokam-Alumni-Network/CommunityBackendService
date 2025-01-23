@@ -5,7 +5,6 @@ from utils.init_db import create_tables
 from routers import user_router, announcement_router
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
@@ -23,10 +22,6 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-)
-app.add_middleware(
-    TrustedHostMiddleware,
-    allowed_hosts=["api.pfkalumni.com", "pkfalumni.com"]
 )
 app.include_router(user_router.router)
 app.include_router(announcement_router.router)
