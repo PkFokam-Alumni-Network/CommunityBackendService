@@ -5,7 +5,7 @@ from utils.init_db import create_tables
 from routers import user_router, announcement_router
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
@@ -24,9 +24,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-app.add_middleware(HTTPSRedirectMiddleware)
-
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=["api.pfkalumni.com", "pkfalumni.com"]
+)
 app.include_router(user_router.router)
 app.include_router(announcement_router.router)
 
@@ -37,4 +38,4 @@ def read_root():
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=80)
+    uvicorn.run(app, host="127.0.0.1", port=9000)
