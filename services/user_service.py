@@ -1,4 +1,4 @@
-from typing import Optional, Type
+from typing import List, Optional, Type
 from models.user import User
 from repository.user_repository import UserRepository
 from utils.func_utils import check_password, create_jwt, upload_file_to_s3, download_file_from_s3
@@ -106,3 +106,12 @@ class UserService(metaclass=SingletonMeta):
         if not os.path.exists(user.image):
             raise ValueError("File not found.")
         os.remove(user.image)     
+    
+    def get_mentees(self, mentor_email: str) -> List[type[User]]:
+        return self.user_repository.get_all_mentees(mentor_email)
+
+    def unassign_mentor(self, mentee_email: str):
+        mentee = self.user_repository.get_user_by_email(mentee_email)
+        if not mentee.mentor_email:
+            return 
+        return self.update_user(mentee_email, {"mentor_email": None})
