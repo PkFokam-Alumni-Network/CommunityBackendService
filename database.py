@@ -4,12 +4,11 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import declarative_base
 
 ENV = os.getenv("ENV", "development")
-
 if ENV == "development":
     temp_db_file = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
     DATABASE_URL = f"sqlite:///{temp_db_file.name}"
 else:
-    DATABASE_URL = "sqlite:///app/db/database.db"
+    DATABASE_URL = "sqlite:////app/sql_database/database.db" #the extra / is necessary to access the volume
 
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

@@ -7,7 +7,7 @@ services:
     ports:
       - "9000:9000"
     volumes:
-      - sqlite_data:/app/db
+      - sqlite_data:/app/sql_database
     environment:
       - ENV=production
 
