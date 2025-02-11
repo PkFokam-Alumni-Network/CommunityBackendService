@@ -1,10 +1,7 @@
-import hashlib
+import hashlib, os, bcrypt, jwt, datetime
 from typing import Any
 from dotenv import load_dotenv
-import os
-import bcrypt
-import jwt
-import datetime
+from fastapi import UploadFile
 
 
 def get_password_hash(password: str) -> str:
@@ -35,6 +32,16 @@ def verify_jwt(token: str) -> Any | None:
         return None
     except jwt.InvalidTokenError:
         return None
+
+MAX_FILE_SIZE = 5 * 1024 * 1024 # 5MB
+def validate_image(image: UploadFile):
+    allowed_types = ["image/jpeg", "image/png","image/jpg"]
+    if image.content_type not in allowed_types:
+        raise ValueError("Invalide file type. Only JPEG,JPG, PNG images are allowed")
+    file_size = len(image.file.read())
+    image.file.seek(0)
+    if file_size > MAX_FILE_SIZE:
+        raise ValueError("File is too large. Maximum size allowed is 5MB.")
 
 load_dotenv()
 SECRET_KEY = os.getenv('SECRET_KEY', 'DEFAULT_KEY')

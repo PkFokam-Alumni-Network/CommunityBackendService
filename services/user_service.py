@@ -9,8 +9,6 @@ from fastapi import UploadFile
 from werkzeug.utils import secure_filename
 import os, shutil, hashlib
 
-MAX_FILE_SIZE = 5 * 1024 * 1024 # 5MB
-
 class UserService(metaclass=SingletonMeta):
     def __init__(self, session: Session):
         self.user_repository = UserRepository(session=session)
@@ -27,6 +25,9 @@ class UserService(metaclass=SingletonMeta):
         user = self.user_repository.get_user_by_email(email)
         if user:
             raise ValueError("User with this email already exists.")
+        mentor_email = kwargs.get('mentor_email')
+        if mentor_email and mentor_email == email:
+            raise ValueError("Mentor email cannot be the same as the user's email.")
         new_user = User(
             email=email,
             first_name=first_name,
@@ -70,13 +71,6 @@ class UserService(metaclass=SingletonMeta):
         if user is None:
             raise ValueError("User does not exist.")
         
-        allowed_types = ["image/jpeg", "image/png","image/jpg"]
-        if image.content_type not in allowed_types:
-            raise ValueError("Invalide file type. Only JPEG,JPG, PNG images are allowed")
-        file_size = len(image.file.read())
-        image.file.seek(0)
-        if file_size > MAX_FILE_SIZE:
-            raise ValueError("File is too large. Maximum size allowed is 5MB.")
         hashed_email = hashlib.sha256(email.encode('utf-8')).hexdigest()
         Base_upload_dir = "uploads/profile_pictures"
         sanitized_file_name = secure_filename(image.filename)
@@ -113,3 +107,4 @@ class UserService(metaclass=SingletonMeta):
         if not mentee.mentor_email:
             return 
         return self.update_user(mentee_email, {"mentor_email": None})
+    

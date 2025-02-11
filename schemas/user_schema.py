@@ -40,16 +40,19 @@ class UserDeletedResponse(BaseModel):
     message: str
 
 class UserUpdate(BaseModel):
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
+    first_name: str
+    last_name: str
+    address: Optional[str] = None
+    phone: Optional[str] = None
+    image: Optional[str] = None
+    bio: Optional[str] = None
     graduation_year: Optional[int] = None
     degree: Optional[str] = None
     major: Optional[str] = None
-    phone: Optional[str] = None
     current_occupation: Optional[str] = None
-    image: Optional[str] = None
-    linkedin_profile: Optional[str] = None
     mentor_email: Optional[EmailStr] = None
+    linkedin_profile: Optional[str] = None
+    instagram_profile: Optional[str] = None
 
 class UserLoginResponse(UserCreate):
     access_token: str
