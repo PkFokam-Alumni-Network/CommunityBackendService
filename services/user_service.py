@@ -1,7 +1,8 @@
 from typing import List, Optional, Type
 from models.user import User
 from repository.user_repository import UserRepository
-from utils.func_utils import check_password, create_jwt, upload_file_to_s3, download_file_from_s3
+from schemas import user_schema
+from utils.func_utils import check_password, create_jwt
 from utils.singleton_meta import SingletonMeta
 from sqlalchemy.orm import Session
 from fastapi import UploadFile
@@ -14,11 +15,13 @@ class UserService(metaclass=SingletonMeta):
     def __init__(self, session: Session):
         self.user_repository = UserRepository(session=session)
 
-    def login(self, email: str, password: str) -> str:
+    def login(self, email: str, password: str) -> user_schema.UserLoginResponse:
         user = self.user_repository.get_user_by_email(email)
         if not user or not check_password(password, user.password):
             raise ValueError("Invalid email or password")
-        return create_jwt(user.email)
+        token = create_jwt(user.email)
+        user_login_response: user_schema.UserLoginResponse = user_schema.UserLoginResponse.create_user_login_response(user, access_token=token)
+        return user_login_response
 
     def register_user(self, email: str, first_name: str, last_name: str, password: str, **kwargs) -> User:
         user = self.user_repository.get_user_by_email(email)
@@ -91,11 +94,6 @@ class UserService(metaclass=SingletonMeta):
             dir_path = os.path.dirname(file_path)
             if os.path.isdir(dir_path) and not os.listdir(dir_path):
                 os.rmdir(dir_path)
-    
-    def get_profile_picture(self, email:str):
-        
-        download_file_from_s3
-
 
     def delete_profile_picture(self, email:str):
         user = self.user_repository.get_user_by_email(email)
