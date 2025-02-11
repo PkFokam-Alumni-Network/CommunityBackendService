@@ -40,8 +40,8 @@ class UserDeletedResponse(BaseModel):
     message: str
 
 class UserUpdate(BaseModel):
-    first_name: str
-    last_name: str
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
     address: Optional[str] = None
     phone: Optional[str] = None
     image: Optional[str] = None
