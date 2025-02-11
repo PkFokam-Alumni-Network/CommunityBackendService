@@ -6,7 +6,7 @@ from utils.singleton_meta import SingletonMeta
 from sqlalchemy.orm import Session
 from fastapi import UploadFile
 from werkzeug.utils import secure_filename
-import os, shutil, hashlib, logging
+import os, shutil, hashlib
 
 class UserService(metaclass=SingletonMeta):
     def __init__(self, session: Session):

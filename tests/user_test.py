@@ -5,7 +5,7 @@ from models.user import User
 from schemas.user_schema import UserCreatedResponse
 from tests.test_fixtures import create_and_teardown_tables, client
 from io import BytesIO
-import os, hashlib
+import os
 from utils.func_utils import verify_jwt, hash_email
 
 @pytest.fixture(scope="function", autouse=True)
