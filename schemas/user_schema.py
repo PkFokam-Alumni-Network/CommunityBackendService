@@ -1,19 +1,28 @@
 from typing import Optional
 from pydantic import BaseModel, ConfigDict, EmailStr
 
+from models.user import User
+
 class UserCreate(BaseModel):
     email: EmailStr
     first_name: str
     last_name: str
     password: str
+    
+    address: Optional[str] = None
+    phone: Optional[str] = None
+    image: Optional[str] = None
+    bio: Optional[str] = None
+
     graduation_year: Optional[int] = None
     degree: Optional[str] = None
     major: Optional[str] = None
-    phone: Optional[str] = None
+
     current_occupation: Optional[str] = None
-    image: Optional[str] = None
-    linkedin_profile: Optional[str] = None
     mentor_email: Optional[EmailStr] = None
+
+    linkedin_profile: Optional[str] = None
+    instagram_profile: Optional[str] = None
     
 class UserCreatedResponse(BaseModel):
     email: str
@@ -41,4 +50,29 @@ class UserUpdate(BaseModel):
     image: Optional[str] = None
     linkedin_profile: Optional[str] = None
     mentor_email: Optional[EmailStr] = None
+
+class UserLoginResponse(UserCreate):
+    access_token: str
+    token_type: str = "bearer"
+
+    @staticmethod
+    def create_user_login_response(user:User, access_token:str):
+        user_data = UserCreate(
+            email=user.email,
+            first_name=user.first_name,
+            last_name=user.last_name,
+            password="Fake password",
+            address=user.address,
+            phone=user.phone,
+            image=user.image,
+            bio=user.bio,
+            graduation_year=user.graduation_year,
+            degree=user.degree,
+            major=user.major,
+            current_occupation=user.current_occupation,
+            mentor_email=user.mentor_email,
+            linkedin_profile=user.linkedin_profile,
+            instagram_profile=user.instagram_profile,
+        )
+        return UserLoginResponse(**user_data.model_dump(), access_token=access_token)
 
