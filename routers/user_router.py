@@ -39,21 +39,21 @@ def create_user(user: user_schema.UserCreate, session: Session = Depends(get_db)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.get("/users/{user_email}", status_code=status.HTTP_200_OK, response_model=user_schema.UserCreatedResponse)
-def get_user(user_email: str, session: Session = Depends(get_db)) -> user_schema.UserCreatedResponse:
+@router.get("/users/{user_email}", status_code=status.HTTP_200_OK, response_model=user_schema.UserGetResponse)
+def get_user(user_email: str, session: Session = Depends(get_db)) -> user_schema.UserGetResponse:
     service = UserService(session=session)
     user = service.get_user_details(user_email)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
-@router.get("/users/", status_code=status.HTTP_200_OK, response_model= list[user_schema.UserCreatedResponse])
+@router.get("/users/", status_code=status.HTTP_200_OK, response_model= list[user_schema.UserGetResponse])
 def get_all_users(session: Session = Depends(get_db)):
     service = UserService(session=session)
     users = service.get_users()
     return users
 
-@router.put("/users/{user_email}", status_code=status.HTTP_200_OK, response_model=user_schema.UserUpdate)
+@router.put("/users/{user_email}", status_code=status.HTTP_200_OK, response_model=user_schema.UserGetResponse)
 def update_user(user_email: str, user_data: user_schema.UserUpdate,
                 session: Session = Depends(get_db)) -> user_schema.UserUpdate:
     user_service = UserService(session=session)
