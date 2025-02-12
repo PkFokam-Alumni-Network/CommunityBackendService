@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from fastapi import UploadFile
 from werkzeug.utils import secure_filename
 import os, shutil, hashlib
+MAX_FILE_SIZE = 5 * 1024 * 1024
 
 class UserService(metaclass=SingletonMeta):
     def __init__(self, session: Session):
@@ -25,9 +26,6 @@ class UserService(metaclass=SingletonMeta):
         user = self.user_repository.get_user_by_email(email)
         if user:
             raise ValueError("User with this email already exists.")
-        mentor_email = kwargs.get('mentor_email')
-        if mentor_email and mentor_email == email:
-            raise ValueError("Mentor email cannot be the same as the user's email.")
         new_user = User(
             email=email,
             first_name=first_name,
@@ -71,6 +69,13 @@ class UserService(metaclass=SingletonMeta):
         if user is None:
             raise ValueError("User does not exist.")
         
+        allowed_types = ["image/jpeg", "image/png","image/jpg"]
+        if image.content_type not in allowed_types:
+            raise ValueError("Invalide file type. Only JPEG,JPG, PNG images are allowed")
+        file_size = len(image.file.read())
+        image.file.seek(0)
+        if file_size > MAX_FILE_SIZE:
+            raise ValueError("File is too large. Maximum size allowed is 5MB.")
         hashed_email = hashlib.sha256(email.encode('utf-8')).hexdigest()
         Base_upload_dir = "uploads/profile_pictures"
         sanitized_file_name = secure_filename(image.filename)
@@ -108,3 +113,26 @@ class UserService(metaclass=SingletonMeta):
             return 
         return self.update_user(mentee_email, {"mentor_email": None})
     
+    def update_email(self, email: str, new_email: str) -> Optional[User]:
+        user = self.user_repository.get_user_by_email(email)
+        if user is None:
+            raise ValueError("User does not exist.")
+        if self.user_repository.get_user_by_email(new_email):
+            raise ValueError("Email already exists.")
+        if user.email == new_email:
+            raise ValueError("New email is the same as the old email.")
+        user.email = new_email
+        if user.image:
+            old_image_path = user.image
+            hashed_email = hashlib.sha256(new_email.encode('utf-8')).hexdigest()
+            Base_upload_dir = "uploads/profile_pictures"
+            new_image_path = os.path.join(Base_upload_dir, f"{hashed_email}.jpg")
+            if os.path.exists(old_image_path):
+                new_dir = os.path.dirname(new_image_path)
+                os.makedirs(new_dir, exist_ok=True)
+                shutil.move(old_image_path, new_image_path)
+                old_dir = os.path.dirname(old_image_path)
+                if not os.listdir(old_dir):
+                    os.rmdir(old_dir)
+            user.image = new_image_path
+        return self.user_repository.update_user(user)
