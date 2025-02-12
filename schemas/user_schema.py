@@ -28,20 +28,6 @@ class UserCreatedResponse(BaseModel):
     email: str
     first_name: str
     last_name: str
-    address: Optional[str]
-    phone: Optional[str]
-    image: Optional[str]
-    bio: Optional[str]
-
-    graduation_year: Optional[int]
-    degree: Optional[str]
-    major: Optional[str]
-
-    current_occupation: Optional[str]
-    mentor_email: Optional[EmailStr]
-
-    linkedin_profile: Optional[str]
-    instagram_profile: Optional[str]
     mentor_email: Optional[str]
     
     model_config = ConfigDict(from_attributes=True)
@@ -50,6 +36,17 @@ class UserGetResponse(BaseModel):
     email: str
     first_name: str
     last_name: str
+    address: Optional[str]
+    phone: Optional[str]
+    image: Optional[str]
+    bio: Optional[str]
+    graduation_year: Optional[int]
+    degree: Optional[str]
+    major: Optional[str]
+    current_occupation: Optional[str]
+    mentor_email: Optional[EmailStr]
+    linkedin_profile: Optional[str]
+    instagram_profile: Optional[str]
     mentor_email: Optional[str]
     
     model_config = ConfigDict(from_attributes=True)
