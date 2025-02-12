@@ -32,6 +32,25 @@ class UserCreatedResponse(BaseModel):
     
     model_config = ConfigDict(from_attributes=True)
 
+class UserGetResponse(BaseModel):
+    email: str
+    first_name: str
+    last_name: str
+    address: Optional[str]
+    phone: Optional[str]
+    image: Optional[str]
+    bio: Optional[str]
+    graduation_year: Optional[int]
+    degree: Optional[str]
+    major: Optional[str]
+    current_occupation: Optional[str]
+    mentor_email: Optional[EmailStr]
+    linkedin_profile: Optional[str]
+    instagram_profile: Optional[str]
+    mentor_email: Optional[str]
+    
+    model_config = ConfigDict(from_attributes=True)
+
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
@@ -42,14 +61,17 @@ class UserDeletedResponse(BaseModel):
 class UserUpdate(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
+    address: Optional[str] = None
+    phone: Optional[str] = None
+    image: Optional[str] = None
+    bio: Optional[str] = None
     graduation_year: Optional[int] = None
     degree: Optional[str] = None
     major: Optional[str] = None
-    phone: Optional[str] = None
     current_occupation: Optional[str] = None
-    image: Optional[str] = None
-    linkedin_profile: Optional[str] = None
     mentor_email: Optional[EmailStr] = None
+    linkedin_profile: Optional[str] = None
+    instagram_profile: Optional[str] = None
 
 class UserEmailUpdate(BaseModel):
     email: EmailStr
