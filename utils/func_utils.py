@@ -6,6 +6,7 @@ import bcrypt
 import jwt
 import datetime
 
+
 def get_password_hash(password: str) -> str:
     salt = bcrypt.gensalt()
     hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
@@ -17,18 +18,14 @@ def check_password(password: str, hashed: str) -> bool:
 def hash_email(email: str) -> str:
     return hashlib.sha256(email.encode('utf-8')).hexdigest()
 
-load_dotenv()
-SECRET_KEY = os.getenv('SECRET_KEY', 'DEFAULT_KEY')
-
-
 def create_jwt(user_email: str) -> str:
+    time_zone = datetime.timezone(datetime.timedelta(hours=5))
     payload = {
         'user_id': user_email,
-        'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+        'exp': datetime.datetime.now(tz=time_zone) + datetime.timedelta(hours=1)
     }
     token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
     return token
-
 
 def verify_jwt(token: str) -> Any | None:
     try:
@@ -38,3 +35,12 @@ def verify_jwt(token: str) -> Any | None:
         return None
     except jwt.InvalidTokenError:
         return None
+
+load_dotenv()
+SECRET_KEY = os.getenv('SECRET_KEY', 'DEFAULT_KEY')
+BUCKET_NAME = os.getenv('S3_BUCKET','DEFAULT_BUCKET')
+
+
+
+
+

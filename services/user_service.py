@@ -1,22 +1,26 @@
-from typing import Optional, Type
+from typing import List, Optional, Type
 from models.user import User
 from repository.user_repository import UserRepository
+from schemas import user_schema
 from utils.func_utils import check_password, create_jwt
 from utils.singleton_meta import SingletonMeta
 from sqlalchemy.orm import Session
 from fastapi import UploadFile
 from werkzeug.utils import secure_filename
 import os, shutil, hashlib
+MAX_FILE_SIZE = 5 * 1024 * 1024
 
 class UserService(metaclass=SingletonMeta):
     def __init__(self, session: Session):
         self.user_repository = UserRepository(session=session)
 
-    def login(self, email: str, password: str) -> str:
+    def login(self, email: str, password: str) -> user_schema.UserLoginResponse:
         user = self.user_repository.get_user_by_email(email)
         if not user or not check_password(password, user.password):
             raise ValueError("Invalid email or password")
-        return create_jwt(user.email)
+        token = create_jwt(user.email)
+        user_login_response: user_schema.UserLoginResponse = user_schema.UserLoginResponse.create_user_login_response(user, access_token=token)
+        return user_login_response
 
     def register_user(self, email: str, first_name: str, last_name: str, password: str, **kwargs) -> User:
         user = self.user_repository.get_user_by_email(email)
@@ -60,14 +64,17 @@ class UserService(metaclass=SingletonMeta):
             raise ValueError("User does not exist.")
         return self.user_repository.delete_user(email)
 
-    def generate_profile_picture_path(self, email:str, image: UploadFile ):
+    def generate_profile_picture_path(self, email:str, image: UploadFile):
         user = self.user_repository.get_user_by_email(email)
         if user is None:
             raise ValueError("User does not exist.")
-        max_file_size = 5 * 1024 * 1024
+        
+        allowed_types = ["image/jpeg", "image/png","image/jpg"]
+        if image.content_type not in allowed_types:
+            raise ValueError("Invalide file type. Only JPEG,JPG, PNG images are allowed")
         file_size = len(image.file.read())
         image.file.seek(0)
-        if file_size > max_file_size:
+        if file_size > MAX_FILE_SIZE:
             raise ValueError("File is too large. Maximum size allowed is 5MB.")
         hashed_email = hashlib.sha256(email.encode('utf-8')).hexdigest()
         Base_upload_dir = "uploads/profile_pictures"
@@ -86,7 +93,7 @@ class UserService(metaclass=SingletonMeta):
             dir_path = os.path.dirname(file_path)
             if os.path.isdir(dir_path) and not os.listdir(dir_path):
                 os.rmdir(dir_path)
-    
+
     def delete_profile_picture(self, email:str):
         user = self.user_repository.get_user_by_email(email)
         if user is None:
@@ -95,7 +102,16 @@ class UserService(metaclass=SingletonMeta):
             raise ValueError("This user does not have a profile picture.")
         if not os.path.exists(user.image):
             raise ValueError("File not found.")
-        os.remove(user.image)
+        os.remove(user.image)     
+    
+    def get_mentees(self, mentor_email: str) -> List[type[User]]:
+        return self.user_repository.get_all_mentees(mentor_email)
+
+    def unassign_mentor(self, mentee_email: str):
+        mentee = self.user_repository.get_user_by_email(mentee_email)
+        if not mentee.mentor_email:
+            return 
+        return self.update_user(mentee_email, {"mentor_email": None})
     
     def update_email(self, email: str, new_email: str) -> Optional[User]:
         user = self.user_repository.get_user_by_email(email)
@@ -120,11 +136,3 @@ class UserService(metaclass=SingletonMeta):
                     os.rmdir(old_dir)
             user.image = new_image_path
         return self.user_repository.update_user(user)
-        
-        
-        
-        
-        
-        
-         
-        
