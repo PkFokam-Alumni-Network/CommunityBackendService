@@ -41,7 +41,7 @@ class UserService(metaclass=SingletonMeta):
         user = self.user_repository.get_user_by_email(email)
         if not user:
             raise ValueError(f"User with email {email} not found.")
-        if "mentor_email" in updated_data:
+        if "mentor_email" in updated_data and updated_data["mentor_email"]:
             mentor_email = updated_data["mentor_email"]
             mentor = self.user_repository.get_user_by_email(mentor_email)
             if not mentor:
