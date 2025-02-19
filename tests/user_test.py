@@ -96,7 +96,7 @@ def test_create_get_user() -> None:
             "email": "test_email@example.com",
             "first_name": "Test",
             "last_name": "User",
-            "role": "None",
+            "role": "user",
             "graduation_year": 2023,
             "degree": "B.Sc.",
             "major": "Computer Science",
