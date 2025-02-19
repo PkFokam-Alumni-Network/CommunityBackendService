@@ -11,7 +11,7 @@ class UserCreate(BaseModel):
     
     address: Optional[str] = None
     phone: Optional[str] = None
-    image: Optional[str] = None
+    image: Optional[str] = "https://www.w3schools.com/howto/img_avatar.png"
     bio: Optional[str] = None
 
     graduation_year: Optional[int] = None
@@ -23,6 +23,9 @@ class UserCreate(BaseModel):
 
     linkedin_profile: Optional[str] = None
     instagram_profile: Optional[str] = None
+
+    role: Optional[str] = "user"
+    is_active: Optional[bool] = True
     
 class UserCreatedResponse(BaseModel):
     email: str

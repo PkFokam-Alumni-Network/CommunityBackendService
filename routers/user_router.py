@@ -33,6 +33,9 @@ def create_user(user: user_schema.UserCreate, session: Session = Depends(get_db)
             current_occupation=user.current_occupation,
             image=user.image,
             linkedin_profile=user.linkedin_profile,
+            is_active=user.is_active,
+            role=user.role,
+            bio=user.bio,
             mentor_email=user.mentor_email,
         )
         return new_user
