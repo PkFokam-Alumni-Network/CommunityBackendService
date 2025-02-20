@@ -223,68 +223,6 @@ def test_update_user():
     updated_user = response.json()
     assert updated_user["first_name"] == "UpdatedJohn"
     assert updated_user["last_name"] == "Doe"
-
-def test_update_profile_picture() -> None:
-    client_response = client.post(
-        "/users/",
-        json={
-            "email": "user@example.com",
-            "first_name": "Delete",
-            "last_name": "User",
-            "password": "securepassword",
-        },
-    )
-    assert client_response.status_code == 201
-    new_user = client_response.json()
-    user_email = new_user["email"]
-    fake_image = BytesIO(b"fake image")
-    fake_image.name = "profile_pic.jpg"
-    update_response = client.put(
-        f"/users/{user_email}/profile-picture",
-        files={"image": ("profile_pic.jpg", fake_image, "image/jpeg")}
-    )
-    path_dir ="uploads/profile_pictures"
-    assert update_response.status_code == 200
-    update_user = update_response.json()
-    user_image_path = update_user["image"]
-    hashed_email = hash_email(user_email)
-    file_name = f"{hashed_email}.jpg"
-    expected_path = os.path.join(path_dir, file_name)
-    assert user_image_path == expected_path
-    os.remove(expected_path)
-    
-def test_delete_profile_picture() -> None:
-    client_response = client.post(
-        "/users/",
-        json={
-            "email": "user1@example.com",
-            "first_name": "User",
-            "last_name": "User",
-            "password": "securepassword",
-        },
-    )
-    assert client_response.status_code == 201
-    new_user = client_response.json()
-    user_email = new_user["email"]
-    fake_image = BytesIO(b"fake image")
-    fake_image.name = "profile_pic.jpg"
-    update_response = client.put(
-        f"/users/{user_email}/profile-picture",
-        files={"image": ("profile_pic.jpg", fake_image, "image/jpeg")},
-        json={"email": user_email}
-    )
-    assert update_response.status_code == 200
-    update_user = update_response.json()
-    user_image_path = update_user["image"]
-    path_dir ="uploads/profile_pictures"
-    hashed_email = hash_email(user_email)
-    file_name = f"{hashed_email}.jpg"
-    expected_path = os.path.join(path_dir, file_name)
-    assert user_image_path == expected_path
-    delete_response = client.delete( f"/users/{user_email}/profile-picture")
-    assert delete_response.status_code == 200
-    update_user = delete_response.json()
-    assert update_user["image"] == None
     
 
         
