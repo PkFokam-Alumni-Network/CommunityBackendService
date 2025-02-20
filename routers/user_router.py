@@ -79,7 +79,7 @@ def delete_user(user_email: str, session: Session = Depends(get_db)) -> user_sch
         raise HTTPException(status_code=404, detail=str(e))
     return user_schema.UserDeletedResponse(message=f"user with email {user_email} was successfully deleted")
   
-@router.put("/users/{user_email}/profile-picture", status_code=200,response_model=user_schema.UserUpdate)  
+@router.put("/users/{user_email}/upload-profile-picture", status_code=200,response_model=user_schema.UserUpdate)  
 def upload_profile_picture(user_email: str, image: UploadFile, session: Session = Depends(get_db)) -> user_schema.UserUpdate:
     service = UserService(session=session)
     try:
