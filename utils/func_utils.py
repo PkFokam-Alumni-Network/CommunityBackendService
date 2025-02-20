@@ -2,7 +2,6 @@ import base64, io, boto3, hashlib, os, bcrypt, jwt, datetime, logging
 from PIL import Image
 from typing import Any
 from dotenv import load_dotenv
-from fastapi import UploadFile
 
 load_dotenv()
 SECRET_KEY = os.getenv('SECRET_KEY', 'DEFAULT_KEY')
@@ -44,6 +43,7 @@ def verify_jwt(token: str) -> Any | None:
     except jwt.InvalidTokenError:
         return None
 
+# the image received from the client is a base64 encoded string
 def validate_image(base64_image: str) -> str:
     if base64_image.startswith('data:image'):
         base64_data = base64_image.split(",")[1]
@@ -76,16 +76,6 @@ def validate_image(base64_image: str) -> str:
     except IOError:
         raise ValueError("Unable to open the image. The file may not be a valid image.")
 
-def validate_image(image: UploadFile):
-
-    allowed_types = ["image/jpeg", "image/png","image/jpg"]
-    if image.content_type not in allowed_types:
-        raise ValueError("Invalide file type. Only JPEG,JPG, PNG images are allowed")
-    file_size = len(image.file.read())
-    image.file.seek(0)
-    if file_size > MAX_FILE_SIZE:
-        raise ValueError("File is too large. Maximum size allowed is 5MB.")
-
 def upload_image_to_s3(base64_image: str, object_name:str) -> str:
     image = decode_base64_image(base64_image)
     try:
@@ -97,7 +87,7 @@ def upload_image_to_s3(base64_image: str, object_name:str) -> str:
         logging.info(f"File uploaded to S3 bucket '{BUCKET_NAME}' as '{object_name}'.")
         return f"s3://{BUCKET_NAME}/{object_name}"
     except Exception as e:
-        logging.error(f"Error uploading file: {e} as {object_name}")
+        logging.error(f"Error uploading file as {object_name}: {e}")
         raise ValueError("Error uploading file to S3 bucket")
 
 def decode_base64_image(base64_image: str):

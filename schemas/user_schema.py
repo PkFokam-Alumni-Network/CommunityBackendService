@@ -76,6 +76,9 @@ class UserUpdate(BaseModel):
     linkedin_profile: Optional[str] = None
     instagram_profile: Optional[str] = None
 
+class ProfilePictureUpdate(BaseModel):
+    base64_image: str
+
 class UserLoginResponse(UserCreate):
     access_token: str
     token_type: str = "bearer"
