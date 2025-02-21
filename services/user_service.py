@@ -30,11 +30,12 @@ class UserService(metaclass=SingletonMeta):
         mentor_email = kwargs.get('mentor_email')
         if mentor_email and mentor_email == email:
             raise ValueError("Mentor email cannot be the same as the user's email.")
+        hashed_password = get_password_hash(password)
         new_user = User(
             email=email,
             first_name=first_name,
             last_name=last_name,
-            password=password,
+            password=hashed_password,
             **kwargs
         )
         return self.user_repository.add_user(new_user)
