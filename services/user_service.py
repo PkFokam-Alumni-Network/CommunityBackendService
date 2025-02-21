@@ -6,8 +6,8 @@ from sqlalchemy.orm import Session
 from models.user import User
 from repository.user_repository import UserRepository
 from schemas import user_schema
-from utils.func_utils import (check_password, create_jwt, upload_image_to_s3,
-                              validate_image)
+from utils.func_utils import (check_password, create_jwt, upload_image_to_s3)
+from utils.image_utils import validate_image
 from utils.singleton_meta import SingletonMeta
 
 
