@@ -21,7 +21,7 @@ def set_session_cookie(response: Response):
     response.set_cookie(
         key="session_id",
         value="authenticated",
-        max_age=30,  # Expires in 10 minutes
+        max_age=600,  # Expires in 10 minutes
         httponly=True,  
         samesite="Strict"  
     )
