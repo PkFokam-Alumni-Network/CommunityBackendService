@@ -101,6 +101,8 @@ class UserLoginResponse(UserCreate):
             mentor_email=user.mentor_email,
             linkedin_profile=user.linkedin_profile,
             instagram_profile=user.instagram_profile,
+            role=user.role,
+            is_active=user.is_active
         )
         return UserLoginResponse(**user_data.model_dump(), access_token=access_token)
 
