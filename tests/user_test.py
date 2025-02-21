@@ -233,7 +233,7 @@ def test_update_user_email():
     user = response.json()
 
     new_email = "new_email@example.com"
-    response = client.put(f"/users/{user['email']}/update-email", json={"email": new_email})
+    response = client.put(f"/users/{user['email']}/update-email", json={"new_email": new_email})
     assert response.status_code == 200
     updated_user = response.json()
     assert updated_user["email"] == new_email
@@ -257,8 +257,8 @@ def test_update_user_password():
     user = response.json()
 
     update_password_data = {
-        "oldPassword": "oldpassword",
-        "newPassword": "newsecurepassword"
+        "old_password": "oldpassword",
+        "new_password": "newsecurepassword"
     }
     response = client.put(f"/users/{user['email']}/update-password", json=update_password_data)
     assert response.status_code == 200

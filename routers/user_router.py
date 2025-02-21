@@ -79,7 +79,7 @@ def update_user(user_email: str, user_data: user_schema.UserUpdate,
 def update_user_email(user_email: str, body: user_schema.EmailUpdate, session: Session = Depends(get_db)) -> user_schema.UserGetResponse:
     service = UserService(session=session)
     try:
-        updated_user = service.update_user_email(current_email=user_email, new_email=body.email)
+        updated_user = service.update_user_email(current_email=user_email, new_email=body.new_email)
         return updated_user
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
