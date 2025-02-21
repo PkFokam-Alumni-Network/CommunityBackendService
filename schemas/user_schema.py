@@ -80,11 +80,11 @@ class ProfilePictureUpdate(BaseModel):
     base64_image: str
 
 class EmailUpdate(BaseModel):
-    email: EmailStr
+    new_email: EmailStr
 
 class PasswordUpdate(BaseModel):
-    oldPassword: str
-    newPassword: str
+    old_password: str
+    new_password: str
 
 class UserLoginResponse(UserCreate):
     access_token: str
