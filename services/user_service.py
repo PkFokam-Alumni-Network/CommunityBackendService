@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from models.user import User
 from repository.user_repository import UserRepository
 from schemas import user_schema
-from utils.func_utils import (check_password, create_jwt, upload_image_to_s3)
+from utils.func_utils import (check_password, create_jwt, get_password_hash, upload_image_to_s3)
 from utils.image_utils import validate_image
 from utils.singleton_meta import SingletonMeta
 
@@ -30,11 +30,12 @@ class UserService(metaclass=SingletonMeta):
         mentor_email = kwargs.get('mentor_email')
         if mentor_email and mentor_email == email:
             raise ValueError("Mentor email cannot be the same as the user's email.")
+        hashed_password = get_password_hash(password)
         new_user = User(
             email=email,
             first_name=first_name,
             last_name=last_name,
-            password=password,
+            password=hashed_password,
             **kwargs
         )
         return self.user_repository.add_user(new_user)
@@ -89,4 +90,21 @@ class UserService(metaclass=SingletonMeta):
         if not mentee.mentor_email:
             return 
         return self.update_user(mentee_email, {"mentor_email": None})
+
+    def update_user_email(self, current_email: str, new_email: str) -> Optional[User]:
+        user = self.user_repository.get_user_by_email(current_email)
+        if not user:
+            raise ValueError("User not found")
+        user.email = new_email
+        return self.user_repository.update_user(user)
     
+    def update_password(self, old_password: str, new_password:str, email:str ) -> Optional[User]:
+        user = self.user_repository.get_user_by_email(email)
+        if not user:
+            raise ValueError("User not found")
+        if not check_password(old_password, user.password):
+            raise ValueError("Your old password does not match our records.")
+        user.password = get_password_hash(new_password)
+        return self.user_repository.update_user(user)
+    
+

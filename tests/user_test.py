@@ -3,10 +3,8 @@ from typing import Generator
 from fastapi.testclient import TestClient
 from models.user import User
 from schemas.user_schema import UserCreatedResponse
-from tests.test_fixtures import create_and_teardown_tables, client
-from io import BytesIO
-import os
-from utils.func_utils import verify_jwt, hash_email
+from tests.conftest import create_and_teardown_tables, client
+from utils.func_utils import verify_jwt
 
 @pytest.fixture(scope="function", autouse=True)
 def setup_and_teardown_db() -> Generator[TestClient, None, None]:
@@ -159,7 +157,6 @@ def test_delete_existing_user() -> None:
         },
     )
     assert create_response.status_code == 201
-    assert create_response.status_code == 201
     new_user:UserCreatedResponse = UserCreatedResponse.model_validate(create_response.json())
     delete_route = f"/users/{new_user.email}"
     delete_response = client.delete(delete_route)
@@ -224,6 +221,57 @@ def test_update_user():
     assert updated_user["first_name"] == "UpdatedJohn"
     assert updated_user["last_name"] == "Doe"
     
+def test_update_user_email():
+    user_data = {
+        "email": "update_email_test@example.com",
+        "first_name": "Email",
+        "last_name": "Update",
+        "password": "securepassword"
+    }
+    response = client.post("/users/", json=user_data)
+    assert response.status_code == 201
+    user = response.json()
 
+    new_email = "new_email@example.com"
+    response = client.put(f"/users/{user['email']}/update-email", json={"email": new_email})
+    assert response.status_code == 200
+    updated_user = response.json()
+    assert updated_user["email"] == new_email
+
+    response = client.get(f"/users/{user['email']}")
+    assert response.status_code == 404
+
+    response = client.get(f"/users/{new_email}")
+    assert response.status_code == 200
+    assert response.json()["email"] == new_email
+
+def test_update_user_password():
+    user_data = {
+        "email": "update_password_test@example.com",
+        "first_name": "Password",
+        "last_name": "Update",
+        "password": "oldpassword"
+    }
+    response = client.post("/users/", json=user_data)
+    assert response.status_code == 201
+    user = response.json()
+
+    update_password_data = {
+        "oldPassword": "oldpassword",
+        "newPassword": "newsecurepassword"
+    }
+    response = client.put(f"/users/{user['email']}/update-password", json=update_password_data)
+    assert response.status_code == 200
+    updated_user = response.json()
+    assert updated_user["email"] == user["email"]
+
+    login_data = {
+        "email": user["email"],
+        "password": "newsecurepassword"
+    }
+    response = client.post("/login/", json=login_data)
+    assert response.status_code == 200
+    assert "access_token" in response.json()
+    assert response.json()["token_type"] == "bearer"
         
 

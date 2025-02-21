@@ -27,9 +27,15 @@ class UserRepository(metaclass=SingletonMeta):
 
     def delete_user(self, email: str) -> None:
         user = self.get_user_by_email(email)
-        if user:
+        if not user:
+            raise ValueError(f"User with email {email} not found.")
+        
+        try:
             self.db.delete(user)
             self.db.commit()
+        except Exception as e:
+            self.db.rollback()
+            raise e
     
     def get_all_mentees(self, mentor_email: str) -> list[Type[User]]:
         return self.db.query(User).filter(User.mentor_email == mentor_email).all()
