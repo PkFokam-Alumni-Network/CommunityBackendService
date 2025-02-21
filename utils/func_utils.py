@@ -53,10 +53,9 @@ def verify_jwt(token: str) -> Any | None:
     except jwt.InvalidTokenError:
         return None
 
-def upload_image_to_s3(base64_image: str, object_name:str) -> str:
+def upload_image_to_s3(base64_image: str, object_key:str) -> str:
     image = decode_base64_image(base64_image)
     image = crop_image_to_circle(image)
-    object_key = f"profile-pictures/{object_name}"
     try:
         s3_client.put_object(
             Bucket = BUCKET_NAME,
@@ -64,9 +63,9 @@ def upload_image_to_s3(base64_image: str, object_name:str) -> str:
             ContentType = 'image/jpeg',
             Key = object_key)
         logger.info(f"File uploaded to S3 bucket '{BUCKET_NAME}' with key '{object_key}'.")
-        return f"https://{BUCKET_NAME}.s3.us-east-2.amazonaws.com/profile-pictures/{object_key}"
+        return f"https://{BUCKET_NAME}.s3.us-east-2.amazonaws.com/{object_key}"
     except Exception as e:
-        logger.error(f"Error uploading file as {object_name}: {e}")
+        logger.error(f"Error uploading file to key {object_key}: {e}")
         raise ValueError("Error uploading file to S3 bucket")
 
 
