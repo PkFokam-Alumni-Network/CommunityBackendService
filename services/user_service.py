@@ -6,8 +6,8 @@ from sqlalchemy.orm import Session
 from models.user import User
 from repository.user_repository import UserRepository
 from schemas import user_schema
-from utils.func_utils import (check_password, create_jwt, upload_image_to_s3,
-                              validate_image)
+from utils.func_utils import (check_password, create_jwt, upload_image_to_s3)
+from utils.image_utils import validate_image
 from utils.singleton_meta import SingletonMeta
 
 
@@ -75,7 +75,7 @@ class UserService(metaclass=SingletonMeta):
         try:
             extension = validate_image(image)
             hashed_email = hashlib.sha256(email.encode('utf-8')).hexdigest()
-            file_name = f"{hashed_email}.{extension}"
+            file_name = f"profile-pictures/{hashed_email}.{extension}"
             path = upload_image_to_s3(image, file_name)
             return path
         except ValueError as e:

@@ -1,13 +1,23 @@
-import base64, io, boto3, hashlib, os, bcrypt, jwt, datetime, logging
-from PIL import Image
+import boto3, hashlib, os, bcrypt, jwt, datetime, logging
+
 from typing import Any
 from dotenv import load_dotenv
 
+from utils.image_utils import crop_image_to_circle, decode_base64_image
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", 
+    handlers=[
+        logging.StreamHandler() 
+    ]
+)
+
+logger = logging.getLogger(__name__)
 load_dotenv()
 SECRET_KEY = os.getenv('SECRET_KEY', 'DEFAULT_KEY')
 ACCESS_KEY = os.getenv('ACCESS_KEY','DEFAULT_KEY')
 BUCKET_NAME = os.getenv('BUCKET_NAME','DEFAULT_BUCKET')
-MAX_FILE_SIZE = 5 * 1024 * 1024 # 5MB
 s3_client = boto3.client(
     's3',
     aws_access_key_id=ACCESS_KEY,
@@ -43,64 +53,23 @@ def verify_jwt(token: str) -> Any | None:
     except jwt.InvalidTokenError:
         return None
 
-# the image received from the client is a base64 encoded string
-def validate_image(base64_image: str) -> str:
-    if base64_image.startswith('data:image'):
-        base64_data = base64_image.split(",")[1]
-    else:
-        raise ValueError("Invalid base64 image format")
-
-    try:
-        image_data = base64.b64decode(base64_data)
-    except Exception as e:
-        raise ValueError(f"Error decoding base64 data: {str(e)}")
-
-    image_file = io.BytesIO(image_data)
-    
-    try:
-        with Image.open(image_file) as img:
-            img_format = img.format.lower()
-            allowed_formats = ["jpeg", "png", "jpg"]
-            if img_format not in allowed_formats:
-                raise ValueError("Invalid file type. Only JPEG, JPG, PNG images are allowed.")
-            
-            image_file.seek(0, io.SEEK_END)  
-            file_size = image_file.tell()
-            if file_size > MAX_FILE_SIZE:
-                raise ValueError(f"File is too large. Maximum size allowed is {MAX_FILE_SIZE / (1024 * 1024)}MB.")
-            
-            # Reset pointer to the beginning of the file for further operations if needed
-            image_file.seek(0)
-            return img_format
-    
-    except IOError:
-        raise ValueError("Unable to open the image. The file may not be a valid image.")
-
 def upload_image_to_s3(base64_image: str, object_name:str) -> str:
     image = decode_base64_image(base64_image)
+    image = crop_image_to_circle(image)
+    object_key = f"profile-pictures/{object_name}"
     try:
         s3_client.put_object(
             Bucket = BUCKET_NAME,
             Body = image,
             ContentType = 'image/jpeg',
-            Key = object_name)
-        logging.info(f"File uploaded to S3 bucket '{BUCKET_NAME}' as '{object_name}'.")
-        return f"s3://{BUCKET_NAME}/{object_name}"
+            Key = object_key)
+        logger.info(f"File uploaded to S3 bucket '{BUCKET_NAME}' with key '{object_key}'.")
+        return f"https://{BUCKET_NAME}.s3.us-east-2.amazonaws.com/profile-pictures/{object_key}"
     except Exception as e:
-        logging.error(f"Error uploading file as {object_name}: {e}")
+        logger.error(f"Error uploading file as {object_name}: {e}")
         raise ValueError("Error uploading file to S3 bucket")
 
-def decode_base64_image(base64_image: str):
-    if base64_image.startswith('data:image'):
-        base64_data = base64_image.split(",")[1]
-    else:
-        raise ValueError("Invalid base64 image format")
-    try:
-        image_data = base64.b64decode(base64_data)
-    except Exception as e:
-        raise ValueError(f"Error decoding base64 data: {str(e)}")
 
-    return io.BytesIO(image_data)
     
 
 
