@@ -20,13 +20,12 @@ def login(user: user_schema.UserLogin, session: Session = Depends(get_db)) -> us
 @router.post("/users/", status_code=status.HTTP_201_CREATED, response_model=user_schema.UserCreatedResponse)
 def create_user(user: user_schema.UserCreate, session: Session = Depends(get_db)) -> user_schema.UserCreatedResponse:
     service = UserService(session=session)
-    hashed_password = get_password_hash(user.password)
     try:
         new_user = service.register_user(
             email=user.email,
             first_name=user.first_name,
             last_name=user.last_name,
-            password=hashed_password,
+            password=user.password,
             address=user.address,
             graduation_year=user.graduation_year,
             degree=user.degree,
