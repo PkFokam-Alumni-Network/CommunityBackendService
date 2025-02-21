@@ -1,4 +1,5 @@
 from fastapi import APIRouter, status, Depends, HTTPException, UploadFile
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from database import get_db
 from schemas import user_schema
@@ -80,13 +81,14 @@ def delete_user(user_email: str, session: Session = Depends(get_db)) -> user_sch
     return user_schema.UserDeletedResponse(message=f"user with email {user_email} was successfully deleted")
 
 @router.put("/users/{user_email}/profile-picture", status_code=200,response_model=user_schema.UserUpdate)  
-def update_profile_picture(user_email: str, body: user_schema.ProfilePictureUpdate, session: Session = Depends(get_db)) -> user_schema.UserUpdate:
+def update_profile_picture(user_email: str, body: user_schema.ProfilePictureUpdate, session: Session = Depends(get_db)) -> str:
     service = UserService(session=session)
     try:
         image_path = service.save_profile_picture(user_email, body.base64_image)
     except ValueError as e:
         raise HTTPException(status_code=500, detail=f"Error saving the file: {str(e)}")
-    return service.update_user(user_email, {"image":image_path})
+    # return service.update_user(user_email, {"image":image_path})
+    return JSONResponse({"image_path":image_path})
 
 @router.get("/users/{user_email}/mentees", status_code=status.HTTP_200_OK, response_model= list[user_schema.UserCreatedResponse])
 def get_mentees(mentor_email: str, session: Session = Depends(get_db)) -> user_schema.UserCreatedResponse:

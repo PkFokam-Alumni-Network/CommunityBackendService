@@ -3,6 +3,15 @@ from PIL import Image
 from typing import Any
 from dotenv import load_dotenv
 
+logging.basicConfig(
+    level=logging.INFO,  # Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",  # Log message format
+    handlers=[
+        logging.StreamHandler()  # Write logs to the console (you can add FileHandler to log to a file)
+    ]
+)
+
+logger = logging.getLogger(__name__)
 load_dotenv()
 SECRET_KEY = os.getenv('SECRET_KEY', 'DEFAULT_KEY')
 ACCESS_KEY = os.getenv('ACCESS_KEY','DEFAULT_KEY')
@@ -83,11 +92,13 @@ def upload_image_to_s3(base64_image: str, object_name:str) -> str:
             Bucket = BUCKET_NAME,
             Body = image,
             ContentType = 'image/jpeg',
+            ACL = 'public-read',
             Key = object_name)
-        logging.info(f"File uploaded to S3 bucket '{BUCKET_NAME}' as '{object_name}'.")
+        logger.info(f"File uploaded to S3 bucket '{BUCKET_NAME}' as '{object_name}'.")
+        
         return f"s3://{BUCKET_NAME}/{object_name}"
     except Exception as e:
-        logging.error(f"Error uploading file as {object_name}: {e}")
+        logger.error(f"Error uploading file as {object_name}: {e}")
         raise ValueError("Error uploading file to S3 bucket")
 
 def decode_base64_image(base64_image: str):

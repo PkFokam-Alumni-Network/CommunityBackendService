@@ -75,7 +75,7 @@ class UserService(metaclass=SingletonMeta):
         try:
             extension = validate_image(image)
             hashed_email = hashlib.sha256(email.encode('utf-8')).hexdigest()
-            file_name = f"{hashed_email}.{extension}"
+            file_name = f"profile-pictures/{hashed_email}.{extension}"
             path = upload_image_to_s3(image, file_name)
             return path
         except ValueError as e:
