@@ -1,5 +1,9 @@
+import os
 import uvicorn
-from fastapi import FastAPI
+from fastapi import HTTPException, security, status
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi.openapi.docs import get_swagger_ui_html
+from fastapi import Depends, FastAPI
 from typing import AsyncGenerator
 from utils.init_db import create_tables
 from routers import user_router, announcement_router
@@ -15,7 +19,8 @@ origins = [
     "https://pkfalumni.com",
     "http://localhost:3000",
 ]
-app = FastAPI(lifespan=lifespan)
+
+app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -26,6 +31,20 @@ app.add_middleware(
 app.include_router(user_router.router)
 app.include_router(announcement_router.router)
 
+security = HTTPBasic()
+def verify_credentials(credentials: HTTPBasicCredentials = Depends(security)):
+    correct_username = os.getenv("DOCS_AUTH_USERNAME")
+    correct_password = os.getenv("DOCS_AUTH_PASSWORD")
+    if credentials.username != correct_username or credentials.password != correct_password:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+
+@app.get("/docs")
+async def get_docs(credentials: HTTPBasicCredentials = Depends(verify_credentials)):
+      return get_swagger_ui_html(openapi_url="/openapi.json", title="API Docs")
 
 @app.get("/")
 def read_root():
