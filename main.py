@@ -1,8 +1,11 @@
+from fastapi.security import HTTPBasicCredentials
 import uvicorn
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI, Response
 from typing import AsyncGenerator
+from auth import set_session_cookie, verify_credentials
 from utils.init_db import create_tables
 from routers import user_router, announcement_router
+from docs import router as docs_router
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -15,7 +18,8 @@ origins = [
     "https://pkfalumni.com",
     "http://localhost:3000",
 ]
-app = FastAPI(lifespan=lifespan)
+
+app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -25,11 +29,15 @@ app.add_middleware(
 )
 app.include_router(user_router.router)
 app.include_router(announcement_router.router)
-
+app.include_router(docs_router)
 
 @app.get("/")
-def read_root():
-    return {"message": "Hello, PaaSCommunity!"}
+async def read_root(
+    response: Response,
+    credentials: HTTPBasicCredentials = Depends(verify_credentials)
+):
+    set_session_cookie(response)
+    return {"message": "Logged in successfully"}
 
 
 if __name__ == "__main__":

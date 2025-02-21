@@ -4,7 +4,6 @@ from sqlalchemy.orm import Session
 from database import get_db
 from schemas import user_schema
 from services.user_service import UserService
-from utils.func_utils import get_password_hash
 
 router = APIRouter()
 
