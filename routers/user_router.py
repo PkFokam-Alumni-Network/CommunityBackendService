@@ -90,7 +90,7 @@ def update_user_email(user_email: str, body: user_schema.EmailUpdate, session: S
 def update_user_password(user_email: str, body: user_schema.PasswordUpdate, session: Session = Depends(get_db)) -> user_schema.UserGetResponse:
     service = UserService(session=session)
     try:
-        updated_user = service.update_password(old_password=body.oldPassword, new_password=body.newPassword, email=user_email)
+        updated_user = service.update_password(old_password=body.old_password, new_password=body.new_password, email=user_email)
         return updated_user
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
