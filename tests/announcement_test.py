@@ -2,7 +2,7 @@ from typing import Generator
 from fastapi.testclient import TestClient
 import pytest
 from models.announcement import Announcement
-from tests.test_fixtures import create_and_teardown_tables, client
+from tests.conftest import create_and_teardown_tables, client
 
 @pytest.fixture(scope="function", autouse=True)
 def setup_and_teardown_db() -> Generator[TestClient, None, None]:
