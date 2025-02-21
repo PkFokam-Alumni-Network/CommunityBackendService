@@ -87,7 +87,6 @@ def update_profile_picture(user_email: str, body: user_schema.ProfilePictureUpda
         image_path = service.save_profile_picture(user_email, body.base64_image)
     except ValueError as e:
         raise HTTPException(status_code=500, detail=f"Error saving the file: {str(e)}")
-    # return service.update_user(user_email, {"image":image_path})
     return JSONResponse({"image_path":image_path})
 
 @router.get("/users/{user_email}/mentees", status_code=status.HTTP_200_OK, response_model= list[user_schema.UserCreatedResponse])
