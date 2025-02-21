@@ -79,6 +79,13 @@ class UserUpdate(BaseModel):
 class ProfilePictureUpdate(BaseModel):
     base64_image: str
 
+class EmailUpdate(BaseModel):
+    email: EmailStr
+
+class PasswordUpdate(BaseModel):
+    oldPassword: str
+    newPassword: str
+
 class UserLoginResponse(UserCreate):
     access_token: str
     token_type: str = "bearer"
