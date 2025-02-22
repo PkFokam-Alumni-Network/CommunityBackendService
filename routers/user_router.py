@@ -64,7 +64,7 @@ def get_all_users_internal( session: Session = Depends(get_db)):
     return users
 
 @router.get("/internal/users/{user_email}", status_code=status.HTTP_200_OK, response_model= user_schema.UserGetResponseInternal)
-def get_all_users_internal(user_email: str, session: Session = Depends(get_db)):
+def get_user_internal(user_email: str, session: Session = Depends(get_db)):
     service = UserService(session=session)
     user = service.get_user_details(user_email)
     if not user:

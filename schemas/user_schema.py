@@ -81,6 +81,8 @@ class UserUpdate(BaseModel):
     mentor_email: Optional[EmailStr] = None
     linkedin_profile: Optional[str] = None
     instagram_profile: Optional[str] = None
+    role: Optional[str] = None
+    is_active: Optional[bool] = None
 
 class ProfilePictureUpdate(BaseModel):
     base64_image: str
