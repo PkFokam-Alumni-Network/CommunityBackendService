@@ -58,10 +58,18 @@ def get_all_users(session: Session = Depends(get_db)):
     return users
 
 @router.get("/internal/users/", status_code=status.HTTP_200_OK, response_model= list[user_schema.UserGetResponseInternal])
-def get_all_users_internal(session: Session = Depends(get_db)):
+def get_all_users_internal( session: Session = Depends(get_db)):
     service = UserService(session=session)
     users = service.get_users()
     return users
+
+@router.get("/internal/users/{user_email}", status_code=status.HTTP_200_OK, response_model= user_schema.UserGetResponseInternal)
+def get_all_users_internal(user_email: str, session: Session = Depends(get_db)):
+    service = UserService(session=session)
+    user = service.get_user_details(user_email)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
 
 @router.get("/users/{user_email}/mentees", status_code=status.HTTP_200_OK, response_model= list[user_schema.UserCreatedResponse])
 def get_mentees(mentor_email: str, session: Session = Depends(get_db)) -> user_schema.UserCreatedResponse:

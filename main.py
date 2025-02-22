@@ -1,13 +1,14 @@
-from fastapi.security import HTTPBasicCredentials
+from fastapi.responses import HTMLResponse
+from fastapi.security import HTTPBasic
 import uvicorn
-from fastapi import Depends, FastAPI, Response
+from fastapi import Depends, FastAPI
 from typing import AsyncGenerator
-from auth import set_session_cookie, verify_credentials
+from auth import get_current_username
 from utils.init_db import create_tables
 from routers import user_router, announcement_router
-from docs import router as docs_router
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
@@ -20,6 +21,7 @@ origins = [
 ]
 
 app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None)
+security = HTTPBasic()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -29,16 +31,21 @@ app.add_middleware(
 )
 app.include_router(user_router.router)
 app.include_router(announcement_router.router)
-app.include_router(docs_router)
 
 @app.get("/")
 async def read_root(
-    response: Response,
-    credentials: HTTPBasicCredentials = Depends(verify_credentials)
 ):
-    set_session_cookie(response)
-    return {"message": "Logged in successfully"}
+    return  {"message": "PACI API"}
 
+
+@app.get("/docs", response_class=HTMLResponse)
+async def get_docs(username: str = Depends(get_current_username)) -> HTMLResponse:
+    return get_swagger_ui_html(openapi_url="/openapi.json", title="docs")
+
+
+@app.get("/redoc", response_class=HTMLResponse)
+async def get_redoc(username: str = Depends(get_current_username)) -> HTMLResponse:
+    return get_redoc_html(openapi_url="/openapi.json", title="redoc")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=9000,proxy_headers=True, forwarded_allow_ips="*")
