@@ -16,7 +16,6 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 origins = [
     "https://pkfalumni.com",
-    "http://localhost:3000",
     "https://backoffice.pkfalumni.com",
 ]
 
