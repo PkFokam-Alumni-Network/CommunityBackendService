@@ -1,7 +1,6 @@
-from fastapi.responses import HTMLResponse
-from fastapi.security import HTTPBasic
 import uvicorn
-from fastapi import Depends, FastAPI
+from fastapi.responses import HTMLResponse
+from fastapi import Depends, FastAPI 
 from typing import AsyncGenerator
 from auth import get_current_username
 from utils.init_db import create_tables
@@ -21,7 +20,7 @@ origins = [
 ]
 
 app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None)
-security = HTTPBasic()
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
