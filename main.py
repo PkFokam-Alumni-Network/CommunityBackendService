@@ -17,7 +17,6 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 origins = [
     "https://pkfalumni.com",
     "https://backoffice.pkfalumni.com",
-    "http://localhost:3000",
 ]
 
 app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None)

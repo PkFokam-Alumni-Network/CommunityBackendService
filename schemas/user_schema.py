@@ -1,7 +1,7 @@
 from typing import Optional
 from pydantic import BaseModel, ConfigDict, EmailStr
 
-from models.user import User
+from models.user import User, UserRole
 
 class UserCreate(BaseModel):
     email: EmailStr
@@ -52,6 +52,12 @@ class UserGetResponse(BaseModel):
     instagram_profile: Optional[str]
     mentor_email: Optional[str]
     
+    model_config = ConfigDict(from_attributes=True)
+
+class UserGetResponseInternal(UserGetResponse):
+    role: UserRole = UserRole.user
+    is_active: bool = True
+
     model_config = ConfigDict(from_attributes=True)
 
 class UserLogin(BaseModel):

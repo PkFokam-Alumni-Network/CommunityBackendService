@@ -57,6 +57,12 @@ def get_all_users(session: Session = Depends(get_db)):
     users = service.get_users()
     return users
 
+@router.get("/internal/users/", status_code=status.HTTP_200_OK, response_model= list[user_schema.UserGetResponseInternal])
+def get_all_users_internal(session: Session = Depends(get_db)):
+    service = UserService(session=session)
+    users = service.get_users()
+    return users
+
 @router.get("/users/{user_email}/mentees", status_code=status.HTTP_200_OK, response_model= list[user_schema.UserCreatedResponse])
 def get_mentees(mentor_email: str, session: Session = Depends(get_db)) -> user_schema.UserCreatedResponse:
     service = UserService(session=session)
@@ -73,7 +79,7 @@ def update_user(user_email: str, user_data: user_schema.UserUpdate,
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 @router.put("/users/{user_email}/update-email", status_code=status.HTTP_200_OK, response_model=user_schema.UserGetResponse)
 def update_user_email(user_email: str, body: user_schema.EmailUpdate, session: Session = Depends(get_db)) -> user_schema.UserGetResponse:
