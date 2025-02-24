@@ -13,7 +13,7 @@ class AnnouncementService:
         if self.repository.get_announcement_by_title(announcement.title):
             raise ValueError("Announcement with this title already exists.")
 
-        if announcement.announcement_date >= announcement.announcement_deadline:
+        if announcement.announcement_deadline and announcement.announcement_date > announcement.announcement_deadline:
             raise ValueError("Announcement date must be before announcement deadline.")
 
         db_announcement = self.repository.add_announcement(announcement)
