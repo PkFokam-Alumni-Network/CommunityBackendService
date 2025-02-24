@@ -30,6 +30,9 @@ class UserService(metaclass=SingletonMeta):
         mentor_email = kwargs.get('mentor_email')
         if mentor_email and mentor_email == email:
             raise ValueError("Mentor email cannot be the same as the user's email.")
+        role = kwargs.get('role')
+        if role and role not in ["user", "admin"]:
+            raise ValueError(f"Role cannot be {role}. Defaut value is user")
         hashed_password = get_password_hash(password)
         new_user = User(
             email=email,
