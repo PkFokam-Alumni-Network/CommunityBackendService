@@ -29,4 +29,6 @@ class User(Base):
     linkedin_profile = Column(String)
     instagram_profile = Column(String, nullable=True)
     role = Column(Enum(UserRole), default=UserRole.user, nullable=False)
+
+    user_events = relationship("UserEvent", back_populates="user")
     

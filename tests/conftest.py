@@ -1,6 +1,6 @@
 import tempfile
-from typing import Generator
-from sqlalchemy import create_engine
+from typing import Generator, List
+from sqlalchemy import create_engine, MetaData
 from sqlalchemy.orm import sessionmaker, Session
 from fastapi.testclient import TestClient
 from main import app
@@ -21,10 +21,12 @@ def override_get_db() -> Generator[Session, None, None]:
 
 app.dependency_overrides[get_db] = override_get_db
 
-def create_and_teardown_tables(metadata) -> Generator[TestClient, None, None]:
-    metadata.create_all(bind=engine)
+def create_and_teardown_tables(data: List[MetaData]) -> Generator[TestClient, None, None]:
+    for metadata in data:
+        metadata.create_all(bind=engine)
     yield client
-    metadata.drop_all(bind=engine)
+    for metadata in data:
+        metadata.drop_all(bind=engine)
 
 def pytest_sessionfinish(session, exitstatus):
     engine.dispose()
