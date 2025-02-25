@@ -9,6 +9,7 @@ class EventBase(BaseModel):
     location: str
     description: Optional[str] = None
     categories: Optional[str] = None
+    image: Optional[str] = "https://cdn-cjhkj.nitrocdn.com/krXSsXVqwzhduXLVuGLToUwHLNnSxUxO/assets/images/optimized/rev-b135bb1/spotme.com/wp-content/uploads/2020/07/Hero-1.jpg"
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -22,7 +23,7 @@ class EventResponse(EventBase):
     id: int
 
 class EventWithAttendees(EventResponse):
-    attendees: Optional[List[int]]
+    attendees: Optional[List[str]]
 
 class EventRegistration(BaseModel):
     email: EmailStr

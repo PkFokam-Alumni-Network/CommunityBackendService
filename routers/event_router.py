@@ -14,7 +14,7 @@ def create_event(event_data: EventCreate, db: Session = Depends(get_db)) -> Even
     return event_service.create_event(event_data)
 
 @router.get("/events/", status_code=status.HTTP_200_OK, response_model=List[EventResponse])
-def get_event_users( db: Session = Depends(get_db)) -> List[EventResponse]:
+def get_all_events( db: Session = Depends(get_db)) -> List[EventResponse]:
     event_service = EventService(session=db)
     return event_service.get_all_events()
 

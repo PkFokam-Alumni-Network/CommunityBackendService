@@ -11,6 +11,7 @@ class Event(Base):
     end_time = Column(DateTime, nullable=False)
     location = Column(String, nullable=False)
     description = Column(Text, nullable=True)
+    image = Column(String, nullable=True)
     categories = Column(String)  # Stored as comma separated values
     
     user_events = relationship("UserEvent", back_populates="event")

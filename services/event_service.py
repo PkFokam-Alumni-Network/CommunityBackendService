@@ -20,7 +20,8 @@ class EventService(metaclass=SingletonMeta):
         end_time=event_data.end_time,
         location=event_data.location,
         description=event_data.description,
-        categories=event_data.categories
+        categories=event_data.categories,
+        image = event_data.image
     )
         return self.event_repository.add_event(event)
 
