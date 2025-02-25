@@ -8,7 +8,7 @@ from utils.func_utils import verify_jwt
 
 @pytest.fixture(scope="function", autouse=True)
 def setup_and_teardown_db() -> Generator[TestClient, None, None]:
-    yield from create_and_teardown_tables(User.metadata)
+    yield from create_and_teardown_tables([User.metadata])
 
 def test_correct_login() -> None:
     user_data = {

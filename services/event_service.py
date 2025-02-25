@@ -1,10 +1,11 @@
 from typing import List
+from sqlalchemy import String
 from sqlalchemy.orm import Session
 from models.event import Event
 from repository.event_repository import EventRepository
 from repository.user_event_repository import UserEventRepository
 from models.user import User
-from schemas.event_schema import EventCreate, EventUpdate
+from schemas.event_schema import EventCreate, EventRegistration, EventUpdate
 from utils.singleton_meta import SingletonMeta
 
 class EventService(metaclass=SingletonMeta):
@@ -34,21 +35,23 @@ class EventService(metaclass=SingletonMeta):
     def delete_event(self, event_id: int) -> None:
         self.event_repository.delete_event(event_id)
 
-    def register_user_for_event(self, user_id: int, event_id: int) -> None:
-        if self.user_event_repository.is_user_registered_for_event(user_id, event_id):
+    def register_user_for_event(self, event_registration: EventRegistration, event_id: int) -> None:
+        user_email = event_registration.email
+        if self.user_event_repository.is_user_registered_for_event(user_email, event_id):
             raise ValueError("User is already registered for this event.")
-        self.user_event_repository.add_user_to_event(user_id, event_id)
+        self.user_event_repository.add_user_to_event(user_email, event_id)
 
-    def unregister_user_from_event(self, user_id: int, event_id: int) -> None:
-        if not self.user_event_repository.is_user_registered_for_event(user_id, event_id):
+    def unregister_user_from_event(self, event_registration: EventRegistration, event_id: int) -> None:
+        user_email = event_registration.email
+        if not self.user_event_repository.is_user_registered_for_event(user_email, event_id):
             raise ValueError("User is not registered for this event.")
-        self.user_event_repository.remove_user_from_event(user_id, event_id)
+        self.user_event_repository.remove_user_from_event(user_email, event_id)
 
     def get_event_users(self, event_id: int) -> List[User]:
         return self.user_event_repository.get_users_for_event(event_id)
 
-    def get_user_events(self, user_id: int) -> List[Event]:
-        return self.user_event_repository.get_events_for_user(user_id)
+    def get_user_events(self, user_email: String) -> List[Event]:
+        return self.user_event_repository.get_events_for_user(user_email)
 
     def get_all_events(self) -> List[Event]:
         return self.event_repository.get_events()

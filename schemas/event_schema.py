@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, EmailStr
 from datetime import datetime
 from typing import List, Optional
 
@@ -23,3 +23,6 @@ class EventResponse(EventBase):
 
 class EventWithAttendees(EventResponse):
     attendees: Optional[List[int]]
+
+class EventRegistration(BaseModel):
+    email: EmailStr

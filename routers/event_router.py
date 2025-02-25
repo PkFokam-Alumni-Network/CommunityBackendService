@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import Dict, List
-from schemas.event_schema import EventBase, EventCreate, EventResponse, EventUpdate
+from schemas.event_schema import EventBase, EventCreate, EventRegistration, EventResponse, EventUpdate
 from schemas.user_schema import UserGetResponse
 from services.event_service import EventService
 from database import get_db
@@ -40,23 +40,23 @@ def delete_event(event_id: int, db: Session = Depends(get_db)) -> Dict:
     except ValueError:
         raise HTTPException(status_code=404, detail="Event not found")
 
-@router.post("/events/{event_id}/register/{user_id}")
-def register_user_for_event(event_id: int, user_id: int, db: Session = Depends(get_db)) -> Dict:
+@router.post("/events/{event_id}/register")
+def register_user_for_event(event_id: int, event_registration: EventRegistration, db: Session = Depends(get_db)) -> Dict:
     event_service = EventService(session=db)
     try:
-        event_service.register_user_for_event(user_id, event_id)
-        return {"message": "User registered for the event."}
+        event_service.register_user_for_event(event_registration, event_id)
+        return {"message": f"User {event_registration.email} registered for the event."}
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=f"User already registered or other error:{e}")
+        raise HTTPException(status_code=400, detail=f"User {event_registration.email} already registered or other error:{e}")
 
-@router.post("/events/{event_id}/unregister/{user_id}")
-def unregister_user_from_event(event_id: int, user_id: int, db: Session = Depends(get_db)) -> Dict:
+@router.post("/events/{event_id}/unregister")
+def unregister_user_from_event(event_id: int, event_registration: EventRegistration, db: Session = Depends(get_db)) -> Dict:
     event_service = EventService(session=db)
     try:
-        event_service.unregister_user_from_event(user_id, event_id)
-        return {"message": "User unregistered from the event."}
+        event_service.unregister_user_from_event(event_registration, event_id)
+        return {"message": f"User {event_registration.email} unregistered from the event."}
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=f"User not registered or other error: {e}")
+        raise HTTPException(status_code=400, detail=f"User {event_registration.email} not registered or other error: {e}")
 
 
 @router.get("/events/{event_id}/users", response_model=List[UserGetResponse])
@@ -65,8 +65,8 @@ def get_event_attendees(event_id: int, db: Session = Depends(get_db)) -> List[Us
     users = event_service.get_event_users(event_id)
     return users
 
-@router.get("/users/{user_id}/events", response_model=List[EventResponse])
-def get_all_events_of_user(user_id: int, db: Session = Depends(get_db)) -> List[EventBase]:
+@router.get("/users/{user_email}/events", response_model=List[EventResponse])
+def get_all_events_of_user(user_email: str, db: Session = Depends(get_db)) -> List[EventBase]:
     event_service = EventService(session=db)
-    events = event_service.get_user_events(user_id)
+    events = event_service.get_user_events(user_email)
     return events
