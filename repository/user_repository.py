@@ -23,6 +23,9 @@ class UserRepository(metaclass=SingletonMeta):
         except Exception as e:
             self.db.rollback()
             raise RuntimeError(f"An error occurred: {e}")
+    
+    def get_user_by_id(self, user_id: int) -> Optional[User]:
+        return self.db.query(User).filter(User.id == user_id).first()
 
     def get_user_by_email(self, email: str) -> Optional[User]:
         return self.db.query(User).filter(User.email == email).first()

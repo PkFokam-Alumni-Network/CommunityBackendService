@@ -43,19 +43,28 @@ def create_user(user: user_schema.UserCreate, session: Session = Depends(get_db)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+@router.get("/users/", status_code=status.HTTP_200_OK, response_model= list[user_schema.UserGetResponse])
+def get_all_users(session: Session = Depends(get_db)):
+    service = UserService(session=session)
+    users = service.get_users()
+    return users
+
+@router.get("/users/id/{user_id}", status_code=status.HTTP_200_OK, response_model=user_schema.UserGetResponseWithId)
+def get_user_by_id(user_id: int, session: Session = Depends(get_db)) -> user_schema.UserGetResponseWithId:
+    service = UserService(session=session)
+    user = service.get_user_by_id(user_id)
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
 @router.get("/users/{user_email}", status_code=status.HTTP_200_OK, response_model=user_schema.UserGetResponse)
-def get_user(user_email: str, session: Session = Depends(get_db)) -> user_schema.UserGetResponse:
+def get_user_by_email(user_email: str, session: Session = Depends(get_db)) -> user_schema.UserGetResponse:
     service = UserService(session=session)
     user = service.get_user_details(user_email)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
-@router.get("/users/", status_code=status.HTTP_200_OK, response_model= list[user_schema.UserGetResponse])
-def get_all_users(session: Session = Depends(get_db)):
-    service = UserService(session=session)
-    users = service.get_users()
-    return users
 
 @router.get("/internal/users/", status_code=status.HTTP_200_OK, response_model= list[user_schema.UserGetResponseInternal])
 def get_all_users_internal( session: Session = Depends(get_db)):
