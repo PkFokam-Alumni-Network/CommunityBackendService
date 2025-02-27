@@ -54,6 +54,9 @@ class UserGetResponse(BaseModel):
     
     model_config = ConfigDict(from_attributes=True)
 
+class UserGetResponseWithId(UserGetResponse):
+    id: int
+
 class UserGetResponseInternal(UserGetResponse):
     role: UserRole = UserRole.user
     is_active: bool = True

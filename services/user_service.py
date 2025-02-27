@@ -63,6 +63,9 @@ class UserService(metaclass=SingletonMeta):
     def get_user_details(self, email: str) -> Optional[User]:
         return self.user_repository.get_user_by_email(email)
     
+    def get_user_by_id(self, user_id: int) -> Optional[User]:
+        return self.user_repository.get_user_by_id(user_id)
+    
     def get_users(self) -> list[Type[User]]:
         return self.user_repository.get_users()
 
