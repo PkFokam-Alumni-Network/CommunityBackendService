@@ -5,7 +5,7 @@ from models.event import Event
 from repository.event_repository import EventRepository
 from repository.user_event_repository import UserEventRepository
 from models.user import User
-from schemas.event_schema import EventCreate, EventRegistration, EventUpdate
+from schemas.event_schema import EventCreate, EventRegistration, EventUpdate, EventWithAttendees
 from utils.singleton_meta import SingletonMeta
 
 class EventService(metaclass=SingletonMeta):
@@ -59,3 +59,23 @@ class EventService(metaclass=SingletonMeta):
     
     def get_event_by_id(self, event_id:int) -> Event:
         return self.event_repository.get_event_by_id(event_id=event_id)
+    
+    def get_events_with_attendees(self) -> List[EventWithAttendees]:
+        events = self.event_repository.get_events()
+        event_attendees_list = []
+        for event in events:
+            attendees = self.get_event_users(event.id)
+            event_with_attendees = EventWithAttendees(
+            id = event.id,
+            title=event.title,
+            start_time=event.start_time,
+            end_time=event.end_time,
+            location=event.location,
+            description=event.description,
+            categories=event.categories,
+            image=event.image,
+            attendees=attendees
+            )
+            event_attendees_list.append(event_with_attendees)
+        return event_attendees_list
+
