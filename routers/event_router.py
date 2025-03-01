@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import Dict, List
-from schemas.event_schema import EventBase, EventCreate, EventRegistration, EventResponse, EventUpdate
+from schemas.event_schema import EventBase, EventCreate, EventRegistration, EventResponse, EventUpdate, EventWithAttendees
 from schemas.user_schema import UserGetResponse
 from services.event_service import EventService
 from database import get_db
@@ -58,7 +58,11 @@ def unregister_user_from_event(event_id: int, event_registration: EventRegistrat
     except ValueError as e:
         raise HTTPException(status_code=400, detail=f"User {event_registration.email} not registered or other error: {e}")
 
-
+@router.get("/internal/events/", response_model=List[EventWithAttendees])
+def get_events_with_attendees(db: Session = Depends(get_db)) -> List[EventWithAttendees]:
+    event_service = EventService(session=db)
+    return event_service.get_events_with_attendees()
+    
 @router.get("/events/{event_id}/users", response_model=List[UserGetResponse])
 def get_event_attendees(event_id: int, db: Session = Depends(get_db)) -> List[UserGetResponse]:
     event_service = EventService(session=db)

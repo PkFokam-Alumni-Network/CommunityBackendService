@@ -67,6 +67,8 @@ class UserLogin(BaseModel):
     email: EmailStr
     password: str
 
+    model_config = ConfigDict(from_attributes=True)
+
 class UserDeletedResponse(BaseModel):
     message: str
 
@@ -98,12 +100,14 @@ class PasswordUpdate(BaseModel):
     new_password: str
 
 class UserLoginResponse(UserCreate):
+    id: int
     access_token: str
     token_type: str = "bearer"
 
     @staticmethod
     def create_user_login_response(user:User, access_token:str):
-        user_data = UserCreate(
+        return UserLoginResponse(
+            id = user.id,
             email=user.email,
             first_name=user.first_name,
             last_name=user.last_name,
@@ -120,7 +124,8 @@ class UserLoginResponse(UserCreate):
             linkedin_profile=user.linkedin_profile,
             instagram_profile=user.instagram_profile,
             role=user.role,
-            is_active=user.is_active
+            is_active=user.is_active,
+            access_token=access_token
         )
-        return UserLoginResponse(**user_data.model_dump(), access_token=access_token)
+        
 
