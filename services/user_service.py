@@ -1,4 +1,5 @@
-import hashlib
+from datetime import datetime
+from logging_config import LOGGER
 from typing import List, Optional, Type
 
 from sqlalchemy.orm import Session
@@ -81,12 +82,15 @@ class UserService(metaclass=SingletonMeta):
             raise ValueError("User does not exist.")
         try:
             extension = validate_image(image)
-            hashed_email = hashlib.sha256(email.encode('utf-8')).hexdigest()
-            file_name = f"profile-pictures/{hashed_email}.{extension}"
+            time = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+            file_name = f"profile-pictures/{time}/{email}.{extension}"
             path = upload_image_to_s3(image, file_name)
             return path
         except ValueError as e:
             raise ValueError(str(e))
+        except Exception as e:
+            LOGGER.error("Error saving profile picture. ", e)
+            raise e
     
     def get_mentees(self, mentor_email: str) -> List[type[User]]:
         return self.user_repository.get_all_mentees(mentor_email)

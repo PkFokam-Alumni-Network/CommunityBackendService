@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 from schemas import user_schema
 from services.user_service import UserService
+from logging_config import LOGGER
 
 router = APIRouter()
 
@@ -125,7 +126,8 @@ def update_profile_picture(user_email: str, body: user_schema.ProfilePictureUpda
     service = UserService(session=session)
     try:
         image_path = service.save_profile_picture(user_email, body.base64_image)
-    except ValueError as e:
+    except Exception as e:
+        LOGGER.error("Internal error while updating image, ", e)
         raise HTTPException(status_code=500, detail=f"Error saving the file: {str(e)}")
     return JSONResponse({"image_path":image_path})
 

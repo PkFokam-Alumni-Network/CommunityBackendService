@@ -1,19 +1,10 @@
-import boto3, hashlib, os, bcrypt, jwt, datetime, logging
+import boto3, hashlib, os, bcrypt, jwt, datetime
 
 from typing import Any
 from dotenv import load_dotenv
-
+from logging_config import LOGGER
 from utils.image_utils import crop_image_to_circle, decode_base64_image
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", 
-    handlers=[
-        logging.StreamHandler() 
-    ]
-)
-
-logger = logging.getLogger(__name__)
 load_dotenv()
 SECRET_KEY = os.getenv('SECRET_KEY', 'DEFAULT_KEY')
 ACCESS_KEY = os.getenv('ACCESS_KEY','DEFAULT_KEY')
@@ -62,10 +53,10 @@ def upload_image_to_s3(base64_image: str, object_key:str) -> str:
             Body = image,
             ContentType = 'image/jpeg',
             Key = object_key)
-        logger.info(f"File uploaded to S3 bucket '{BUCKET_NAME}' with key '{object_key}'.")
+        LOGGER.info(f"File uploaded to S3 bucket '{BUCKET_NAME}' with key '{object_key}'.")
         return f"https://{BUCKET_NAME}.s3.us-east-2.amazonaws.com/{object_key}"
     except Exception as e:
-        logger.error(f"Error uploading file to key {object_key}: {e}")
+        LOGGER.error(f"Error uploading file to key {object_key}: {e}")
         raise ValueError("Error uploading file to S3 bucket")
 
 

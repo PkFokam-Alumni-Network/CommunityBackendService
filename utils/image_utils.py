@@ -9,7 +9,6 @@ def validate_image(base64_image: str) -> str:
         base64_data = base64_image.split(",")[1]
     else:
         raise ValueError("Invalid base64 image format")
-
     try:
         image_data = base64.b64decode(base64_data)
     except Exception as e:
@@ -20,7 +19,7 @@ def validate_image(base64_image: str) -> str:
     try:
         with Image.open(image_file) as img:
             img_format = img.format.lower()
-            allowed_formats = ["jpeg", "png", "jpg"]
+            allowed_formats = ["jpeg", "png", "jpg", "heif"]
             if img_format not in allowed_formats:
                 raise ValueError("Invalid file type. Only JPEG, JPG, PNG images are allowed.")
             
