@@ -82,7 +82,7 @@ class UserService(metaclass=SingletonMeta):
             raise ValueError("User does not exist.")
         try:
             extension = validate_image(image)
-            time = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+            time = datetime.now().strftime('%Y-%m-%d')
             file_name = f"profile-pictures/{time}/{email}.{extension}"
             path = upload_image_to_s3(image, file_name)
             return path
