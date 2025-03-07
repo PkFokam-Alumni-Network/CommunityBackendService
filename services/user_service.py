@@ -85,6 +85,8 @@ class UserService(metaclass=SingletonMeta):
             time = datetime.now().strftime('%Y-%m-%d')
             file_name = f"profile-pictures/{time}/{email}.{extension}"
             path = upload_image_to_s3(image, file_name)
+            user.image = path
+            self.user_repository.update_user(user)
             return path
         except ValueError as e:
             raise ValueError(str(e))

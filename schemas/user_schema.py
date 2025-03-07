@@ -51,6 +51,11 @@ class UserGetResponse(BaseModel):
     linkedin_profile: Optional[str]
     instagram_profile: Optional[str]
     mentor_email: Optional[str]
+
+class Attendee(BaseModel):
+    image: Optional[str]
+    first_name: str
+    last_name: str
     
     model_config = ConfigDict(from_attributes=True)
 

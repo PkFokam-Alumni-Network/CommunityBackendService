@@ -2,7 +2,7 @@ from pydantic import BaseModel, ConfigDict, EmailStr
 from datetime import datetime
 from typing import List, Optional
 
-from schemas.user_schema import UserGetResponse
+from schemas.user_schema import Attendee, UserGetResponse
 
 class EventBase(BaseModel):
     title: str
@@ -25,7 +25,7 @@ class EventResponse(EventBase):
     id: int
 
 class EventWithAttendees(EventResponse):
-    attendees: Optional[List[UserGetResponse]]
+    attendees: Optional[List[Attendee]]
 
 class EventRegistration(BaseModel):
     email: EmailStr
