@@ -19,9 +19,9 @@ def validate_image(base64_image: str) -> str:
     try:
         with Image.open(image_file) as img:
             img_format = img.format.lower()
-            allowed_formats = ["jpeg", "png", "jpg", "heif", "heic"]
+            allowed_formats = ["jpeg", "png", "jpg", "heif", "heic", "mpo"]
             if img_format not in allowed_formats:
-                raise ValueError(f"{img_format} is an invalid file type. Only JPEG, JPG, PNG images are allowed.")
+                raise ValueError(f"{img_format} is an invalid file type. Only JPEG, JPG, PNG, HEIC images are allowed.")
             
             image_file.seek(0, io.SEEK_END)  
             file_size = image_file.tell()
