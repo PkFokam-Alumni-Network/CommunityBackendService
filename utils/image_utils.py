@@ -1,7 +1,7 @@
 import base64, io
 from PIL import Image, ImageDraw
 
-MAX_FILE_SIZE = 5 * 1024 * 1024 # 5MB
+MAX_FILE_SIZE = 10 * 1024 * 1024 # 10MB
 
 # the image received from the client is a base64 encoded string
 def validate_image(base64_image: str) -> str:
@@ -19,9 +19,9 @@ def validate_image(base64_image: str) -> str:
     try:
         with Image.open(image_file) as img:
             img_format = img.format.lower()
-            allowed_formats = ["jpeg", "png", "jpg", "heif"]
+            allowed_formats = ["jpeg", "png", "jpg", "heif", "heic"]
             if img_format not in allowed_formats:
-                raise ValueError("Invalid file type. Only JPEG, JPG, PNG images are allowed.")
+                raise ValueError(f"{img_format} is an invalid file type. Only JPEG, JPG, PNG images are allowed.")
             
             image_file.seek(0, io.SEEK_END)  
             file_size = image_file.tell()
