@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status, Depends, HTTPException
+from fastapi import APIRouter, Query, status, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from database import get_db
@@ -44,10 +44,12 @@ def create_user(user: user_schema.UserCreate, session: Session = Depends(get_db)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.get("/users/", status_code=status.HTTP_200_OK, response_model= list[user_schema.UserGetResponse])
-def get_all_users(session: Session = Depends(get_db)):
+@router.get("/users/", status_code=status.HTTP_200_OK)
+def get_all_users(session: Session = Depends(get_db), counts: bool = Query(False, alias="counts")):
     service = UserService(session=session)
     users = service.get_users()
+    if counts:
+        return {"count": len(users)}
     return users
 
 @router.get("/users/id/{user_id}", status_code=status.HTTP_200_OK, response_model=user_schema.UserGetResponseWithId)
