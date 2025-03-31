@@ -274,4 +274,30 @@ def test_update_user_password():
     assert "access_token" in response.json()
     assert response.json()["token_type"] == "bearer"
         
+def test_get_user_count() -> None:
+    users_data = [
+        {
+            "email": "test_email1@example.com",
+            "first_name": "Test1",
+            "last_name": "User1",
+            "password": "securepassword",
+        },
+        {
+            "email": "test_email2@example.com",
+            "first_name": "Test2",
+            "last_name": "User2",
+            "password": "anothersecurepassword",
+        }
+    ]
+    
 
+    for user in users_data:
+        response = client.post("/users/", json=user)
+        assert response.status_code == 201
+    
+    response = client.get("/users/?counts=true")
+    assert response.status_code == 200
+    response_data = response.json()
+    
+    assert "count" in response_data
+    assert response_data["count"] == len(users_data)

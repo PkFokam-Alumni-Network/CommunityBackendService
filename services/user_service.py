@@ -81,9 +81,10 @@ class UserService(metaclass=SingletonMeta):
         if user is None:
             raise ValueError("User does not exist.")
         try:
-            extension = validate_image(image)
+            _ = validate_image(image)
             time = datetime.now().strftime('%Y-%m-%d')
-            file_name = f"profile-pictures/{time}/{email}.{extension}"
+            username, _ = email.split("@")
+            file_name = f"profile-pictures/{time}/{username}.png"
             path = upload_image_to_s3(image, file_name)
             user.image = path
             self.user_repository.update_user(user)
