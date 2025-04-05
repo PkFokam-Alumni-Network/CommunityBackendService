@@ -142,4 +142,51 @@ def delete_user(user_email: str, session: Session = Depends(get_db)) -> user_sch
         raise HTTPException(status_code=404, detail=str(e))
     return user_schema.UserDeletedResponse(message=f"user with email {user_email} was successfully deleted")
 
+@router.put("/users/{user_id}/update-user-by-id", status_code=status.HTTP_200_OK, response_model=user_schema.UserGetResponse)
+def update_user_by_id(user_id: int, user_data: user_schema.UserUpdate,
+                       session: Session = Depends(get_db)) -> user_schema.UserGetResponse:
+    service = UserService(session=session)
+    try:
+        updated_user = service.update_user_by_id(user_id=user_id, updated_data=user_data.model_dump(exclude_unset=True))
+        return updated_user
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+@router.put("/users/{user_id}/update-password-by-id", status_code=status.HTTP_200_OK, response_model=user_schema.UserGetResponse)
+def update_password_by_id(user_id: int, body: user_schema.PasswordUpdate, 
+                          session: Session = Depends(get_db)) -> user_schema.UserGetResponse:
+    service = UserService(session=session)
+    try:
+        updated_user = service.update_password_by_id(old_password=body.old_password, new_password=body.new_password, user_id=user_id)
+        return updated_user
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
+
+@router.put("/users/{user_id}/update-email-by-id", status_code=status.HTTP_200_OK, response_model=user_schema.UserGetResponse)
+def update_email_by_id(user_id: int, body: user_schema.EmailUpdate, 
+                       session: Session = Depends(get_db)) -> user_schema.UserGetResponse:
+    service = UserService(session=session)
+    try:
+        updated_user = service.update_email_by_id(user_id=user_id, new_email=body.new_email)
+        return updated_user
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
+
+@router.put("/users/{user_email}/update-profile-picture-by-id", status_code=200,response_model=user_schema.UserUpdate)  
+def update_profile_picture_by_id(user_id: str, body: user_schema.ProfilePictureUpdate, session: Session = Depends(get_db)) -> str:
+    service = UserService(session=session)
+    user_email = service.get_user_by_id(user_id).email
+    try:
+        image_path = service.save_profile_picture(user_email, body.base64_image)
+    except Exception as e:
+        LOGGER.error("Internal error while updating image, ", e)
+        raise HTTPException(status_code=500, detail=f"Error saving the file: {str(e)}")
+    return JSONResponse({"image_path":image_path})
+
 
