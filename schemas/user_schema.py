@@ -28,6 +28,7 @@ class UserCreate(BaseModel):
     is_active: Optional[bool] = True
     
 class UserCreatedResponse(BaseModel):
+    id: int
     email: str
     first_name: str
     last_name: str
@@ -36,6 +37,7 @@ class UserCreatedResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 class UserGetResponse(BaseModel):
+    id: int
     email: str
     first_name: str
     last_name: str

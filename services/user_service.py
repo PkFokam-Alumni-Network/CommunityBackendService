@@ -109,7 +109,7 @@ class UserService(metaclass=SingletonMeta):
         if not user:
             raise ValueError("User not found")
         user.email = new_email
-        return self.user_repository.update_user(user, {"email": new_email})
+        return self.user_repository.update_user(user)
     
     def update_password(self, old_password: str, new_password:str, email:str ) -> Optional[User]:
         user = self.user_repository.get_user_by_email(email)
@@ -117,7 +117,28 @@ class UserService(metaclass=SingletonMeta):
             raise ValueError("User not found")
         if not check_password(old_password, user.password):
             raise ValueError("Your old password does not match our records.")
-        new_password = get_password_hash(new_password)
-        return self.user_repository.update_user(user, {"password": new_password})
+        user.password = get_password_hash(new_password)
+        return self.user_repository.update_user(user)
     
+    def update_email_by_id(self, user_id:int, new_email:str) -> Optional[User]:
+        user = self.user_repository.get_user_by_id(user_id)
+        if not user:
+            raise ValueError("User not found")
+        user.email = new_email
+        return self.user_repository.update_user(user)
 
+    def update_password_by_id(self, old_password:str, new_password:str, user_id: int) -> Optional[User]:
+        user = self.user_repository.get_user_by_id(user_id)
+        if not user:
+            raise ValueError("User not found")
+        user.password = get_password_hash(new_password)
+        return self.user_repository.update_user(user)
+    
+    def update_user_by_id(self, user_id:int, updated_data:dict) -> Optional[User]:
+        user = self.user_repository.get_user_by_id(user_id)
+        if not user:
+            raise ValueError("User not found")
+        for key, value in updated_data.items():
+            if hasattr(user, key):
+                setattr(user, key, value)
+        return self.user_repository.update_user(user)

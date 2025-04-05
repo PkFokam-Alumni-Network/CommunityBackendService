@@ -2,8 +2,7 @@ from typing import Optional
 from sqlalchemy.orm import Session
 from repository.announcement_repository import AnnouncementRepository
 from schemas.announcement_schema import AnnouncementCreate, AnnouncementUpdate, AnnouncementResponse
-from services.user_service import UserService
-from utils.func_utils import send_bulk_emails
+
 
 class AnnouncementService:
 
@@ -37,8 +36,3 @@ class AnnouncementService:
         announcement = self.repository.delete_announcement(announcement_id)
         if not announcement:
             raise ValueError("Announcement not found")
-    
-            
-        
-        
-
