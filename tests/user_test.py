@@ -110,14 +110,14 @@ def test_create_get_user() -> None:
     user:UserCreatedResponse = UserCreatedResponse.model_validate(response.json())
     assert user.email == "test_email@example.com"
 
-    response = client.get(f"/users/{user.email}")
+    response = client.get(f"/users/{user.id}")
     assert response.status_code == 200
     assert response.json()["email"] == "test_email@example.com"
 
 
 
 def test_get_non_existing_user() -> None:
-    response = client.get("/users/fake_email")
+    response = client.get("/users/2")
     assert response.status_code == 404
     assert response.json()["detail"] == "User not found"
 
@@ -158,7 +158,7 @@ def test_delete_existing_user() -> None:
     )
     assert create_response.status_code == 201
     new_user:UserCreatedResponse = UserCreatedResponse.model_validate(create_response.json())
-    delete_route = f"/users/{new_user.email}"
+    delete_route = f"/users/{new_user.id}"
     delete_response = client.delete(delete_route)
     assert delete_response.status_code == 200
     delete_response = client.delete(delete_route)
@@ -190,18 +190,19 @@ def test_assign_mentor() -> None:
     )
     assert mentee_response.status_code == 201
     mentee_data = mentee_response.json()
-    mentee_email = mentee_data["email"]
-    assign_mentor_response = client.put(f"/users/{mentee_email}",
+    user_id = mentee_data["id"]
+    assign_mentor_response = client.put(f"/users/{user_id}",
         json={
             "mentor_email": mentor_email
         },     
     ) 
     assert assign_mentor_response.status_code == 200
-    mentee_updated = client.get(f"/users/{mentee_email}")
+    mentee_updated = client.get(f"/users/{user_id}")
     assert mentee_updated.status_code == 200
     mentee_updated_data = mentee_updated.json()
     assert mentee_updated_data["mentor_email"] == mentor_email
-    
+
+# TODO: USE MODEL INSTEAD OF PARSING THE JSON FOR BETTER READABILITY
 def test_update_user():
     user_data = {
         "email": "testuser@example.com",
@@ -214,8 +215,8 @@ def test_update_user():
     user = response.json()
 
     update_data = {"first_name": "UpdatedJohn"}
-    email = user['email']
-    response = client.put(f"/users/{email}", json=update_data)
+    user_id = user["id"]
+    response = client.put(f"/users/{user_id}", json=update_data)
     assert response.status_code == 200
     updated_user = response.json()
     assert updated_user["first_name"] == "UpdatedJohn"
@@ -233,15 +234,13 @@ def test_update_user_email():
     user = response.json()
 
     new_email = "new_email@example.com"
-    response = client.put(f"/users/{user['email']}/update-email", json={"new_email": new_email})
+    user_id = user['id']
+    response = client.put(f"/users/{user_id}/update-email", json={"new_email": new_email})
     assert response.status_code == 200
     updated_user = response.json()
     assert updated_user["email"] == new_email
 
-    response = client.get(f"/users/{user['email']}")
-    assert response.status_code == 404
-
-    response = client.get(f"/users/{new_email}")
+    response = client.get(f"/users/{user_id}")
     assert response.status_code == 200
     assert response.json()["email"] == new_email
 
@@ -260,7 +259,7 @@ def test_update_user_password():
         "old_password": "oldpassword",
         "new_password": "newsecurepassword"
     }
-    response = client.put(f"/users/{user['email']}/update-password", json=update_password_data)
+    response = client.put(f"/users/{user['id']}/update-password", json=update_password_data)
     assert response.status_code == 200
     updated_user = response.json()
     assert updated_user["email"] == user["email"]
@@ -301,106 +300,3 @@ def test_get_user_count() -> None:
     
     assert "count" in response_data
     assert response_data["count"] == len(users_data)
-
-def test_update_email_by_id() -> None:
-    user_data = {
-        "id": 1,
-        "email": "update_email_test@example.com",
-        "first_name": "Email",
-        "last_name": "Update",
-        "password": "securepassword"
-    }
-    response = client.post("/users/", json=user_data)
-    assert response.status_code == 201
-    user = response.json()
-    new_email = "new_email@example.com"
-    response = client.put(f"/users/{user['id']}/update-email-by-id", json={"new_email": new_email})
-    assert response.status_code == 200
-    updated_user = response.json()
-    assert updated_user["email"] == new_email
-
-    response = client.get(f"/users/{user['email']}")
-    assert response.status_code == 404
-
-    response = client.get(f"/users/{new_email}")
-    assert response.status_code == 200
-    assert response.json()["email"] == new_email
-
-def test_update_user_password():
-    user_data = {
-        "id": 1,
-        "email": "update_password_test@example.com",
-        "first_name": "Password",
-        "last_name": "Update",
-        "password": "oldpassword"
-    }
-    #Let's try checking if changing the email will affect the password update
-    response = client.post("/users/", json=user_data)
-    assert response.status_code == 201
-    user = response.json()
-    update_password_data = {
-        "old_password": "oldpassword",
-        "new_password": "newsecurepassword"
-    }
-    response = client.put(f"/users/{user['id']}/update-password-by-id", json=update_password_data)
-    assert response.status_code == 200
-    updated_user = response.json()
-    assert updated_user["email"] == user["email"]
-    login_data = {
-        "email": user["email"],
-        "password": "newsecurepassword"
-    }
-    response = client.post("/login/", json=login_data)
-    assert response.status_code == 200
-    assert "access_token" in response.json()
-    assert response.json()["token_type"] == "bearer"
-    new_email = "new_email@example.com"
-    response = client.put(f"/users/{user['id']}/update-email-by-id", json={"new_email": new_email})
-    assert response.status_code == 200
-    updated_user = response.json()
-    assert updated_user["email"] == new_email
-    #Now we would change try login in with the new_email
-    login_data = {
-        "email": new_email,
-        "password": "newsecurepassword"
-    }
-    response = client.post("/login/", json=login_data)
-    assert response.status_code == 200
-    assert "access_token" in response.json()
-    assert response.json()["token_type"] == "bearer"
-    #Last check will be to try changing the password again to see if it will work with the new email
-    update_password_data = {
-        "old_password": "newsecurepassword",
-        "new_password": "newsecurepassword123"
-    }
-    response = client.put(f"/users/{user['id']}/update-password-by-id", json=update_password_data)
-    assert response.status_code == 200
-    login_data = {
-        "email": new_email,
-        "password": "newsecurepassword123"
-    }
-    response = client.post("/login/", json=login_data)
-    assert response.status_code == 200
-    assert "access_token" in response.json()
-    assert response.json()["token_type"] == "bearer"
-    
-def test_update_user_by_id():
-    user_data = {
-        "id": 1,
-        "email": "testuser@example.com",
-        "first_name": "John",
-        "last_name": "Doe",
-        "password": "securepassword123"
-    }
-    response = client.post("/users/", json=user_data)
-    assert response.status_code == 201
-    user = response.json()
-
-    update_data = {"first_name": "UpdatedJohn"}
-    user_id = user['id']
-    response = client.put(f"/users/{user_id}/update-user-by-id", json=update_data)
-    assert response.status_code == 200
-    updated_user = response.json()
-    assert updated_user["first_name"] == "UpdatedJohn"
-    assert updated_user["last_name"] == "Doe"
-    
