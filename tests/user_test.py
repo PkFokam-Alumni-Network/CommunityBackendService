@@ -61,12 +61,21 @@ def test_get_all_users() -> None:
             "first_name": "Test1",
             "last_name": "User1",
             "password": "securepassword",
+            "is_active": True,
         },
         {
             "email": "test_email2@example.com",
             "first_name": "Test2",
             "last_name": "User2",
             "password": "anothersecurepassword",
+            "is_active": False,
+        },
+        {
+            "email": "test_email3@example.com",
+            "first_name": "Test3",
+            "last_name": "User3",
+            "password": "anothersecurepassword",
+            "is_active": True,
         }
     ]
 
@@ -79,12 +88,18 @@ def test_get_all_users() -> None:
 
     response_data = response.json()
     assert isinstance(response_data, list)
-    assert len(response_data) == len(users_data)
+    
+    # Check that only active users are returned
+    active_users = [user for user in users_data if user["is_active"]]
+    assert len(response_data) == len(active_users)
 
-    for i, user in enumerate(users_data):
-        assert response_data[i]["email"] == user["email"]
-        assert response_data[i]["first_name"] == user["first_name"]
-        assert response_data[i]["last_name"] == user["last_name"]
+    # Verify that each active user is in the response
+    for active_user in active_users:
+        assert any(u["email"] == active_user["email"] for u in response_data)
+    
+     # Verify that no inactive user is in the response
+    for inactive_user in [user for user in users_data if not user["is_active"]]:
+        assert not any(u["email"] == inactive_user["email"] for u in response_data)
 
 
 def test_create_get_user() -> None:
