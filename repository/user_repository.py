@@ -46,24 +46,28 @@ class UserRepository(metaclass=SingletonMeta):
             self.db.rollback()
             raise RuntimeError(f"An error occurred: {e}")
 
-    def delete_user(self, email: str) -> None:
-        user = self.get_user_by_email(email)
+    def delete_user(self, user_id: int) -> None:
+        user = self.get_user_by_id(user_id)
         if not user:
-            raise ValueError(f"User with email {email} not found.")
+            raise ValueError("User not found.")
         
         try:
             self.db.delete(user)
             self.db.commit()
         except IntegrityError:
             self.db.rollback()
-            raise ValueError(f"Unable to delete user with email {email} due to integrity constraints.")
+            raise ValueError("Unable to delete user due to integrity constraints.")
         except Exception as e:
             self.db.rollback()
             raise RuntimeError(f"An error occurred while deleting the user: {e}")
 
-    def get_all_mentees(self, mentor_email: str) -> List[User]:
+    def get_all_mentees(self, user_id: int) -> List[User]:
+        user = self.get_user_by_id(user_id)
+        if not user:
+            raise ValueError("User not found.")
+        email: str = user.email
         try:
-            mentees = self.db.query(User).filter(User.mentor_email == mentor_email).all()
+            mentees = self.db.query(User).filter(User.mentor_email == email).all()
             return mentees if mentees else []
         except Exception as e:
             raise RuntimeError(f"An error occurred while retrieving mentees: {e}")
