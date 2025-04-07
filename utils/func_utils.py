@@ -4,6 +4,8 @@ from typing import Any
 from dotenv import load_dotenv
 from logging_config import LOGGER
 from utils.image_utils import crop_image_to_circle, decode_base64_image
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 
 load_dotenv()
 SECRET_KEY = os.getenv('SECRET_KEY', 'DEFAULT_KEY')
@@ -14,6 +16,10 @@ s3_client = boto3.client(
     aws_access_key_id=ACCESS_KEY,
     aws_secret_access_key=SECRET_KEY
 )
+
+ADMIN_EMAIL = os.getenv('ADMIN_EMAIL')
+SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY',)
+BASE_URL = os.getenv('BASE_URL')
 
 def get_password_hash(password: str) -> str:
     salt = bcrypt.gensalt()
@@ -40,9 +46,9 @@ def verify_jwt(token: str) -> Any | None:
         payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
         return payload
     except jwt.ExpiredSignatureError:
-        return None
+        raise ValueError("Token has expired")
     except jwt.InvalidTokenError:
-        return None
+        raise ValueError("Invalid token")
 
 def upload_image_to_s3(base64_image: str, object_key:str) -> str:
     image = decode_base64_image(base64_image)
@@ -58,6 +64,24 @@ def upload_image_to_s3(base64_image: str, object_key:str) -> str:
     except Exception as e:
         LOGGER.error(f"Error uploading file to key {object_key}: {e}")
         raise ValueError("Error uploading file to S3 bucket")
+
+def reset_password_email(email: str, token: str):
+    link = f"{BASE_URL}/password-reset?token={token}"
+    message = Mail(
+        from_email = ADMIN_EMAIL,
+        to_emails = email,
+        subject = "Password Reset",
+        plain_text_content = f"click the link to reset yout password: {link}"
+    )
+    sg = SendGridAPIClient(SENDGRID_API_KEY)
+    try:
+        response = sg.send(message)
+        LOGGER.info(f"Password reset link sent to {email}.")
+        return response.status_code
+    except Exception as e:
+        LOGGER.error(f"Error sending password reset email to {email}: {e}")
+        raise ValueError("Error sending password reset email")
+    
 
 
     

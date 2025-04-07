@@ -178,8 +178,9 @@ def update_email_by_id(user_id: int, body: user_schema.EmailUpdate,
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
 
-@router.put("/users/{user_email}/update-profile-picture-by-id", status_code=200,response_model=user_schema.UserUpdate)  
-def update_profile_picture_by_id(user_id: str, body: user_schema.ProfilePictureUpdate, session: Session = Depends(get_db)) -> str:
+@router.put("/users/{user_id}/update-profile-picture-by-id", status_code=200,response_model=user_schema.UserUpdate)  
+def update_profile_picture_by_id(user_id: str, body: user_schema.ProfilePictureUpdate,
+                                 session: Session = Depends(get_db)) -> str:
     service = UserService(session=session)
     user_email = service.get_user_by_id(user_id).email
     try:
@@ -189,4 +190,32 @@ def update_profile_picture_by_id(user_id: str, body: user_schema.ProfilePictureU
         raise HTTPException(status_code=500, detail=f"Error saving the file: {str(e)}")
     return JSONResponse({"image_path":image_path})
 
-
+@router.post("/password-reset", status_code=status.HTTP_200_OK, response_model=user_schema.PasswordResetRequestResponse)
+def request_password_reset(body:user_schema.PasswordResetRequest
+                           ,session: Session = Depends(get_db)) -> user_schema.PasswordResetRequestResponse:
+    service = UserService(session=session)
+    try:
+        service.request_password_reset(body.email)
+        masked = f"{body.email[:3]}****"
+        return user_schema.PasswordResetRequestResponse(
+            message = f"Your reset link has been sent to your email starting with {masked}"
+        )
+    except ValueError as e:
+        LOGGER.error(f"Value error: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        LOGGER.error(f"Unexpected error: {str(e), body.email}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
+    
+@router.put("/password-reset", status_code=status.HTTP_200_OK, response_model=user_schema.UserUpdate)
+def reset_password(body: user_schema.PasswordReset,
+                   session: Session = Depends(get_db)) -> user_schema.UserUpdate:
+        service = UserService(session=session)
+        try:
+            updated_user = service.reset_password(body.new_password, body.token)
+            return updated_user
+        except ValueError as e:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        except Exception as e:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error ")
+    
