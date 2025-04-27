@@ -106,6 +106,16 @@ class PasswordUpdate(BaseModel):
     old_password: str
     new_password: str
 
+class PasswordReset(BaseModel):
+    new_password: str
+    token: str
+
+class PasswordResetRequest(BaseModel):
+    email: EmailStr
+
+class PasswordResetRequestResponse(BaseModel):
+    message: str
+
 class UserLoginResponse(UserCreate):
     id: int
     access_token: str

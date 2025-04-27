@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from models.user import User
 from repository.user_repository import UserRepository
 from schemas import user_schema
-from utils.func_utils import (check_password, create_jwt, get_password_hash, upload_image_to_s3)
+from utils.func_utils import (check_password, create_jwt, get_password_hash, upload_image_to_s3, reset_password_email, verify_jwt)
 from utils.image_utils import validate_image
 from utils.singleton_meta import SingletonMeta
 
@@ -119,4 +119,26 @@ class UserService(metaclass=SingletonMeta):
         user.password = get_password_hash(new_password)
         return self.user_repository.update_user(user)
 
-
+    def request_password_reset(self, email:str) -> Optional[User]:
+        user = self.user_repository.get_user_by_email(email)
+        if not user :
+            raise ValueError("User not found")
+        try:
+            token = create_jwt(email)
+            reset_password_email(email, token)
+        except Exception as e:
+            LOGGER.error("Error sending reset password email. ", e)
+            raise e
+    
+    def reset_password(self, new_password:str, token:str) -> Optional[User]:
+        try:
+            decoded_token = verify_jwt(token)
+            email = decoded_token['user_id']
+            user = self.user_repository.get_user_by_email(email)
+            if not user:
+                raise ValueError("User not found")
+            user.password = get_password_hash(new_password)
+            return self.user_repository.update_user(user)
+        except Exception as e:
+            LOGGER.error("Error resetting password. ", e)
+            raise e
