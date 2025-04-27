@@ -60,14 +60,6 @@ def get_user_by_id(user_id: int, session: Session = Depends(get_db)) -> user_sch
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
-@router.get("/users/{user_id}", status_code=status.HTTP_200_OK, response_model=user_schema.UserGetResponse)
-def get_user_by_id(user_id: int, session: Session = Depends(get_db)) -> user_schema.UserGetResponse:
-    service = UserService(session=session)
-    user = service.get_user_by_id(user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    return user
-
 @router.get("/users/{user_id}/mentees", status_code=status.HTTP_200_OK, response_model= list[user_schema.UserCreatedResponse])
 def get_mentees(user_id: int, session: Session = Depends(get_db)) -> user_schema.UserCreatedResponse:
     service = UserService(session=session)
