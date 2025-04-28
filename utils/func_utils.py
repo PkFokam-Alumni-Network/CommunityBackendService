@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from logging_config import LOGGER
 from utils.image_utils import crop_image_to_circle, decode_base64_image
 from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
+from sendgrid.helpers.mail import Mail, Email
 
 load_dotenv()
 SECRET_KEY = os.getenv('SECRET_KEY', 'DEFAULT_KEY')
@@ -18,7 +18,7 @@ s3_client = boto3.client(
 )
 
 ADMIN_EMAIL = os.getenv('ADMIN_EMAIL')
-SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY',)
+SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
 BASE_URL = os.getenv('BASE_URL')
 
 def get_password_hash(password: str) -> str:
@@ -68,10 +68,10 @@ def upload_image_to_s3(base64_image: str, object_key:str) -> str:
 def reset_password_email(email: str, token: str):
     link = f"{BASE_URL}/password-reset?token={token}"
     message = Mail(
-        from_email = ADMIN_EMAIL,
+        from_email = Email(ADMIN_EMAIL, name="PACI_SUPPORT"),
         to_emails = email,
         subject = "Password Reset",
-        plain_text_content = f"click the link to reset yout password: {link}"
+        html_content = f"<p>Click the <a href='{link}'>link</a> to reset your password.</p>",
     )
     sg = SendGridAPIClient(SENDGRID_API_KEY)
     try:
