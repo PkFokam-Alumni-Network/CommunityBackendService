@@ -12,6 +12,7 @@ router = APIRouter()
 def login(user: user_schema.UserLogin, session: Session = Depends(get_db)) -> user_schema.UserLoginResponse:
     service = UserService(session=session)
     try:
+        user.email = user.email.lower()
         response = service.login(user.email, user.password)
         return response
     except ValueError as e:
