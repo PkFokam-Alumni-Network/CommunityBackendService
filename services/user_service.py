@@ -36,7 +36,7 @@ class UserService(metaclass=SingletonMeta):
             raise ValueError(f"Role cannot be {role}. Defaut value is user")
         hashed_password = get_password_hash(password)
         new_user = User(
-            email=email,
+            email=email.lower(),
             first_name=first_name,
             last_name=last_name,
             password=hashed_password,
