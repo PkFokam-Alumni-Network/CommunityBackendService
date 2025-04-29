@@ -300,3 +300,48 @@ def test_get_user_count() -> None:
     
     assert "count" in response_data
     assert response_data["count"] == len(users_data)
+
+def test_get_active_users() -> None:
+    # Create test users with different active states
+    users_data = [
+        {
+            "email": "active1@example.com",
+            "first_name": "Active",
+            "last_name": "User1",
+            "password": "password123",
+            "is_active": True
+        },
+        {
+            "email": "active2@example.com",
+            "first_name": "Active",
+            "last_name": "User2",
+            "password": "password123",
+            "is_active": True
+        },
+        {
+            "email": "inactive1@example.com",
+            "first_name": "Inactive",
+            "last_name": "User1",
+            "password": "password123",
+            "is_active": False
+        }
+    ]
+
+    for user in users_data:
+        response = client.post("/users/", json=user)
+        assert response.status_code == 201
+
+    response = client.get("/users/")
+    assert response.status_code == 200
+    active_users = response.json()
+    assert len(active_users) == 3
+
+    response = client.get("/users/?active=true")
+    assert response.status_code == 200
+    active_users = response.json()
+    assert len(active_users) == 2
+    assert all(user["is_active"] for user in active_users)
+
+    response = client.get("/users/?counts=true&active=true")
+    assert response.status_code == 200
+    assert response.json()["count"] == 2

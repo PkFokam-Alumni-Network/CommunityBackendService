@@ -65,7 +65,7 @@ class UserService(metaclass=SingletonMeta):
     def get_user_by_id(self, user_id: int) -> Optional[User]:
         return self.user_repository.get_user_by_id(user_id)
     
-    def get_users(self, active: bool = True) -> list[Type[User]]:
+    def get_users(self, active: bool = False) -> list[Type[User]]:
         return self.user_repository.get_users(active=active)
 
     def remove_user(self, user_id: int):
