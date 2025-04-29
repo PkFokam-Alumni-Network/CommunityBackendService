@@ -30,7 +30,9 @@ class UserRepository(metaclass=SingletonMeta):
     def get_user_by_email(self, email: str) -> Optional[User]:
         return self.db.query(User).filter(User.email == email).first()
 
-    def get_users(self) -> List[User]:
+    def get_users(self, active) -> List[User]:
+        if active:
+            return self.db.query(User).filter(User.is_active == True).all()
         return self.db.query(User).all()
 
     def update_user(self, user: User) -> Optional[User]:

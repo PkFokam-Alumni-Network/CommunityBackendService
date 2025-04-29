@@ -46,9 +46,9 @@ def create_user(user: user_schema.UserCreate, session: Session = Depends(get_db)
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.get("/users/", status_code=status.HTTP_200_OK)
-def get_all_users(session: Session = Depends(get_db), counts: bool = Query(False, alias="counts")):
+def get_all_users(session: Session = Depends(get_db), counts: bool = Query(False, alias="counts"), active: bool = Query(False, alias="active")):
     service = UserService(session=session)
-    users = service.get_users()
+    users = service.get_users(active=active)
     if counts:
         return {"count": len(users)}
     return users
