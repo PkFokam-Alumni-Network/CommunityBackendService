@@ -34,6 +34,10 @@ class EventService(metaclass=SingletonMeta):
         return self.event_repository.update_event(event)
 
     def delete_event(self, event_id: int) -> None:
+        users_registered = self.get_event_users(event_id)
+        for user in users_registered:
+            event_registration = EventRegistration(email=user.email)
+            self.unregister_user_from_event(event_registration, event_id)
         self.event_repository.delete_event(event_id)
 
     def register_user_for_event(self, event_registration: EventRegistration, event_id: int) -> None:
