@@ -31,4 +31,5 @@ class User(Base):
     role = Column(Enum(UserRole), default=UserRole.user, nullable=False)
 
     user_events = relationship("UserEvent", back_populates="user")
+    posts = relationship("Post", back_populates="author")
     
