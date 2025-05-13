@@ -57,3 +57,7 @@ class UserEventRepository(metaclass=SingletonMeta):
             UserEvent.user_email == user_email,
             UserEvent.event_id == event_id
         ).count() > 0
+    
+    def delete_by_event_id(self, event_id: int):
+        self.db.query(UserEvent).filter_by(event_id=event_id).delete()
+        self.db.commit()
