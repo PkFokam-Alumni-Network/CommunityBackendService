@@ -37,7 +37,7 @@ class EventService(metaclass=SingletonMeta):
         event = self.event_repository.get_event_by_id(event_id)
         if not event:
             raise ValueError("Event not found.")
-        self.event_repository.delete_event(event)
+        self.event_repository.delete_event(event_id)
 
     def register_user_for_event(self, event_registration: EventRegistration, event_id: int) -> None:
         user_email = event_registration.email
