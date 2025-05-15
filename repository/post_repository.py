@@ -6,9 +6,8 @@ class PostRepository(metaclass=SingletonMeta):
     def __init__(self, session: Session):
         self.db: Session = session
 
-    def create_post(self, post: Post, user_id: int) -> Post:
+    def create_post(self, post: Post) -> Post:
         try: 
-            post.author_id = user_id
             self.db.add(post)
             self.db.commit()
             self.db.refresh(post)
@@ -24,15 +23,19 @@ class PostRepository(metaclass=SingletonMeta):
         offset = (page - 1) * limit
         return self.db.query(Post).order_by(Post.created_at.desc()).offset(offset).limit(limit).all()
     
-    def get_post_by_category(self, category: str) -> List[Post]:
-        return self.db.query(Post).filter(Post.category == category).order_by(Post.created_at.desc()).all()
+    def get_post_by_category(self, category: str, limit: int = 10, page: int = 1) -> List[Post]:
+        offset = (page - 1) * limit
+        return (
+            self.db.query(Post)
+            .filter(Post.category == category)
+            .order_by(Post.created_at.desc())
+            .offset(offset)
+            .limit(limit)
+            .all()
+        )
     
-    def update_post(self, updated_post: Post, user_id: int) -> Optional[Post]: #Only the author
+    def update_post(self, updated_post: Post) -> Optional[Post]: #Only the author
         db_post = self.get_post_by_id(updated_post.id)
-        if not db_post:
-            raise ValueError("Post not found.")
-        if db_post.author_id != user_id:
-            raise PermissionError("You are not the author of this post.")
         try:
             self.db.merge(updated_post)
             self.db.commit()
@@ -42,12 +45,8 @@ class PostRepository(metaclass=SingletonMeta):
             self.db.rollback()
             raise RuntimeError(f"Failed to update post: {e}")
         
-    def delete_post(self, post_id: int, user_id: int) -> None:
+    def delete_post(self, post_id: int) -> None:
         db_post = self.get_post_by_id(post_id)
-        if not db_post:
-            raise ValueError("Post not found.")
-        if db_post.author_id != user_id:
-            raise PermissionError("You are not authorized to delete this post.")
         try:
             self.db.delete(db_post)
             self.db.commit()

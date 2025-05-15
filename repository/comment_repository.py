@@ -6,8 +6,7 @@ class CommentRepository(metaclass=SingletonMeta):
     def __init__(self, session: Session):
         self.db: Session = session
 
-    def create_comment(self, comment: Comment, user_id: int) -> Optional[Comment]:
-        comment.author_id = user_id
+    def create_comment(self, comment: Comment) -> Optional[Comment]:
         try:
             self.db.add(comment)
             self.db.commit()
@@ -17,18 +16,15 @@ class CommentRepository(metaclass=SingletonMeta):
             self.db.rollback()
             raise RuntimeError(f"Error creating comment: {e}")
 
-    def get_comments_by_post(self, post_id: int) -> List[Comment]:
-        return self.db.query(Comment).filter(Comment.post_id == post_id).order_by(Comment.created_at).all()
+    def get_comments_by_post(self, post_id: int, limit: int = 10, page: int = 1) -> List[Comment]:
+        offset = (page - 1) * limit
+        return self.db.query(Comment).filter(Comment.post_id == post_id).order_by(Comment.created_at).offset(offset).limit(limit).all()
 
     def get_comment_by_id(self, comment_id: int) -> Optional[Comment]:
         return self.db.query(Comment).filter(Comment.id == comment_id).first()
     
-    def update_comment(self, updated_comment: Comment, user_id: int) -> Optional[Comment]:
+    def update_comment(self, updated_comment: Comment) -> Optional[Comment]:
         db_comment = self.get_comment_by_id(updated_comment.id)
-        if not db_comment:
-            raise ValueError("Comment not found.")
-        if db_comment.author_id != user_id:
-            raise PermissionError("You are not the author of this comment.")
         try:
             db_comment.content = updated_comment.content
             self.db.commit()
@@ -38,12 +34,8 @@ class CommentRepository(metaclass=SingletonMeta):
             self.db.rollback()
             raise RuntimeError(f"Error updating comment: {e}")
     
-    def delete_comment(self, comment_id: int, user_id: int) -> None:
+    def delete_comment(self, comment_id: int) -> None:
         comment = self.get_comment_by_id(comment_id)
-        if not comment:
-            raise ValueError("Comment not found.")
-        if comment.author_id != user_id:
-            raise PermissionError("You are not authorized to delete this comment.")
         try:
             self.db.delete(comment)
             self.db.commit()
