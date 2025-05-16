@@ -1,5 +1,4 @@
 import boto3, hashlib, os, bcrypt, jwt, datetime
-
 from typing import Any
 from dotenv import load_dotenv
 from logging_config import LOGGER
@@ -65,13 +64,22 @@ def upload_image_to_s3(base64_image: str, object_key:str) -> str:
         LOGGER.error(f"Error uploading file to key {object_key}: {e}")
         raise ValueError("Error uploading file to S3 bucket")
 
-def reset_password_email(email: str, token: str):
+
+def reset_password_email(email: str, token: str, name: str):
     link = f"{BASE_URL}/password-reset?token={token}"
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    template_path = os.path.join(base_dir, "templates", "password_reset_email.html")
+    template_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "templates", "password_reset.html")
+    with open(template_path, "r", encoding='utf-8') as f:
+        html_content = f.read()
+    html_content = html_content.replace("{{name}}", name)
+    html_content = html_content.replace("{link}", link)
+
     message = Mail(
-        from_email = Email(ADMIN_EMAIL, name="PACI_SUPPORT"),
-        to_emails = email,
-        subject = "Password Reset",
-        html_content = f"<p>Click the <a href='{link}'>link</a> to reset your password.</p>",
+        from_email=Email(ADMIN_EMAIL, name="PACI SUPPORT"),
+        to_emails=email,
+        subject="Password Reset",
+        html_content=html_content,
     )
     sg = SendGridAPIClient(SENDGRID_API_KEY)
     try:
@@ -81,6 +89,7 @@ def reset_password_email(email: str, token: str):
     except Exception as e:
         LOGGER.error(f"Error sending password reset email to {email}: {e}")
         raise ValueError("Error sending password reset email")
+
     
 
 
