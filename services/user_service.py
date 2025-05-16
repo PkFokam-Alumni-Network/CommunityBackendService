@@ -121,11 +121,12 @@ class UserService(metaclass=SingletonMeta):
 
     def request_password_reset(self, email:str) -> Optional[User]:
         user = self.user_repository.get_user_by_email(email)
+        user_name = user.first_name if user else None
         if not user :
             raise ValueError("User not found")
         try:
             token = create_jwt(email)
-            reset_password_email(email, token)
+            reset_password_email(email, token, user_name)
         except Exception as e:
             LOGGER.error("Error sending reset password email. ", e)
             raise e
