@@ -5,12 +5,12 @@ from sqlalchemy.orm import declarative_base
 
 ENV = os.getenv("ENV", "development")
 if ENV == "development":
-    temp_db_file = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
-    DATABASE_URL = f"sqlite:///{temp_db_file.name}"
+    DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/pkfalumni") 
 else:
-    DATABASE_URL = "sqlite:////app/sql_database/database.db" #the extra / is necessary to access the volume
+    #For Production
+    DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@db:5432/pkfalumni")
 
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 

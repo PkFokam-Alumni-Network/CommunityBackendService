@@ -12,7 +12,6 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-
 # Copy the requirements.txt file to the working directory
 COPY requirements.txt .
 
@@ -25,10 +24,5 @@ COPY . .
 # Expose the port that the app will run on
 EXPOSE 9000
 
-# Command to run the FastAPI app using uvicorn
-# Copy the start script
-COPY start.sh /start.sh
-RUN chmod +x /start.sh
-
-# Run the startup script
-CMD ["/start.sh"]
+# Run the app in development mode with hot reloading
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "9000", "--reload"]

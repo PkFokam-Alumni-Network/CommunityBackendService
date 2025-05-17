@@ -29,9 +29,9 @@ target_metadata = Base.metadata
 ENV = os.getenv("ENV", "development")
 
 if ENV == "development":
-    DATABASE_URL = "sqlite:///database.db"
+    DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/pkfalumni")
 else:
-    DATABASE_URL = "sqlite:////app/sql_database/database.db"
+    DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@db:5432/pkfalumni")
 
 config.set_main_option("sqlalchemy.url", DATABASE_URL)
 
@@ -76,7 +76,7 @@ def run_migrations_online() -> None:
         context.configure(
             connection=connection, 
             target_metadata=target_metadata,
-            **({"transaction_per_migration": True} if connection.dialect.name == "sqlite" else {})
+            #**({"transaction_per_migration": True} if connection.dialect.name == "sqlite" else {})
         )
 
         with context.begin_transaction():

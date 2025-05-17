@@ -1,13 +1,13 @@
 services:
   db:
     image: postgres:15
-    container_name: pkfalumni_db
+    container_name: pkfalumni_db_dev
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=pkfalumni
+      - POSTGRES_DB=pkfalumni_dev
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data_dev:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     healthcheck:
@@ -19,16 +19,18 @@ services:
   fastapi_app:
     build:
       context: .
-      dockerfile: Dockerfile
-    container_name: fastapi_app
+      dockerfile: Dockerfile.dev
+    container_name: fastapi_app_dev
     ports:
       - "9000:9000"
     environment:
-      - ENV=production
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/pkfalumni
+      - ENV=development
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/pkfalumni_dev
+    volumes:
+      - .:/app
     depends_on:
       db:
         condition: service_healthy
 
 volumes:
-  postgres_data:
+  postgres_data_dev:
