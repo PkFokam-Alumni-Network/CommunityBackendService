@@ -24,7 +24,7 @@ fastapi==0.115.6
 fastapi-cli==0.0.6
 fastjsonschema==2.21.1
 greenlet==3.1.1
-h11==0.14.0
+h11==0.16.0
 httpcore==1.0.7
 httptools==0.6.4
 httpx==0.28.1
@@ -91,7 +91,7 @@ starkbank-ecdsa==2.2.0
 starlette==0.41.3
 tinycss2==1.4.0
 tomli==2.2.1
-tornado==6.4.2
+tornado==6.5.0
 traitlets==5.14.3
 typer==0.15.1
 typing_extensions==4.12.2
