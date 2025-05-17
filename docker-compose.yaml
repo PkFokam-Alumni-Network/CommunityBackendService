@@ -8,10 +8,3 @@ services:
       - "9000:9000"
     environment:
       - ENV=production
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/pkfalumni
-    depends_on:
-      db:
-        condition: service_healthy
-
-volumes:
-  postgres_data:
