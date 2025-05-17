@@ -59,7 +59,7 @@ pipreqs==0.5.0
 platformdirs==4.3.6
 pluggy==1.5.0
 prompt_toolkit==3.0.50
-psycopg2-binary==2.9.10
+psycopg2-binary==2.9.9
 pure_eval==0.2.3
 pydantic==2.10.3
 pydantic-extra-types==2.10.1
@@ -72,7 +72,6 @@ python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
 python-http-client==3.3.7
 python-multipart==0.0.19
-pywin32==310
 PyYAML==6.0.2
 pyzmq==26.2.1
 referencing==0.36.2
