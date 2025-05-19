@@ -1,14 +1,7 @@
-from typing import Generator
+
 from fastapi.testclient import TestClient
-import pytest
-from models.announcement import Announcement
-from tests.conftest import create_and_teardown_tables, client
 
-@pytest.fixture(scope="function", autouse=True)
-def setup_and_teardown_db() -> Generator[TestClient, None, None]:
-    yield from create_and_teardown_tables([Announcement.metadata])
-
-def test_create_get_announcement() -> None:
+def test_create_get_announcement(client: TestClient) -> None:
     create_route = "/announcements/"
     response = client.post(
         create_route,
@@ -29,11 +22,11 @@ def test_create_get_announcement() -> None:
     assert response.json()["id"] == announcement_id
     assert response.json()["title"] == "Test Announcement"
 
-def test_get_non_existing_announcement() -> None:
+def test_get_non_existing_announcement(client: TestClient) -> None:
     response = client.get("/announcements/999")
     assert response.status_code == 404
 
-def test_create_announcement_duplicate() -> None:
+def test_create_announcement_duplicate(client: TestClient) -> None:
     response = client.post(
         "/announcements/",
         json={
@@ -58,7 +51,7 @@ def test_create_announcement_duplicate() -> None:
     assert response.status_code == 400
     assert response.json()["detail"] == "Announcement with this title already exists."
 
-def test_create_announcement_date_before_deadline() -> None:
+def test_create_announcement_date_before_deadline(client: TestClient) -> None:
     response = client.post(
         "/announcements/",
         json={
@@ -73,7 +66,7 @@ def test_create_announcement_date_before_deadline() -> None:
     assert response.json()["detail"] == "Announcement date must be before announcement deadline."
 
 
-def test_delete_existing_announcement() -> None:
+def test_delete_existing_announcement(client: TestClient) -> None:
     create_response = client.post(
         "/announcements/",
         json={

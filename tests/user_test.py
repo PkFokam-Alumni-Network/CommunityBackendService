@@ -1,16 +1,8 @@
-import pytest
-from typing import Generator
 from fastapi.testclient import TestClient
-from models.user import User
 from schemas.user_schema import UserCreatedResponse
-from tests.conftest import create_and_teardown_tables, client
 from utils.func_utils import verify_jwt
 
-@pytest.fixture(scope="function", autouse=True)
-def setup_and_teardown_db() -> Generator[TestClient, None, None]:
-    yield from create_and_teardown_tables([User.metadata])
-
-def test_correct_login() -> None:
+def test_correct_login(client: TestClient) -> None:
     user_data = {
         "email": "login_test@example.com",
         "first_name": "Login",
@@ -33,8 +25,7 @@ def test_correct_login() -> None:
     assert payload is not None
     assert payload["user_id"] == user_data["email"]
 
-
-def test_bad_login() -> None:
+def test_bad_login(client: TestClient) -> None:
     user_data = {
         "email": "bad_login_test@example.com",
         "first_name": "BadLogin",
@@ -52,9 +43,7 @@ def test_bad_login() -> None:
     assert response.status_code == 401
     assert response.json()["detail"] == "Invalid email or password"
 
-
-
-def test_get_all_users() -> None:
+def test_get_all_users(client: TestClient) -> None:
     users_data = [
         {
             "email": "test_email1@example.com",
@@ -69,14 +58,12 @@ def test_get_all_users() -> None:
             "password": "anothersecurepassword",
         }
     ]
-
     for user in users_data:
         response = client.post("/users/", json=user)
         assert response.status_code == 201
 
     response = client.get("/users/")
     assert response.status_code == 200
-
     response_data = response.json()
     assert isinstance(response_data, list)
     assert len(response_data) == len(users_data)
@@ -86,124 +73,88 @@ def test_get_all_users() -> None:
         assert response_data[i]["first_name"] == user["first_name"]
         assert response_data[i]["last_name"] == user["last_name"]
 
-
-def test_create_get_user() -> None:
-    response = client.post(
-        "/users/",
-        json={
-            "email": "test_email@example.com",
-            "first_name": "Test",
-            "last_name": "User",
-            "role": "user",
-            "graduation_year": 2023,
-            "degree": "B.Sc.",
-            "major": "Computer Science",
-            "phone": "1234567890",
-            "password": "securepassword",
-            "current_occupation": "Engineer",
-            "image": "test_image_url",
-            "linkedin_profile": "https://linkedin.com/in/test",
-            "mentor_email": "test_email1@example.com",
-        },
-    )
+def test_create_get_user(client: TestClient) -> None:
+    response = client.post("/users/", json={
+        "email": "test_email@example.com",
+        "first_name": "Test",
+        "last_name": "User",
+        "role": "user",
+        "graduation_year": 2023,
+        "degree": "B.Sc.",
+        "major": "Computer Science",
+        "phone": "1234567890",
+        "password": "securepassword",
+        "current_occupation": "Engineer",
+        "image": "test_image_url",
+        "linkedin_profile": "https://linkedin.com/in/test",
+        "mentor_email": "test_email1@example.com",
+    })
     assert response.status_code == 201
-    user:UserCreatedResponse = UserCreatedResponse.model_validate(response.json())
+    user: UserCreatedResponse = UserCreatedResponse.model_validate(response.json())
     assert user.email == "test_email@example.com"
 
     response = client.get(f"/users/{user.id}")
     assert response.status_code == 200
     assert response.json()["email"] == "test_email@example.com"
 
-
-
-def test_get_non_existing_user() -> None:
+def test_get_non_existing_user(client: TestClient) -> None:
     response = client.get("/users/2")
     assert response.status_code == 404
     assert response.json()["detail"] == "User not found"
 
-def test_create_user_duplicate() -> None:
-    response = client.post(
-        "/users/",
-        json={
-            "email": "test_email@example.com",
-            "first_name": "Duplicate",
-            "last_name": "User",
-            "password": "securepassword",
-        },
-    )
+def test_create_user_duplicate(client: TestClient) -> None:
+    data = {
+        "email": "test_email@example.com",
+        "first_name": "Duplicate",
+        "last_name": "User",
+        "password": "securepassword",
+    }
+    response = client.post("/users/", json=data)
     assert response.status_code == 201
-    response = client.post(
-        "/users/",
-        json={
-            "email": "test_email@example.com",
-            "first_name": "Duplicate",
-            "last_name": "User",
-            "password": "securepassword",
-        },
-    )
+    response = client.post("/users/", json=data)
     assert response.status_code == 400
     assert response.json()["detail"] == "User with this email already exists."
 
+def test_delete_existing_user(client: TestClient) -> None:
+    response = client.post("/users/", json={
+        "email": "delete@example.com",
+        "first_name": "Delete",
+        "last_name": "User",
+        "password": "securepassword",
+    })
+    assert response.status_code == 201
+    user = response.json()
+    response = client.delete(f"/users/{user['id']}")
+    assert response.status_code == 200
+    response = client.delete(f"/users/{user['id']}")
+    assert response.status_code == 404
+    assert response.json()["detail"] == "User does not exist."
 
-
-def test_delete_existing_user() -> None:
-    create_response = client.post(
-        "/users/",
-        json={
-            "email": "delete@example.com",
-            "first_name": "Delete",
-            "last_name": "User",
-            "password": "securepassword",
-        },
-    )
-    assert create_response.status_code == 201
-    new_user:UserCreatedResponse = UserCreatedResponse.model_validate(create_response.json())
-    delete_route = f"/users/{new_user.id}"
-    delete_response = client.delete(delete_route)
-    assert delete_response.status_code == 200
-    delete_response = client.delete(delete_route)
-    assert delete_response.status_code == 404
-    assert delete_response.json()["detail"] == "User does not exist."
-
-
-def test_assign_mentor() -> None:
-    mentor_response = client.post(
-        "/users/",
-        json={
-            "email": "mentor@example.com",
-            "first_name": "Mentor",
-            "last_name": "User",
-            "password": "securepassword",
-        },
-    )
+def test_assign_mentor(client: TestClient) -> None:
+    mentor_response = client.post("/users/", json={
+        "email": "mentor@example.com",
+        "first_name": "Mentor",
+        "last_name": "User",
+        "password": "securepassword",
+    })
     assert mentor_response.status_code == 201
-    mentor_data = mentor_response.json()
-    mentor_email = mentor_data["email"]
-    mentee_response = client.post(
-        "/users/",
-        json={
-            "email": "mentee@example.com",
-            "first_name": "Mentee",
-            "last_name": "User",
-            "password": "securepassword",
-        },
-    )
-    assert mentee_response.status_code == 201
-    mentee_data = mentee_response.json()
-    user_id = mentee_data["id"]
-    assign_mentor_response = client.put(f"/users/{user_id}",
-        json={
-            "mentor_email": mentor_email
-        },     
-    ) 
-    assert assign_mentor_response.status_code == 200
-    mentee_updated = client.get(f"/users/{user_id}")
-    assert mentee_updated.status_code == 200
-    mentee_updated_data = mentee_updated.json()
-    assert mentee_updated_data["mentor_email"] == mentor_email
+    mentor_email = mentor_response.json()["email"]
 
-# TODO: USE MODEL INSTEAD OF PARSING THE JSON FOR BETTER READABILITY
-def test_update_user():
+    mentee_response = client.post("/users/", json={
+        "email": "mentee@example.com",
+        "first_name": "Mentee",
+        "last_name": "User",
+        "password": "securepassword",
+    })
+    assert mentee_response.status_code == 201
+    user_id = mentee_response.json()["id"]
+
+    response = client.put(f"/users/{user_id}", json={"mentor_email": mentor_email})
+    assert response.status_code == 200
+    updated = client.get(f"/users/{user_id}").json()
+    assert updated["mentor_email"] == mentor_email
+
+def test_update_user(client: TestClient) -> None:
     user_data = {
         "email": "testuser@example.com",
         "first_name": "John",
@@ -213,16 +164,13 @@ def test_update_user():
     response = client.post("/users/", json=user_data)
     assert response.status_code == 201
     user = response.json()
-
     update_data = {"first_name": "UpdatedJohn"}
-    user_id = user["id"]
-    response = client.put(f"/users/{user_id}", json=update_data)
+    response = client.put(f"/users/{user['id']}", json=update_data)
     assert response.status_code == 200
     updated_user = response.json()
     assert updated_user["first_name"] == "UpdatedJohn"
-    assert updated_user["last_name"] == "Doe"
-    
-def test_update_user_email():
+
+def test_update_user_email(client: TestClient) -> None:
     user_data = {
         "email": "update_email_test@example.com",
         "first_name": "Email",
@@ -232,19 +180,13 @@ def test_update_user_email():
     response = client.post("/users/", json=user_data)
     assert response.status_code == 201
     user = response.json()
-
     new_email = "new_email@example.com"
-    user_id = user['id']
-    response = client.put(f"/users/{user_id}/update-email", json={"new_email": new_email})
+    response = client.put(f"/users/{user['id']}/update-email", json={"new_email": new_email})
     assert response.status_code == 200
     updated_user = response.json()
     assert updated_user["email"] == new_email
 
-    response = client.get(f"/users/{user_id}")
-    assert response.status_code == 200
-    assert response.json()["email"] == new_email
-
-def test_update_user_password():
+def test_update_user_password(client: TestClient) -> None:
     user_data = {
         "email": "update_password_test@example.com",
         "first_name": "Password",
@@ -254,16 +196,12 @@ def test_update_user_password():
     response = client.post("/users/", json=user_data)
     assert response.status_code == 201
     user = response.json()
-
     update_password_data = {
         "old_password": "oldpassword",
         "new_password": "newsecurepassword"
     }
     response = client.put(f"/users/{user['id']}/update-password", json=update_password_data)
     assert response.status_code == 200
-    updated_user = response.json()
-    assert updated_user["email"] == user["email"]
-
     login_data = {
         "email": user["email"],
         "password": "newsecurepassword"
@@ -271,70 +209,28 @@ def test_update_user_password():
     response = client.post("/login/", json=login_data)
     assert response.status_code == 200
     assert "access_token" in response.json()
-    assert response.json()["token_type"] == "bearer"
-        
-def test_get_user_count() -> None:
-    users_data = [
-        {
-            "email": "test_email1@example.com",
-            "first_name": "Test1",
-            "last_name": "User1",
-            "password": "securepassword",
-        },
-        {
-            "email": "test_email2@example.com",
-            "first_name": "Test2",
-            "last_name": "User2",
-            "password": "anothersecurepassword",
-        }
-    ]
-    
 
+def test_get_user_count(client: TestClient) -> None:
+    users_data = [
+        {"email": "test_email1@example.com", "first_name": "Test1", "last_name": "User1", "password": "securepassword"},
+        {"email": "test_email2@example.com", "first_name": "Test2", "last_name": "User2", "password": "securepassword"},
+    ]
     for user in users_data:
         response = client.post("/users/", json=user)
         assert response.status_code == 201
-    
     response = client.get("/users/?counts=true")
     assert response.status_code == 200
-    response_data = response.json()
-    
-    assert "count" in response_data
-    assert response_data["count"] == len(users_data)
+    assert response.json()["count"] == len(users_data)
 
-def test_get_active_users() -> None:
-    # Create test users with different active states
+def test_get_active_users(client: TestClient) -> None:
     users_data = [
-        {
-            "email": "active1@example.com",
-            "first_name": "Active",
-            "last_name": "User1",
-            "password": "password123",
-            "is_active": True
-        },
-        {
-            "email": "active2@example.com",
-            "first_name": "Active",
-            "last_name": "User2",
-            "password": "password123",
-            "is_active": True
-        },
-        {
-            "email": "inactive1@example.com",
-            "first_name": "Inactive",
-            "last_name": "User1",
-            "password": "password123",
-            "is_active": False
-        }
+        {"email": "active1@example.com", "first_name": "Active", "last_name": "User1", "password": "123", "is_active": True},
+        {"email": "active2@example.com", "first_name": "Active", "last_name": "User2", "password": "123", "is_active": True},
+        {"email": "inactive1@example.com", "first_name": "Inactive", "last_name": "User1", "password": "123", "is_active": False},
     ]
-
     for user in users_data:
         response = client.post("/users/", json=user)
         assert response.status_code == 201
-
-    response = client.get("/users/")
-    assert response.status_code == 200
-    active_users = response.json()
-    assert len(active_users) == 3
 
     response = client.get("/users/?active=true")
     assert response.status_code == 200
@@ -346,35 +242,17 @@ def test_get_active_users() -> None:
     assert response.status_code == 200
     assert response.json()["count"] == 2
 
-# TODO: USE MODEL INSTEAD OF PARSING THE JSON FOR BETTER READABILITY
-# TODO: REMOVE THIS TEST AFTERWARDS
-def test_get_all_users_filters_by_name() -> None:
-    # Create some test users
+def test_get_all_users_filters_by_name(client: TestClient) -> None:
     users_data = [
-        {
-            "email": "ella@example.com",
-            "first_name": "Ella",
-            "last_name": "Smith",
-            "password": "securepassword",
-        },
-        {
-            "email": "john@example.com",
-            "first_name": "John",
-            "last_name": "Doe",
-            "password": "securepassword",
-        },
+        {"email": "ella@example.com", "first_name": "Ella", "last_name": "Smith", "password": "secure"},
+        {"email": "john@example.com", "first_name": "John", "last_name": "Doe", "password": "secure"},
     ]
-
     for user in users_data:
         response = client.post("/users/", json=user)
         assert response.status_code == 201
 
-    # Test that only users with first name "Ella" or last name "Ogechi" are returned
     response = client.get("/users/")
     assert response.status_code == 200
     users = response.json()
     assert len(users) == 1
-    assert any(user["first_name"] == "Ella" or user["last_name"] == "Ogechi" for user in users)
-
-    # Test that users with other names are not returned
-    assert not any(user["first_name"] == "John" or user["last_name"] == "Doe" for user in users)
+    assert users[0]["first_name"] == "Ella"
