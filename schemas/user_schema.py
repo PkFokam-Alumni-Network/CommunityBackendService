@@ -1,5 +1,6 @@
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel, ConfigDict, EmailStr
+from schemas.degree_schema import DegreeResponse
 
 from models.user import User, UserRole
 
@@ -46,13 +47,18 @@ class UserGetResponse(BaseModel):
     image: Optional[str]
     bio: Optional[str]
     graduation_year: Optional[int]
-    degree: Optional[str]
     major: Optional[str]
     current_occupation: Optional[str]
     mentor_email: Optional[EmailStr]
     linkedin_profile: Optional[str]
     instagram_profile: Optional[str]
     mentor_email: Optional[str]
+
+    # List of degrees
+    degrees: List[DegreeResponse] = [] 
+    
+    model_config = ConfigDict(from_attributes=True)
+
 
 class Attendee(BaseModel):
     image: Optional[str]

@@ -1,5 +1,5 @@
 from typing import Optional, List
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.exc import IntegrityError, OperationalError
 from models.user import User
 from utils.singleton_meta import SingletonMeta
@@ -24,11 +24,13 @@ class UserRepository(metaclass=SingletonMeta):
             self.db.rollback()
             raise RuntimeError(f"An error occurred: {e}")
     
+
     def get_user_by_id(self, user_id: int) -> Optional[User]:
-        return self.db.query(User).filter(User.id == user_id).first()
+        # joinedload is used to load related objects in a single query(eager loading)
+        return self.db.query(User).options(joinedload(User.degrees)).filter(User.id == user_id).first()
 
     def get_user_by_email(self, email: str) -> Optional[User]:
-        return self.db.query(User).filter(User.email == email).first()
+        return self.db.query(User).options(joinedload(User.degrees)).filter(User.email == email).first()
 
     def get_users(self, active) -> List[User]:
         if active:
