@@ -1,33 +1,60 @@
+import os
 import tempfile
-from typing import Generator, List
-from sqlalchemy import create_engine, MetaData
+import pytest
+from typing import Generator
+from sqlalchemy import create_engine, inspect
 from sqlalchemy.orm import sessionmaker, Session
 from fastapi.testclient import TestClient
 from main import app
-from database import get_db
+import database
 
-temp_db_file = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
-SQLALCHEMY_TEST_DATABASE_URL = f"sqlite:///{temp_db_file.name}"
-engine = create_engine(SQLALCHEMY_TEST_DATABASE_URL)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-client = TestClient(app)
+@pytest.fixture(scope="session")
+def temp_db_url() -> Generator[str, None, None]:
+    """Creates a temp SQLite DB file and cleans it up after the session."""
+    tmpfile = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+    db_path = tmpfile.name
+    tmpfile.close()  # Close immediately to avoid Windows lock
 
-def override_get_db() -> Generator[Session, None, None]:
+    db_url = f"sqlite:///{db_path}"
+    yield db_url
+
     try:
-        db = TestingSessionLocal()
-        yield db
+        os.unlink(db_path)
+    except PermissionError:
+        print(f"Could not delete temp file {db_path}, it might still be in use.")
+
+
+@pytest.fixture(scope="function")
+def engine(temp_db_url: str):
+    test_engine = create_engine(temp_db_url, connect_args={"check_same_thread": False})
+    database.Base.metadata.create_all(bind=test_engine)
+
+    # Patch the global engine/session used by app
+    database.engine = test_engine
+    database.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
+
+    yield test_engine
+
+    database.Base.metadata.drop_all(bind=test_engine)
+    test_engine.dispose()
+@pytest.fixture(scope="function")
+def db_session(engine) -> Generator[Session, None, None]:
+    """Creates a new SQLAlchemy session per test."""
+    testing_session_local = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    session = testing_session_local()
+    try:
+        yield session
     finally:
-        db.close()
+        session.close()
 
-app.dependency_overrides[get_db] = override_get_db
+@pytest.fixture(scope="function")
+def client(db_session: Session) -> Generator[TestClient, None, None]:
+    """Provides a test client with an isolated DB session."""
 
-def create_and_teardown_tables(data: List[MetaData]) -> Generator[TestClient, None, None]:
-    for metadata in data:
-        metadata.create_all(bind=engine)
-    yield client
-    for metadata in data:
-        metadata.drop_all(bind=engine)
+    def override_get_db() -> Generator[Session, None, None]:
+        yield db_session
 
-def pytest_sessionfinish(session, exitstatus):
-    engine.dispose()
+    app.dependency_overrides[database.get_db] = override_get_db
+    with TestClient(app) as c:
+        yield c
     app.dependency_overrides.clear()
