@@ -20,7 +20,6 @@ class User(Base):
     image = Column(String, nullable=True)
     bio = Column(String)
     graduation_year = Column(Integer)
-    degree = Column(String)
     major = Column(String)
     current_occupation = Column(String)
     mentor_email = Column(String, ForeignKey("users.email"), nullable=True)
@@ -30,5 +29,7 @@ class User(Base):
     instagram_profile = Column(String, nullable=True)
     role = Column(Enum(UserRole), default=UserRole.user, nullable=False)
 
+    # Relationships
+    degrees = relationship("Degree", back_populates="user")
     user_events = relationship("UserEvent", back_populates="user")
     
