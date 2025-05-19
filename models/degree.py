@@ -12,4 +12,5 @@ class Degree(Base):
     graduation_year = Column(Integer, nullable=False)
     location = Column(String, nullable=False)
 
+    # Relationships
     user = relationship("User", back_populates="degrees")
