@@ -19,10 +19,16 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    """Upgrade schema."""
-    pass
+    # Remove redundant columns from users table
+    with op.batch_alter_table('users') as batch_op:
+        batch_op.drop_column('degree')
+        batch_op.drop_column('major')
+        batch_op.drop_column('graduation_year')
 
 
 def downgrade() -> None:
-    """Downgrade schema."""
-    pass
+    # Add columns back if you need to roll back
+    with op.batch_alter_table('users') as batch_op:
+        batch_op.add_column(sa.Column('degree', sa.String(), nullable=True))
+        batch_op.add_column(sa.Column('major', sa.String(), nullable=True))
+        batch_op.add_column(sa.Column('graduation_year', sa.Integer(), nullable=True))
