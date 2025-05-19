@@ -9,6 +9,7 @@ from routers import user_router, announcement_router, event_router
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
+from settings import settings
 
 # TODO: Init logging and use config/settings.py for env variables
 @asynccontextmanager
@@ -23,16 +24,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     database.Base.metadata.create_all(bind=database.engine)
     yield
 
-origins = [
-    "https://pkfalumni.com",
-    "https://backoffice.pkfalumni.com"
-]
 
 app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
