@@ -19,8 +19,6 @@ class User(Base):
     phone = Column(String)
     image = Column(String, nullable=True)
     bio = Column(String)
-    graduation_year = Column(Integer)
-    major = Column(String)
     current_occupation = Column(String)
     mentor_email = Column(String, ForeignKey("users.email"), nullable=True)
     mentor = relationship("User", remote_side=[email], backref="mentees", foreign_keys=[mentor_email])

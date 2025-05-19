@@ -1,6 +1,7 @@
 from typing import Optional, List
 from pydantic import BaseModel, ConfigDict, EmailStr
 from schemas.degree_schema import DegreeResponse
+from schemas.degree_schema import DegreeCreate
 
 from models.user import User, UserRole
 
@@ -16,7 +17,6 @@ class UserCreate(BaseModel):
     bio: Optional[str] = None
 
     graduation_year: Optional[int] = None
-    degree: Optional[str] = None
     major: Optional[str] = None
 
     current_occupation: Optional[str] = None
@@ -27,6 +27,9 @@ class UserCreate(BaseModel):
 
     role: Optional[str] = "user"
     is_active: Optional[bool] = True
+
+    # List of degrees
+    degrees: Optional[List[DegreeCreate]] = []
     
 class UserCreatedResponse(BaseModel):
     id: int
