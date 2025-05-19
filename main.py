@@ -1,9 +1,10 @@
+import os
 import uvicorn
 from fastapi.responses import HTMLResponse
 from fastapi import Depends, FastAPI 
 from typing import AsyncGenerator
 from auth import get_current_username
-from utils.init_db import create_tables
+import database
 from routers import user_router, announcement_router, event_router
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
@@ -11,7 +12,14 @@ from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    create_tables()
+    ENV = os.getenv("ENV", "development")
+    if ENV == "development":
+        database_url = os.getenv("DATABASE_URL", "sqlite:///database.db")  # safer fallback
+    else:
+        database_url = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@db:5432/pkfalumni")
+
+    database.init_db(database_url)
+    database.Base.metadata.create_all(bind=database.engine)
     yield
 
 origins = [
