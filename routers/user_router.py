@@ -48,6 +48,9 @@ def create_user(user: user_schema.UserCreate, session: Session = Depends(get_db)
 def get_all_users(session: Session = Depends(get_db), counts: bool = Query(False, alias="counts"), active: bool = Query(False, alias="active")):
     service = UserService(session=session)
     users = service.get_users(active=active)
+
+    # TODO: Remove this filter when the designer has finished the UI
+    users = [user for user in users if user.first_name == "Ella" or user.last_name == "Ogechi"]
     if counts:
         return {"count": len(users)}
     return users

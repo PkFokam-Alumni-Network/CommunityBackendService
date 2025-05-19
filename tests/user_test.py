@@ -345,3 +345,40 @@ def test_get_active_users() -> None:
     response = client.get("/users/?counts=true&active=true")
     assert response.status_code == 200
     assert response.json()["count"] == 2
+
+def test_get_all_users_filters_by_name() -> None:
+    # Create some test users
+    users_data = [
+        {
+            "email": "ella@example.com",
+            "first_name": "Ella",
+            "last_name": "Smith",
+            "password": "securepassword",
+        },
+        {
+            "email": "john@example.com",
+            "first_name": "John",
+            "last_name": "Doe",
+            "password": "securepassword",
+        },
+        {
+            "email": "oge@example.com",
+            "first_name": "Jane",
+            "last_name": "Ogechi",
+            "password": "securepassword",
+        },
+    ]
+
+    for user in users_data:
+        response = client.post("/users/", json=user)
+        assert response.status_code == 201
+
+    # Test that only users with first name "Ella" or last name "Ogechi" are returned
+    response = client.get("/users/")
+    assert response.status_code == 200
+    users = response.json()
+    assert len(users) == 2
+    assert any(user["first_name"] == "Ella" or user["last_name"] == "Ogechi" for user in users)
+
+    # Test that users with other names are not returned
+    assert not any(user["first_name"] == "John" or user["last_name"] == "Doe" for user in users)
