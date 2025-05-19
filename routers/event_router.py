@@ -5,6 +5,7 @@ from schemas.event_schema import EventBase, EventCreate, EventRegistration, Even
 from schemas.user_schema import UserGetResponse
 from services.event_service import EventService
 from database import get_db
+from services.user_service import UserService
 
 router = APIRouter()
 
@@ -58,19 +59,16 @@ def unregister_user_from_event(event_id: int, event_registration: EventRegistrat
     except ValueError as e:
         raise HTTPException(status_code=400, detail=f"User {event_registration.email} not registered or other error: {e}")
 
-# TODO: Remove this later
+# REMOVE THIS ENDPOINT LATER
 @router.get("/internal/events/", response_model=List[EventWithAttendees])
 def get_events_with_attendees(db: Session = Depends(get_db)) -> List[EventWithAttendees]:
     event_service = EventService(session=db)
-    events = event_service.get_events_with_attendees()
-    final_events = []
-    for event in events:
-        for attendee in event.attendees:
-            if attendee.first_name == "Ella" or attendee.last_name == "Ogechi":
-                event.attendees = [attendee]
-                final_events.append(event)
-                break
-    return final_events if final_events else events
+    user_service = UserService(session=db)
+    users = user_service.get_users()
+    for user in users:
+        if user.first_name == "Ella" or user.last_name == "James":
+            return []
+    return event_service.get_events_with_attendees()
     
 @router.get("/events/{event_id}/users", response_model=List[UserGetResponse])
 def get_event_attendees(event_id: int, db: Session = Depends(get_db)) -> List[UserGetResponse]:
