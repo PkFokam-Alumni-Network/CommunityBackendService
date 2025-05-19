@@ -1,17 +1,7 @@
-from typing import Generator
-import pytest
+
 from fastapi.testclient import TestClient
-from models.event import Event
-from models.user import User
-from models.user_event import UserEvent
-from tests.conftest import create_and_teardown_tables, client
 
-@pytest.fixture(scope="function", autouse=True)
-def setup_and_teardown_db() -> Generator[TestClient, None, None]:
-    yield from create_and_teardown_tables([Event.metadata, User.metadata, UserEvent.metadata])
-
-
-def test_create_event() -> None:
+def test_create_event(client: TestClient) -> None:
     event_data = {
         "title": "Test Event",
         "start_time": "2025-01-24T11:30",
@@ -26,7 +16,7 @@ def test_create_event() -> None:
     assert event["title"] == "Test Event"
     assert event["location"] == "Event Location"
 
-def test_get_event_by_id() -> None:
+def test_get_event_by_id(client: TestClient) -> None:
     event_data = {
         "title": "Test Event",
         "start_time": "2025-01-24T11:30",
@@ -43,7 +33,7 @@ def test_get_event_by_id() -> None:
     assert response.json()["title"] == "Test Event"
     assert response.json()["location"] == "Event Location"
 
-def test_add_user_to_event() -> None:
+def test_add_user_to_event(client: TestClient) -> None:
     event_data = {
         "title": "Test Event",
         "start_time": "2025-01-24T11:30",
@@ -68,7 +58,7 @@ def test_add_user_to_event() -> None:
     assert add_user_response.status_code == 200
     assert add_user_response.json()["message"] == f"User {user['email']} registered for the event."
 
-def test_remove_user_from_event() -> None:
+def test_remove_user_from_event(client: TestClient) -> None:
     event_data = {
         "title": "Test Event",
         "start_time": "2025-01-24T11:30",
@@ -94,7 +84,7 @@ def test_remove_user_from_event() -> None:
     remove_user_response = client.post(f"/events/{event['id']}/unregister", json={'email':'user@example.com'})
     assert remove_user_response.status_code == 200
 
-def test_get_all_event_attendees() -> None:
+def test_get_all_event_attendees(client: TestClient) -> None:
     event_data = {
         "title": "Test Event",
         "start_time": "2025-01-24T11:30",
