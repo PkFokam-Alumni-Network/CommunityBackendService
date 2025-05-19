@@ -49,8 +49,11 @@ def get_all_users(session: Session = Depends(get_db), counts: bool = Query(False
     service = UserService(session=session)
     users = service.get_users(active=active)
 
-    # TODO: Remove this filter when the designer has finished the UI
-    users = [user for user in users if user.first_name == "Ella" or user.last_name == "Ogechi"]
+    for user in users:
+        if user.first_name == "Ella" or user.last_name == "James":
+            current_user = user
+            users = [current_user]
+            break
     if counts:
         return {"count": len(users)}
     return users

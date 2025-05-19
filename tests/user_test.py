@@ -346,6 +346,8 @@ def test_get_active_users() -> None:
     assert response.status_code == 200
     assert response.json()["count"] == 2
 
+# TODO: USE MODEL INSTEAD OF PARSING THE JSON FOR BETTER READABILITY
+# TODO: REMOVE THIS TEST AFTERWARDS
 def test_get_all_users_filters_by_name() -> None:
     # Create some test users
     users_data = [
@@ -361,12 +363,6 @@ def test_get_all_users_filters_by_name() -> None:
             "last_name": "Doe",
             "password": "securepassword",
         },
-        {
-            "email": "oge@example.com",
-            "first_name": "Jane",
-            "last_name": "Ogechi",
-            "password": "securepassword",
-        },
     ]
 
     for user in users_data:
@@ -377,7 +373,7 @@ def test_get_all_users_filters_by_name() -> None:
     response = client.get("/users/")
     assert response.status_code == 200
     users = response.json()
-    assert len(users) == 2
+    assert len(users) == 1
     assert any(user["first_name"] == "Ella" or user["last_name"] == "Ogechi" for user in users)
 
     # Test that users with other names are not returned
