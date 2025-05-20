@@ -9,8 +9,6 @@ ENV = os.getenv("ENV", "development")
 if ENV == "development":
     temp_db_file = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
     DATABASE_URL = f"sqlite:///{temp_db_file.name}"
-elif ENV == "test":
-    DATABASE_URL = "sqlite:///database.db"
 else:
     DATABASE_URL = "sqlite:////app/sql_database/database.db" #the extra / is necessary to access the volume
 
