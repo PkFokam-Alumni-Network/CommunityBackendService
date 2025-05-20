@@ -10,6 +10,7 @@ services:
       - sqlite_data:/app/sql_database
     environment:
       - ENV=production
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/pkfalumni
 
 volumes:
   sqlite_data:
