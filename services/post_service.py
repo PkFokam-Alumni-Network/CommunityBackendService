@@ -19,10 +19,10 @@ class PostService:
         return self.post_repository.create_post(post)
 
     def post_exists(self, post_id: int) -> bool:
-        return self.post_repo.get_post_by_id(post_id) is not None
+        return self.post_repository.get_post_by_id(post_id) is not None
     
     def is_post_owned_by_user(self, post_id: int, user_id: int) -> bool:
-        post = self.post_repo.get_post_by_id(post_id)
+        post = self.post_repository.get_post_by_id(post_id)
         return post is not None and post.author_id == user_id
 
     def update_post(self, post_id: int, user_id: int, updated_data: dict) -> Post:
@@ -37,14 +37,14 @@ class PostService:
                 setattr(db_post, key, value)
         return self.post_repository.update_post(db_post)
 
-    def get_post(self, post_id: int) -> Optional[Post]:
+    def get_post_by_id(self, post_id: int) -> Optional[Post]:
         return self.post_repository.get_post_by_id(post_id)
 
     def get_recent_posts(self, limit: int = 10, page: int = 1) -> List[Post]:
         return self.post_repository.get_recent_posts(limit=limit, page=page)
 
-    def get_posts_by_category(self, category: str, limit: int = 10, page: int = 1) -> List[Post]:
-        return self.post_repo.get_post_by_category(category, limit=limit, page=page)
+    def get_recent_posts_by_category(self, category: str, limit: int = 10, page: int = 1) -> List[Post]:
+        return self.post_repository.get_post_by_category(category, limit=limit, page=page)
 
     def update_post_title(self, post_id: int, user_id: int, new_title: str) -> Optional[Post]:
         db_post = self.post_repository.get_post_by_id(post_id)
@@ -68,7 +68,7 @@ class PostService:
         self.post_repository.update_post(db_post, user_id)
         return db_post
 
-    def remove_post(self, post_id: int, user_id: int) -> None:
+    def delete_post(self, post_id: int, user_id: int) -> None:
         post = self.post_repository.get_post_by_id(post_id)
         if not post:
             raise ValueError("Post not found.")

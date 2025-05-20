@@ -1,12 +1,17 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Literal
 from datetime import datetime
 
 class UpvoteCreate(BaseModel):
     user_id: int
     post_id: int
 
-class UpvoteResponse(UpvoteCreate):
-    id: int
-    created_at: datetime
+class UpvoteToggleResponse(BaseModel):
+    user_id: int
+    post_id: int
+    action: Literal["added", "removed"]
 
     model_config = ConfigDict(from_attributes=True)
+
+class UpvoteCountResponse(BaseModel):
+    post_id: int
+    upvotes: int

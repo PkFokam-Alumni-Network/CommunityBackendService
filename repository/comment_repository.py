@@ -26,7 +26,7 @@ class CommentRepository(metaclass=SingletonMeta):
     def update_comment(self, updated_comment: Comment) -> Optional[Comment]:
         db_comment = self.get_comment_by_id(updated_comment.id)
         try:
-            db_comment.content = updated_comment.content
+            self.db.merge(updated_comment)
             self.db.commit()
             self.db.refresh(db_comment)
             return db_comment
