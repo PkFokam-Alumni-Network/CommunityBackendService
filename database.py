@@ -3,7 +3,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import declarative_base
 
-ENV = os.getenv("ENV", "test")
+ENV = os.getenv("ENV", "development")
+# Set the database URL based on the environment
 
 if ENV == "development":
     temp_db_file = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
