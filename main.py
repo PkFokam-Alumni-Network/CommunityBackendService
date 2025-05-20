@@ -10,13 +10,14 @@ from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
 
+# TODO: Init logging and use config/settings.py for env variables
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     ENV = os.getenv("ENV", "development")
     if ENV == "development":
-        database_url = os.getenv("DATABASE_URL", "sqlite:///database.db")  # safer fallback
+        database_url = os.getenv("DATABASE_URL", "sqlite:///database.db")
     else:
-        database_url = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@db:5432/pkfalumni")
+        database_url = "sqlite:////app/sql_database/database.db"
 
     database.init_db(database_url)
     database.Base.metadata.create_all(bind=database.engine)
