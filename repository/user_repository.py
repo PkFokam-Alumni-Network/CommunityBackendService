@@ -11,7 +11,6 @@ class UserRepository(metaclass=SingletonMeta):
 
     def add_user(self, user_data: UserCreate) -> User:
         try:
-            # Create a User instance from UserCreate data
             user = User(
                 email=user_data.email,
                 first_name=user_data.first_name,
@@ -61,9 +60,8 @@ class UserRepository(metaclass=SingletonMeta):
     
 
     def get_user_by_id(self, user_id: int) -> Optional[User]:
-        # joinedload is used to load related objects in a single query(eager loading)
         return self.db.query(User).options(joinedload(User.degrees)).filter(User.id == user_id).first()
-
+    
     def get_user_by_email(self, email: str) -> Optional[User]:
         return self.db.query(User).options(joinedload(User.degrees)).filter(User.email == email).first()
 

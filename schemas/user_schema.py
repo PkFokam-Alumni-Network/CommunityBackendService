@@ -49,8 +49,6 @@ class UserGetResponse(BaseModel):
     phone: Optional[str]
     image: Optional[str]
     bio: Optional[str]
-    graduation_year: Optional[int]
-    major: Optional[str]
     current_occupation: Optional[str]
     mentor_email: Optional[EmailStr]
     linkedin_profile: Optional[str]
