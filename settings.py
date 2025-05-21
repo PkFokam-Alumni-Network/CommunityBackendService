@@ -2,15 +2,16 @@ import os
 import tempfile
 
 class Settings:
-    ENV = os.getenv("ENV", "development")
-    SECRET_KEY = os.getenv("SECRET_KEY", "DEFAULT_KEY")
-    ACCESS_KEY = os.getenv("ACCESS_KEY", "DEFAULT_KEY")
-    BUCKET_NAME = os.getenv("BUCKET_NAME", "DEFAULT_BUCKET")
-    ADMIN_EMAIL = os.getenv('ADMIN_EMAIL')
-    SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
-    BASE_URL = os.getenv('BASE_URL')
-    DOCS_AUTH_USERNAME = os.getenv("DOCS_AUTH_USERNAME")
-    DOCS_AUTH_PASSWORD = os.getenv("DOCS_AUTH_PASSWORD")
+    def __init__(self):
+        self.ENV = os.getenv("ENV", "development")
+        self.SECRET_KEY = os.getenv("SECRET_KEY", "DEFAULT_KEY")
+        self.ACCESS_KEY = os.getenv("ACCESS_KEY", "DEFAULT_KEY")
+        self.BUCKET_NAME = os.getenv("BUCKET_NAME", "DEFAULT_BUCKET")
+        self.ADMIN_EMAIL = os.getenv('ADMIN_EMAIL')
+        self.SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
+        self.BASE_URL = os.getenv('BASE_URL')
+        self.DOCS_AUTH_USERNAME = os.getenv("DOCS_AUTH_USERNAME")
+        self.DOCS_AUTH_PASSWORD = os.getenv("DOCS_AUTH_PASSWORD")
 
     @property
     def cors_origins(self):
