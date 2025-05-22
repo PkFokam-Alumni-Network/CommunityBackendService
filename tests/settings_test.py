@@ -29,9 +29,7 @@ def test_defaults_when_no_env_vars():
     assert s.DOCS_AUTH_USERNAME is None
     assert s.DOCS_AUTH_PASSWORD is None
     assert s.cors_origins == ["*"]
-    # database_url returns a valid sqlite url with a temp file in development
     assert s.database_url.startswith("sqlite:///")
-    # Check temp file actually exists
     temp_file_path = s.database_url.replace("sqlite:///", "")
     assert temp_file_path.endswith(".db")
     assert os.path.exists(temp_file_path)
@@ -63,7 +61,3 @@ def test_production_settings(monkeypatch):
         "https://backoffice.pkfalumni.com"
     ]
     assert s.database_url == "sqlite:////app/sql_database/database.db"
-
-def test_dummy():
-    print("Settings test file is detected")
-    assert True

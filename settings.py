@@ -25,7 +25,6 @@ class Settings:
     @property
     def database_url(self):
         if self.ENV == "development":
-            # Create a temporary DB file per run (in-memory-like, but persisted for debug)
             temp_db_file = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
             return f"sqlite:///{temp_db_file.name}"
         return "sqlite:////app/sql_database/database.db"
