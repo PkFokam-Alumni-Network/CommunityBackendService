@@ -29,9 +29,8 @@ class UserRepository(metaclass=SingletonMeta):
             )
             
             self.db.add(user)
-            self.db.flush()  # Get user ID without committing transaction
+            self.db.flush() 
             
-            # Handle degrees if present
             if hasattr(user_data, 'degrees') and user_data.degrees:
                 from models.degree import Degree
                 
