@@ -3,6 +3,7 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 from utils.retry import retry_on_db_error
 
 Base = declarative_base()
+
 engine = None
 SessionLocal = None
 
@@ -21,7 +22,6 @@ def init_db(database_url: str):
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def get_db():
-    from database import SessionLocal  # ensure it's set
     db = SessionLocal()
     try:
         yield db
