@@ -6,33 +6,35 @@ from schemas.announcement_schema import AnnouncementCreate, AnnouncementUpdate, 
 
 class AnnouncementService:
 
-    def __init__(self, session: Session):
-        self.repository = AnnouncementRepository(session)
-
-    def create_announcement(self, announcement: AnnouncementCreate) -> AnnouncementResponse:
-        if self.repository.get_announcement_by_title(announcement.title):
+    def create_announcement(self, db: Session, announcement: AnnouncementCreate) -> AnnouncementResponse:
+        repository = AnnouncementRepository()
+        if repository.get_announcement_by_title(db, announcement.title):
             raise ValueError("Announcement with this title already exists.")
 
         if announcement.announcement_deadline and announcement.announcement_date > announcement.announcement_deadline:
             raise ValueError("Announcement date must be before announcement deadline.")
 
-        db_announcement = self.repository.add_announcement(announcement)
+        db_announcement = repository.add_announcement(db, announcement)
         return AnnouncementResponse.model_validate(db_announcement)
 
-    def get_all_announcements(self) -> list[AnnouncementCreate]:
-        announcements = self.repository.get_announcements()
+    def get_all_announcements(self, db: Session) -> list[AnnouncementCreate]:
+        repository = AnnouncementRepository()
+        announcements = repository.get_announcements(db)
         return [AnnouncementCreate.model_validate(announcement) for announcement in announcements]
 
-    def get_announcement_by_id(self, announcement_id: int) -> Optional[AnnouncementCreate]:
-        db_announcement = self.repository.get_announcement_by_id(announcement_id)
+    def get_announcement_by_id(self, db: Session, announcement_id: int) -> Optional[AnnouncementCreate]:
+        repository = AnnouncementRepository()
+        db_announcement = repository.get_announcement_by_id(db, announcement_id)
         return AnnouncementCreate.model_validate(db_announcement)
 
-    def update_announcement(self, announcement_id: int, announcement: AnnouncementUpdate) -> Optional[
+    def update_announcement(self, db: Session, announcement_id: int, announcement: AnnouncementUpdate) -> Optional[
         AnnouncementCreate]:
-        updated_announcement = self.repository.update_announcement(announcement_id, announcement)
+        repository = AnnouncementRepository()
+        updated_announcement = repository.update_announcement(db, announcement_id, announcement)
         return AnnouncementCreate.model_validate(updated_announcement)
 
-    def delete_announcement(self, announcement_id: int) -> None:
-        announcement = self.repository.delete_announcement(announcement_id)
+    def delete_announcement(self, db: Session, announcement_id: int) -> None:
+        repository = AnnouncementRepository()
+        announcement = repository.delete_announcement(db, announcement_id)
         if not announcement:
             raise ValueError("Announcement not found")
