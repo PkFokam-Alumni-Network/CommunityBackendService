@@ -167,5 +167,4 @@ uploads
 # Vscode
 .vscode/
 
-database.db
-database.db.backup_before_migration
+

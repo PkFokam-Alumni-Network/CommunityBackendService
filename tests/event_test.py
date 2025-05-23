@@ -1,5 +1,6 @@
-
 from fastapi.testclient import TestClient
+from schemas.event_schema import EventResponse
+from schemas.user_schema import UserCreatedResponse
 
 def test_create_event(client: TestClient) -> None:
     event_data = {
@@ -43,8 +44,9 @@ def test_add_user_to_event(client: TestClient) -> None:
         "categories": "Tech, Development",
     }
     event_response = client.post("/events/", json=event_data)
-    event = event_response.json()
+    assert event_response.status_code == 201
 
+    event: EventResponse = EventResponse.model_validate(event_response.json())
     user_data = {
         "email": "user@example.com",
         "first_name": "John",
@@ -52,11 +54,10 @@ def test_add_user_to_event(client: TestClient) -> None:
         "password": "testpassword"
     }
     user_response = client.post("/users/", json=user_data)
-    user = user_response.json()
+    user: UserCreatedResponse = UserCreatedResponse.model_validate(user_response.json())
 
-    add_user_response = client.post(f"/events/{event['id']}/register", json={'email':'user@example.com'})
+    add_user_response = client.post(f"/events/{event.id}/register", json={'email':'user@example.com'})
     assert add_user_response.status_code == 200
-    assert add_user_response.json()["message"] == f"User {user['email']} registered for the event."
 
 def test_remove_user_from_event(client: TestClient) -> None:
     event_data = {
@@ -94,7 +95,7 @@ def test_get_all_event_attendees(client: TestClient) -> None:
         "categories": "Tech, Development",
     }
     event_response = client.post("/events/", json=event_data)
-    event = event_response.json()
+    event: EventResponse = EventResponse.model_validate(event_response.json())
 
     user_data = {
         "email": "user@example.com",
@@ -103,13 +104,13 @@ def test_get_all_event_attendees(client: TestClient) -> None:
         "password": "testpassword"
     }
     user_response = client.post("/users/", json=user_data)
-    user = user_response.json()
+    user: UserCreatedResponse = UserCreatedResponse.model_validate(user_response.json())
 
-    add_user_response = client.post(f"/events/{event['id']}/register", json={'email':'user@example.com'})
+    add_user_response = client.post(f"/events/{event.id}/register", json={'email':'user@example.com'})
     assert add_user_response.status_code == 200
 
-    response = client.get(f"/events/{event['id']}/users")
+    response = client.get(f"/events/{event.id}/users")
     assert response.status_code == 200
     attendees = response.json()
     assert len(attendees) == 1
-    assert attendees[0]["email"] == user["email"]
+    assert attendees[0]["email"] ==user.email

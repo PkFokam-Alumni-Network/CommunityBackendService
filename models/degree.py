@@ -6,7 +6,7 @@ class Degree(Base):
     __tablename__ = "degrees"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False) # Foreign key to users table
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False) 
     degree = Column(String, nullable=False)
     major = Column(String, nullable=False)
     graduation_year = Column(Integer, nullable=False)

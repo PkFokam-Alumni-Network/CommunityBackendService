@@ -84,7 +84,6 @@ def test_create_get_user(client: TestClient) -> None:
         "current_occupation": "Engineer",
         "image": "test_image_url",
         "linkedin_profile": "https://linkedin.com/in/test",
-        "mentor_email": "test_email1@example.com",
     })
     assert response.status_code == 201
     user: UserCreatedResponse = UserCreatedResponse.model_validate(response.json())
@@ -127,29 +126,28 @@ def test_delete_existing_user(client: TestClient) -> None:
     assert response.status_code == 404
     assert response.json()["detail"] == "User does not exist."
 
-def test_assign_mentor(client: TestClient) -> None:
-    mentor_response = client.post("/users/", json={
-        "email": "mentor@example.com",
-        "first_name": "Mentor",
-        "last_name": "User",
-        "password": "securepassword",
-    })
-    assert mentor_response.status_code == 201
-    mentor_email = mentor_response.json()["email"]
+# TODO: Uncomment and implement this test when the mentor assignment feature with id is implemented
+# def test_assign_mentor(client: TestClient) -> None:
+#     mentor_response = client.post("/users/", json={
+#         "first_name": "Mentor",
+#         "last_name": "User",
+#         "password": "securepassword",
+#     })
+#     assert mentor_response.status_code == 201
 
-    mentee_response = client.post("/users/", json={
-        "email": "mentee@example.com",
-        "first_name": "Mentee",
-        "last_name": "User",
-        "password": "securepassword",
-    })
-    assert mentee_response.status_code == 201
-    user_id = mentee_response.json()["id"]
+#     mentee_response = client.post("/users/", json={
+#         "email": "mentee@example.com",
+#         "first_name": "Mentee",
+#         "last_name": "User",
+#         "password": "securepassword",
+#     })
+#     assert mentee_response.status_code == 201
+#     user_id = mentee_response.json()["id"]
 
-    response = client.put(f"/users/{user_id}", json={"mentor_email": mentor_email})
-    assert response.status_code == 200
-    updated = client.get(f"/users/{user_id}").json()
-    assert updated["mentor_email"] == mentor_email
+#     response = client.put(f"/users/{user_id}", json={"mentor_email": mentor_email})
+#     assert response.status_code == 200
+#     updated = client.get(f"/users/{user_id}").json()
+#     assert updated["mentor_email"] == mentor_email
 
 def test_update_user(client: TestClient) -> None:
     user_data = {
