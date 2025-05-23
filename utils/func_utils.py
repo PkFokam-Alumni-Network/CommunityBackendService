@@ -13,8 +13,6 @@ s3_client = boto3.client(
     aws_secret_access_key=settings.SECRET_KEY
 )
 
-
-
 def get_password_hash(password: str) -> str:
     salt = bcrypt.gensalt()
     hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
