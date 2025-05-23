@@ -25,8 +25,8 @@ class Settings:
     @property
     def database_url(self):
         if self.ENV == "development":        
-            return "sqlite:///database.db"
+             return "sqlite:///database.db"
         else:
-            return os.getenv("DATABASE_URL")
+             return os.getenv("DATABASE_URL")
 
 settings = Settings()

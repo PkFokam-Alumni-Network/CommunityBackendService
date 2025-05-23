@@ -45,6 +45,8 @@ def test_production_settings(monkeypatch):
     monkeypatch.setenv("BASE_URL", "https://prod.example.com")
     monkeypatch.setenv("DOCS_AUTH_USERNAME", "admin")
     monkeypatch.setenv("DOCS_AUTH_PASSWORD", "secret")
+    monkeypatch.setenv("DATABASE_URL", "sqlite:////app/sql_database/database.db")
+
 
     s = Settings()
     assert s.ENV == "production"
