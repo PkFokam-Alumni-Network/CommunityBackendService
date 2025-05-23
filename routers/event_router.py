@@ -73,7 +73,7 @@ def get_events_with_attendees(db: Session = Depends(get_db)) -> List[EventWithAt
 @router.get("/events/{event_id}/users", response_model=List[UserGetResponse])
 def get_event_attendees(event_id: int, db: Session = Depends(get_db)) -> List[UserGetResponse]:
     event_service = EventService(session=db)
-    users = event_service.get_event_users(event_id)
+    users = event_service.get_event_attendees(event_id)
     return users
 
 @router.get("/users/{user_email}/events", response_model=List[EventResponse])
