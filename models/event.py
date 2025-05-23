@@ -14,5 +14,5 @@ class Event(Base):
     image = Column(Text, nullable=True)
     categories = Column(Text)  # Stored as comma separated values
     
-    user_events = relationship("UserEvent", back_populates="event")
+    user_events = relationship("UserEvent", back_populates="event", cascade="all, delete-orphan")
 

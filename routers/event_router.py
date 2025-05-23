@@ -69,13 +69,15 @@ def get_events_with_attendees(db: Session = Depends(get_db)) -> List[EventWithAt
         if user.first_name == "Ella" or user.last_name == "James":
             return []
     return event_service.get_events_with_attendees()
-    
+
+# TODO: Use attendees instead of users
 @router.get("/events/{event_id}/users", response_model=List[UserGetResponse])
 def get_event_attendees(event_id: int, db: Session = Depends(get_db)) -> List[UserGetResponse]:
     event_service = EventService(session=db)
     users = event_service.get_event_attendees(event_id)
     return users
 
+# TODO: Use user_id instead of user_email
 @router.get("/users/{user_email}/events", response_model=List[EventResponse])
 def get_all_events_of_user(user_email: str, db: Session = Depends(get_db)) -> List[EventBase]:
     event_service = EventService(session=db)
