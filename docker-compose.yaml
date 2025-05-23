@@ -6,11 +6,6 @@ services:
     container_name: fastapi_app
     ports:
       - "9000:9000"
-    volumes:
-      - sqlite_data:/app/sql_database
     environment:
       - ENV=production
       - DATABASE_URL=${DATABASE_URL}
-
-volumes:
-  sqlite_data:

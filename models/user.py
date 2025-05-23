@@ -11,7 +11,7 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    email = Column(String, unique=True, index=True)
+    email = Column(String, nullable=False, unique=True, index=True)
     first_name = Column(String, nullable=False)
     last_name = Column(String, nullable=False)
     password = Column(String, nullable=False)
@@ -23,12 +23,12 @@ class User(Base):
     degree = Column(String)
     major = Column(String)
     current_occupation = Column(String)
-    mentor_email = Column(String, ForeignKey("users.email"), nullable=True)
-    mentor = relationship("User", remote_side=["users.email"], backref="mentees", foreign_keys=[mentor_email])
+    mentor_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     is_active = Column(Boolean, default=True)
     linkedin_profile = Column(String)
     instagram_profile = Column(String, nullable=True)
     role = Column(Enum(UserRole), default=UserRole.user, nullable=False)
 
+    mentor = relationship("User", remote_side=[id], backref="mentees", foreign_keys=[mentor_id])
     user_events = relationship("UserEvent", back_populates="user")
     
