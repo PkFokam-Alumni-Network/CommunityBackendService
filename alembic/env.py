@@ -3,11 +3,10 @@ from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
-
 from alembic import context
 from settings import settings
 
-from models import Base, User, Event, UserEvent, Announcement
+load_dotenv()
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 
@@ -50,6 +49,7 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        compare_type=True,
     )
 
     with context.begin_transaction():
