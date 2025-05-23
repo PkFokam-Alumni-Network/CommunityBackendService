@@ -10,19 +10,19 @@ router = APIRouter()
 
 @router.post("/login/", status_code=status.HTTP_200_OK, response_model=user_schema.UserLoginResponse)
 def login(user: user_schema.UserLogin, session: Session = Depends(get_db)) -> user_schema.UserLoginResponse:
-    service = UserService(session=session)
+    service = UserService()
     try:
-        response = service.login(user.email.lower(), user.password)
+        response = service.login(session, user.email.lower(), user.password)
         return response
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
 
 @router.post("/users/", status_code=status.HTTP_201_CREATED, response_model=user_schema.UserCreatedResponse)
 def create_user(user: user_schema.UserCreate, session: Session = Depends(get_db)) -> user_schema.UserCreatedResponse:
-    service = UserService(session=session)
+    service = UserService()
     try:
         user_data = user.model_dump()
-        new_user = service.register_user(**user_data)
+        new_user = service.register_user(session, **user_data)
         return new_user
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
@@ -30,8 +30,8 @@ def create_user(user: user_schema.UserCreate, session: Session = Depends(get_db)
 # TODO: Delete this to avoid the Ella check.
 @router.get("/users/", status_code=status.HTTP_200_OK)
 def get_all_users(session: Session = Depends(get_db), counts: bool = Query(False, alias="counts"), active: bool = Query(False, alias="active")):
-    service = UserService(session=session)
-    users = service.get_users(active=active)
+    service = UserService()
+    users = service.get_users(session, active=active)
 
     for user in users:
         if user.first_name == "Ella" or user.last_name == "James":
@@ -44,24 +44,24 @@ def get_all_users(session: Session = Depends(get_db), counts: bool = Query(False
 
 @router.get("/users/{user_id}", status_code=status.HTTP_200_OK, response_model=user_schema.UserGetResponseWithId)
 def get_user_by_id(user_id: int, session: Session = Depends(get_db)) -> user_schema.UserGetResponseWithId:
-    service = UserService(session=session)
-    user = service.get_user_by_id(user_id)
+    service = UserService()
+    user = service.get_user_by_id(session, user_id)
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
 @router.get("/users/{user_id}/mentees", status_code=status.HTTP_200_OK, response_model= list[user_schema.UserCreatedResponse])
 def get_mentees(user_id: int, session: Session = Depends(get_db)) -> user_schema.UserCreatedResponse:
-    service = UserService(session=session)
-    mentees = service.get_mentees(user_id)
+    service = UserService()
+    mentees = service.get_mentees(session, user_id)
     return mentees
 
 @router.put("/users/{user_id}", status_code=status.HTTP_200_OK, response_model=user_schema.UserGetResponse)
 def update_user(user_id: int, user_data: user_schema.UserUpdate,
                 session: Session = Depends(get_db)) -> user_schema.UserUpdate:
-    user_service = UserService(session=session)
+    user_service = UserService()
     try:
-        updated_user = user_service.update_user(user_id=user_id, updated_data=user_data.model_dump(exclude_unset=True))
+        updated_user = user_service.update_user(session, user_id=user_id, updated_data=user_data.model_dump(exclude_unset=True))
         return updated_user
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
@@ -70,9 +70,9 @@ def update_user(user_id: int, user_data: user_schema.UserUpdate,
 
 @router.put("/users/{user_id}/update-email", status_code=status.HTTP_200_OK, response_model=user_schema.UserGetResponse)
 def update_user_email(user_id: int, body: user_schema.EmailUpdate, session: Session = Depends(get_db)) -> user_schema.UserGetResponse:
-    service = UserService(session=session)
+    service = UserService()
     try:
-        updated_user = service.update_user_email(user_id=user_id, new_email=body.new_email)
+        updated_user = service.update_user_email(session, user_id=user_id, new_email=body.new_email)
         return updated_user
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
@@ -81,9 +81,9 @@ def update_user_email(user_id: int, body: user_schema.EmailUpdate, session: Sess
 
 @router.put("/users/{user_id}/update-password", status_code=status.HTTP_200_OK, response_model=user_schema.UserGetResponse)
 def update_user_password(user_id: int, body: user_schema.PasswordUpdate, session: Session = Depends(get_db)) -> user_schema.UserGetResponse:
-    service = UserService(session=session)
+    service = UserService()
     try:
-        updated_user = service.update_password(old_password=body.old_password, new_password=body.new_password, user_id=user_id)
+        updated_user = service.update_password(session, old_password=body.old_password, new_password=body.new_password, user_id=user_id)
         return updated_user
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
@@ -92,9 +92,9 @@ def update_user_password(user_id: int, body: user_schema.PasswordUpdate, session
 
 @router.put("/users/{user_id}/profile-picture", status_code=200,response_model=user_schema.UserUpdate)  
 def update_profile_picture(user_id: int, body: user_schema.ProfilePictureUpdate, session: Session = Depends(get_db)) -> str:
-    service = UserService(session=session)
+    service = UserService()
     try:
-        image_path = service.save_profile_picture(user_id, body.base64_image)
+        image_path = service.save_profile_picture(session, user_id, body.base64_image)
     except Exception as e:
         LOGGER.error("Internal error while updating image, ", e)
         raise HTTPException(status_code=500, detail=f"Error saving the file: {str(e)}")
@@ -102,25 +102,25 @@ def update_profile_picture(user_id: int, body: user_schema.ProfilePictureUpdate,
 
 @router.delete("/users/{user_id}", status_code=status.HTTP_200_OK, response_model=user_schema.UserDeletedResponse)
 def delete_user(user_id: int, session: Session = Depends(get_db)) -> user_schema.UserDeletedResponse:
-    service = UserService(session=session)
+    service = UserService()
     try:
-        service.remove_user(user_id)
+        service.remove_user(session, user_id)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     return user_schema.UserDeletedResponse(message=f"user with email {user_id} was successfully deleted")
 
 @router.get("/internal/users/", status_code=status.HTTP_200_OK, response_model= list[user_schema.UserGetResponseInternal])
 def get_all_users_internal( session: Session = Depends(get_db)):
-    service = UserService(session=session)
-    users = service.get_users()
+    service = UserService()
+    users = service.get_users(session)
     return users
 
 @router.post("/password-reset", status_code=status.HTTP_200_OK, response_model=user_schema.PasswordResetRequestResponse)
 def request_password_reset(body:user_schema.PasswordResetRequest
                            ,session: Session = Depends(get_db)) -> user_schema.PasswordResetRequestResponse:
-    service = UserService(session=session)
+    service = UserService()
     try:
-        service.request_password_reset(body.email)
+        service.request_password_reset(session, body.email)
         masked = f"{body.email[:3]}****"
         return user_schema.PasswordResetRequestResponse(
             message = f"Your reset link has been sent to your email starting with {masked}"
@@ -135,9 +135,9 @@ def request_password_reset(body:user_schema.PasswordResetRequest
 @router.put("/password-reset", status_code=status.HTTP_200_OK, response_model=user_schema.UserUpdate)
 def reset_password(body: user_schema.PasswordReset,
                    session: Session = Depends(get_db)) -> user_schema.UserUpdate:
-        service = UserService(session=session)
+        service = UserService()
         try:
-            updated_user = service.reset_password(body.new_password, body.token)
+            updated_user = service.reset_password(session, body.new_password, body.token)
             return updated_user
         except ValueError as e:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
