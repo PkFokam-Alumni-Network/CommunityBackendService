@@ -19,7 +19,7 @@ class UserCreate(BaseModel):
     major: Optional[str] = None
 
     current_occupation: Optional[str] = None
-    mentor_email: Optional[EmailStr] = None
+
 
     linkedin_profile: Optional[str] = None
     instagram_profile: Optional[str] = None
@@ -32,7 +32,6 @@ class UserCreatedResponse(BaseModel):
     email: str
     first_name: str
     last_name: str
-    mentor_email: Optional[str]
     
     model_config = ConfigDict(from_attributes=True)
 
@@ -49,10 +48,8 @@ class UserGetResponse(BaseModel):
     degree: Optional[str]
     major: Optional[str]
     current_occupation: Optional[str]
-    mentor_email: Optional[EmailStr]
     linkedin_profile: Optional[str]
     instagram_profile: Optional[str]
-    mentor_email: Optional[str]
 
 class Attendee(BaseModel):
     image: Optional[str]
@@ -90,7 +87,6 @@ class UserUpdate(BaseModel):
     degree: Optional[str] = None
     major: Optional[str] = None
     current_occupation: Optional[str] = None
-    mentor_email: Optional[EmailStr] = None
     linkedin_profile: Optional[str] = None
     instagram_profile: Optional[str] = None
     role: Optional[str] = None
@@ -137,7 +133,6 @@ class UserLoginResponse(UserCreate):
             degree=user.degree,
             major=user.major,
             current_occupation=user.current_occupation,
-            mentor_email=user.mentor_email,
             linkedin_profile=user.linkedin_profile,
             instagram_profile=user.instagram_profile,
             role=user.role,

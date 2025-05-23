@@ -38,7 +38,6 @@ def create_user(user: user_schema.UserCreate, session: Session = Depends(get_db)
             is_active=user.is_active,
             role=user.role,
             bio=user.bio,
-            mentor_email=user.mentor_email,
         )
         return new_user
     except ValueError as e:

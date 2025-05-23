@@ -28,9 +28,6 @@ class UserService(metaclass=SingletonMeta):
         user = self.user_repository.get_user_by_email(email)
         if user:
             raise ValueError("User with this email already exists.")
-        mentor_email = kwargs.get('mentor_email')
-        if mentor_email and mentor_email == email:
-            raise ValueError("Mentor email cannot be the same as the user's email.")
         role = kwargs.get('role')
         if role and role not in ["user", "admin"]:
             raise ValueError(f"Role cannot be {role}. Defaut value is user")
@@ -48,15 +45,6 @@ class UserService(metaclass=SingletonMeta):
         user = self.user_repository.get_user_by_id(user_id)
         if not user:
             raise ValueError("User not found.")
-        email:str = user.email
-        if "mentor_email" in updated_data and updated_data["mentor_email"]:
-            mentor_email = updated_data["mentor_email"]
-            mentor = self.user_repository.get_user_by_email(mentor_email)
-            if not mentor:
-                raise ValueError(f"Cannot assign mentor with email, {mentor_email} because user does not exist ")
-            if mentor.email == email:
-                raise ValueError("A mentor cannot be its own mentee!")
-            user.mentor_email = mentor_email
         for key, value in updated_data.items():
             if hasattr(user, key):
                 setattr(user, key, value)
@@ -97,9 +85,10 @@ class UserService(metaclass=SingletonMeta):
     def get_mentees(self, user_id: int) -> List[type[User]]:
         return self.user_repository.get_all_mentees(user_id)
 
+    # TODO: Uncomment and implement this method when the mentor assignment feature with id is implemented 
     def unassign_mentor(self, mentee_email: str):
         mentee = self.user_repository.get_user_by_email(mentee_email)
-        if not mentee.mentor_email:
+        if not mentee.mentor_id:
             return 
         return self.update_user(mentee_email, {"mentor_email": None})
 
