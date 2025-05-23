@@ -39,6 +39,7 @@ class EventService(metaclass=SingletonMeta):
             raise ValueError("Event not found.")
         self.event_repository.delete_event(event_id)
 
+    # TODO: Add validation for event existence
     def register_user_for_event(self, event_registration: EventRegistration, event_id: int) -> None:
         user_email = event_registration.email
         if self.user_event_repository.is_user_registered_for_event(user_email, event_id):
@@ -51,7 +52,7 @@ class EventService(metaclass=SingletonMeta):
             raise ValueError("User is not registered for this event.")
         self.user_event_repository.remove_user_from_event(user_email, event_id)
 
-    def get_event_users(self, event_id: int) -> List[User]:
+    def get_event_attendees(self, event_id: int) -> List[User]:
         return self.user_event_repository.get_users_for_event(event_id)
 
     def get_user_events(self, user_email: String) -> List[Event]:
@@ -67,7 +68,7 @@ class EventService(metaclass=SingletonMeta):
         events = self.event_repository.get_events()
         event_attendees_list = []
         for event in events:
-            attendees = self.get_event_users(event.id)
+            attendees = self.get_event_attendees(event.id)
             event_with_attendees = EventWithAttendees(
             id = event.id,
             title=event.title,

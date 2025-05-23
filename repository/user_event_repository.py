@@ -15,7 +15,7 @@ class UserEventRepository(metaclass=SingletonMeta):
             user = self.db.query(User).filter(User.email == user_email).first()
             if not user:
                 raise ValueError(f"User with email {user_email} does not exist.")
-            user_event = UserEvent(user_email=user_email, event_id=event_id)
+            user_event = UserEvent(user_id=user.id, event_id=event_id)
             self.db.add(user_event)
             self.db.commit()
         except IntegrityError:
@@ -30,7 +30,7 @@ class UserEventRepository(metaclass=SingletonMeta):
             user = self.db.query(User).filter(User.email == user_email).first()
             if not user:
                 raise ValueError(f"User with email {user_email} does not exist.")
-            user_event = self.db.query(UserEvent).filter_by(user_email=user_email, event_id=event_id).first()
+            user_event = self.db.query(UserEvent).filter_by(user_id=user.id, event_id=event_id).first()
             if user_event:
                 self.db.delete(user_event)
                 self.db.commit()
@@ -43,18 +43,18 @@ class UserEventRepository(metaclass=SingletonMeta):
     def get_users_for_event(self, event_id: int) -> list[User]:
         return self.db.query(User).join(UserEvent).filter(UserEvent.event_id == event_id).all()
 
-    def get_events_for_user(self, user_email: String) -> list[Event]:
-        user = self.db.query(User).filter(User.email == user_email).first()
+    def get_events_for_user(self, user_id: int) -> list[Event]:
+        user = self.db.query(User).filter(User.email == user_id).first()
         if not user:
-                raise ValueError(f"User with email {user_email} does not exist.")
-        return self.db.query(Event).join(UserEvent).filter(UserEvent.user_email == user_email).all()
+                raise ValueError(f"User with email {user_id} does not exist.")
+        return self.db.query(Event).join(UserEvent).filter(UserEvent.user_id == user_id).all()
 
     def is_user_registered_for_event(self, user_email: String, event_id: int) -> bool:
         user = self.db.query(User).filter(User.email == user_email).first()
         if not user:
             raise ValueError(f"User with email {user_email} does not exist.")
         return self.db.query(UserEvent).filter(
-            UserEvent.user_email == user_email,
+            UserEvent.user_id == user.id,
             UserEvent.event_id == event_id
         ).count() > 0
     
