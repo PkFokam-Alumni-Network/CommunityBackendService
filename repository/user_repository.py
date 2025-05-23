@@ -63,13 +63,12 @@ class UserRepository(metaclass=SingletonMeta):
             self.db.rollback()
             raise RuntimeError(f"An error occurred while deleting the user: {e}")
 
-    def get_all_mentees(self, user_id: int) -> List[User]:
-        user = self.get_user_by_id(user_id)
+    def get_all_mentees(self, mentor_id: int) -> List[User]:
+        user = self.get_user_by_id(mentor_id)
         if not user:
             raise ValueError("User not found.")
-        email: str = user.email
         try:
-            mentees = self.db.query(User).filter(User.mentor_email == email).all()
+            mentees = self.db.query(User).filter(User.mentor_id == user.id).all()
             return mentees if mentees else []
         except Exception as e:
             raise RuntimeError(f"An error occurred while retrieving mentees: {e}")
