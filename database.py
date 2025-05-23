@@ -1,10 +1,8 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-# Create Base class for declarative models
 Base = declarative_base()
 
-# Initialize the database engine and session local
 engine = None
 SessionLocal = None
 
