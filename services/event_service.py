@@ -14,17 +14,9 @@ class EventService(metaclass=SingletonMeta):
         self.user_event_repository = UserEventRepository(session=session)
 
     def create_event(self, event_data: EventCreate) -> Event:
-        event = Event(
-        title=event_data.title,
-        start_time=event_data.start_time,
-        end_time=event_data.end_time,
-        location=event_data.location,
-        description=event_data.description,
-        categories=event_data.categories,
-        image = event_data.image
-    )
+        event_data_dict = event_data.model_dump()
+        event = Event(**event_data_dict)
         return self.event_repository.add_event(event)
-
     def update_event(self, event_id: int, event_data: EventUpdate) -> Event:
         event = self.event_repository.get_event_by_id(event_id)
         if not event:
@@ -66,20 +58,17 @@ class EventService(metaclass=SingletonMeta):
     
     def get_events_with_attendees(self) -> List[EventWithAttendees]:
         events = self.event_repository.get_events()
-        event_attendees_list = []
-        for event in events:
-            attendees = self.get_event_attendees(event.id)
-            event_with_attendees = EventWithAttendees(
-            id = event.id,
-            title=event.title,
-            start_time=event.start_time,
-            end_time=event.end_time,
-            location=event.location,
-            description=event.description,
-            categories=event.categories,
-            image=event.image,
-            attendees=attendees
+        return [
+            EventWithAttendees(
+                id=event.id,
+                title=event.title,
+                start_time=event.start_time,
+                end_time=event.end_time,
+                location=event.location,
+                description=event.description,
+                categories=event.categories,
+                image=event.image,
+                attendees=self.get_event_attendees(event.id)
             )
-            event_attendees_list.append(event_with_attendees)
-        return event_attendees_list
-
+            for event in events
+        ]

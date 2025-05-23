@@ -17,6 +17,8 @@ class UserService(metaclass=SingletonMeta):
         self.user_repository = UserRepository(session=session)
 
     def login(self, email: str, password: str) -> user_schema.UserLoginResponse:
+        if not email or not password:
+            raise ValueError("Email and password are required.")
         user = self.user_repository.get_user_by_email(email)
         if not user or not check_password(password, user.password):
             raise ValueError("Invalid email or password")
@@ -25,6 +27,8 @@ class UserService(metaclass=SingletonMeta):
         return user_login_response
 
     def register_user(self, email: str, first_name: str, last_name: str, password: str, **kwargs) -> User:
+        if not all([email, first_name, last_name, password]):
+            raise ValueError("Email, first name, last name, and password are required.")
         user = self.user_repository.get_user_by_email(email)
         if user:
             raise ValueError("User with this email already exists.")
@@ -42,6 +46,10 @@ class UserService(metaclass=SingletonMeta):
         return self.user_repository.add_user(new_user)
     
     def update_user(self, user_id: int, updated_data: dict) -> Optional[User]:
+        if not user_id:
+            raise ValueError("User ID is required.")
+        if not updated_data or not isinstance(updated_data, dict):
+            raise ValueError("Updated data must be provided as a dictionary.")
         user = self.user_repository.get_user_by_id(user_id)
         if not user:
             raise ValueError("User not found.")
@@ -93,6 +101,10 @@ class UserService(metaclass=SingletonMeta):
         return self.update_user(mentee_email, {"mentor_email": None})
 
     def update_user_email(self, user_id: int, new_email: str) -> Optional[User]:
+        if not user_id:
+            raise ValueError("User ID is required.")
+        if not new_email:
+            raise ValueError("New email is required.")
         user = self.user_repository.get_user_by_id(user_id)
         if not user:
             raise ValueError("User not found")
@@ -100,6 +112,10 @@ class UserService(metaclass=SingletonMeta):
         return self.user_repository.update_user(user)
     
     def update_password(self, old_password: str, new_password:str, user_id:int) -> Optional[User]:
+        if not user_id:
+            raise ValueError("User ID is required.")
+        if not old_password or not new_password:
+            raise ValueError("Old password and new password are required.")
         user = self.user_repository.get_user_by_id(user_id)
         if not user:
             raise ValueError("User not found")
@@ -109,6 +125,8 @@ class UserService(metaclass=SingletonMeta):
         return self.user_repository.update_user(user)
 
     def request_password_reset(self, email:str) -> Optional[User]:
+        if not email:
+            raise ValueError("Email is required.")
         user = self.user_repository.get_user_by_email(email)
         user_name = user.first_name if user else None
         if not user :
@@ -121,6 +139,8 @@ class UserService(metaclass=SingletonMeta):
             raise e
     
     def reset_password(self, new_password:str, token:str) -> Optional[User]:
+        if not new_password or not token:
+            raise ValueError("New password and token are required.")
         try:
             decoded_token = verify_jwt(token)
             email = decoded_token['user_id']

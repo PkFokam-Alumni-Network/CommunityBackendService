@@ -33,7 +33,6 @@ def test_defaults_when_no_env_vars():
     temp_file_path = s.database_url.replace("sqlite:///", "")
     assert temp_file_path.endswith(".db")
     assert os.path.exists(temp_file_path)
-    os.unlink(temp_file_path)  # cleanup the temp db file
 
 def test_production_settings(monkeypatch):
     monkeypatch.setenv("ENV", "production")

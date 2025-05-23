@@ -21,28 +21,13 @@ def login(user: user_schema.UserLogin, session: Session = Depends(get_db)) -> us
 def create_user(user: user_schema.UserCreate, session: Session = Depends(get_db)) -> user_schema.UserCreatedResponse:
     service = UserService(session=session)
     try:
-        new_user = service.register_user(
-            email=user.email,
-            first_name=user.first_name,
-            last_name=user.last_name,
-            password=user.password,
-            address=user.address,
-            graduation_year=user.graduation_year,
-            degree=user.degree,
-            major=user.major,
-            phone=user.phone,
-            current_occupation=user.current_occupation,
-            image=user.image,
-            linkedin_profile=user.linkedin_profile,
-            instagram_profile=user.instagram_profile,
-            is_active=user.is_active,
-            role=user.role,
-            bio=user.bio,
-        )
+        user_data = user.model_dump()
+        new_user = service.register_user(**user_data)
         return new_user
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
+# TODO: Delete this to avoid the Ella check.
 @router.get("/users/", status_code=status.HTTP_200_OK)
 def get_all_users(session: Session = Depends(get_db), counts: bool = Query(False, alias="counts"), active: bool = Query(False, alias="active")):
     service = UserService(session=session)
