@@ -1,5 +1,5 @@
 import enum
-from sqlalchemy import Boolean, Column, Enum, String, Integer,ForeignKey
+from sqlalchemy import Boolean, Column, Enum, Text, Integer,ForeignKey, Text
 from sqlalchemy.orm import relationship
 from database import Base
 
@@ -11,22 +11,22 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    email = Column(String, nullable=False, unique=True, index=True)
-    first_name = Column(String, nullable=False)
-    last_name = Column(String, nullable=False)
-    password = Column(String, nullable=False)
-    address = Column(String)
-    phone = Column(String)
-    image = Column(String, nullable=True)
-    bio = Column(String)
+    email = Column(Text, nullable=False, unique=True, index=True)
+    first_name = Column(Text, nullable=False)
+    last_name = Column(Text, nullable=False)
+    password = Column(Text, nullable=False)
+    address = Column(Text)
+    phone = Column(Text)
+    image = Column(Text, nullable=True)
+    bio = Column(Text)
     graduation_year = Column(Integer)
-    degree = Column(String)
-    major = Column(String)
-    current_occupation = Column(String)
+    degree = Column(Text)
+    major = Column(Text)
+    current_occupation = Column(Text)
     mentor_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     is_active = Column(Boolean, default=True)
-    linkedin_profile = Column(String)
-    instagram_profile = Column(String, nullable=True)
+    linkedin_profile = Column(Text)
+    instagram_profile = Column(Text, nullable=True)
     role = Column(Enum(UserRole), default=UserRole.user, nullable=False)
 
     mentor = relationship("User", remote_side=[id], backref="mentees", foreign_keys=[mentor_id])
