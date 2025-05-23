@@ -1,10 +1,11 @@
 import os
+from pathlib import Path
 import pytest
 from settings import Settings
 
 @pytest.fixture(autouse=True)
 def clear_env_vars():
-    """Clear relevant env vars before each test and restore afterwards."""
+    """Clear relevant environment variables before each test and restore them afterwards."""
     env_vars = [
         "ENV", "SECRET_KEY", "ACCESS_KEY", "BUCKET_NAME", "ADMIN_EMAIL",
         "SENDGRID_API_KEY", "BASE_URL", "DOCS_AUTH_USERNAME", "DOCS_AUTH_PASSWORD"
@@ -17,8 +18,7 @@ def clear_env_vars():
         if val is not None:
             os.environ[var] = val
 
-def test_defaults_when_no_env_vars():
-    s = Settings()
+def assert_default_settings(s: Settings):
     assert s.ENV == "development"
     assert s.SECRET_KEY == "DEFAULT_KEY"
     assert s.ACCESS_KEY == "DEFAULT_KEY"
@@ -32,9 +32,15 @@ def test_defaults_when_no_env_vars():
     assert s.database_url.startswith("sqlite:///")
     temp_file_path = s.database_url.replace("sqlite:///", "")
     assert temp_file_path.endswith(".db")
-    assert os.path.exists(temp_file_path)
+    assert Path(temp_file_path).exists()
 
-def test_production_settings(monkeypatch):
+def test_settings_defaults_without_env_vars():
+    """Test default settings when no environment variables are set."""
+    s = Settings()
+    assert_default_settings(s)
+
+def test_settings_with_production_env(monkeypatch):
+    """Test settings when production environment variables are set."""
     monkeypatch.setenv("ENV", "production")
     monkeypatch.setenv("SECRET_KEY", "prod_secret")
     monkeypatch.setenv("ACCESS_KEY", "prod_access")
@@ -45,7 +51,6 @@ def test_production_settings(monkeypatch):
     monkeypatch.setenv("DOCS_AUTH_USERNAME", "admin")
     monkeypatch.setenv("DOCS_AUTH_PASSWORD", "secret")
     monkeypatch.setenv("DATABASE_URL", "sqlite:////app/sql_database/database.db")
-
 
     s = Settings()
     assert s.ENV == "production"

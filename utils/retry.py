@@ -1,5 +1,3 @@
-import time
-import functools
 from sqlalchemy.exc import OperationalError
 from tenacity import retry, stop_after_attempt, wait_exponential
 import tenacity
