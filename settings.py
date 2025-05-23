@@ -24,9 +24,9 @@ class Settings:
 
     @property
     def database_url(self):
-        if self.ENV == "development":
-            temp_db_file = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
-            return f"sqlite:///{temp_db_file.name}"
-        return "sqlite:////app/sql_database/database.db"
+        if self.ENV == "development":        
+            return "sqlite:///database.db"
+        else:
+            return os.getenv("DATABASE_URL")
 
 settings = Settings()
