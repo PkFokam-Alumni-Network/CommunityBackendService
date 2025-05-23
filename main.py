@@ -15,9 +15,9 @@ from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     ENV = os.getenv("ENV", "development")
     if ENV == "development":
-        database_url = os.getenv("DATABASE_URL", "sqlite:///database.db")
+        database_url = "sqlite:///database.db"
     else:
-        database_url = "sqlite:////app/sql_database/database.db"
+        database_url = os.getenv("DATABASE_URL")
 
     database.init_db(database_url)
     database.Base.metadata.create_all(bind=database.engine)

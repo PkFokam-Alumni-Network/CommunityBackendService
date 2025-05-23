@@ -32,7 +32,7 @@ ENV = os.getenv("ENV", "development")
 if ENV == "development":
     DATABASE_URL = "sqlite:///database.db"
 else:
-    DATABASE_URL = "sqlite:////app/sql_database/database.db"
+    DATABASE_URL = os.getenv("DATABASE_URL")
 
 config.set_main_option("sqlalchemy.url", DATABASE_URL)
 
