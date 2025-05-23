@@ -27,7 +27,6 @@ class User(Base):
     instagram_profile = Column(String, nullable=True)
     role = Column(Enum(UserRole), default=UserRole.user, nullable=False)
 
-    # Relationships
     degrees = relationship("Degree", back_populates="user")
     user_events = relationship("UserEvent", back_populates="user")
     
