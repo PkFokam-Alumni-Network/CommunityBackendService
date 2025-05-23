@@ -63,8 +63,3 @@ class UserEventRepository(metaclass=SingletonMeta):
             UserEvent.user_id == user.id,
             UserEvent.event_id == event_id
         ).count() > 0
-    
-    @retry_on_db_error()
-    def delete_by_event_id(self, event_id: int):
-        self.db.query(UserEvent).filter_by(event_id=event_id).delete()
-        self.db.commit()
