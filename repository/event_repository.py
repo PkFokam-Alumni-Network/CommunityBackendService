@@ -2,11 +2,13 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError, OperationalError
 from models.event import Event
 from utils.singleton_meta import SingletonMeta
+from utils.retry import retry_on_db_error
 
 class EventRepository(metaclass=SingletonMeta):
     def __init__(self, session: Session):
         self.db: Session = session
 
+    @retry_on_db_error()
     def add_event(self, event: Event) -> Event:
         try:
             self.db.add(event)
@@ -23,12 +25,15 @@ class EventRepository(metaclass=SingletonMeta):
             self.db.rollback()
             raise RuntimeError(f"An error occurred: {e}")
 
+    @retry_on_db_error()
     def get_event_by_id(self, event_id: int) -> Event:
         return self.db.query(Event).filter(Event.id == event_id).first()
 
+    @retry_on_db_error()
     def get_events(self) -> list[Event]:
         return self.db.query(Event).all()
 
+    @retry_on_db_error()
     def update_event(self, event: Event) -> Event:
         try:
             self.db.merge(event)
@@ -39,6 +44,7 @@ class EventRepository(metaclass=SingletonMeta):
             self.db.rollback()
             raise RuntimeError(f"An error occurred: {e}")
 
+    @retry_on_db_error()
     def delete_event(self, event_id: int) -> None:
         event = self.get_event_by_id(event_id)
         if not event:
