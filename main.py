@@ -21,8 +21,6 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         database_url = os.getenv("DATABASE_URL")
 
     database.init_db(database_url)
-    LOGGER.info(f"Connecting to database: {database_url}")
-    LOGGER.info(database.engine)
     database.Base.metadata.create_all(bind=database.engine)
     yield
 
