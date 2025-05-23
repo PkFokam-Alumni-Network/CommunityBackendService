@@ -73,6 +73,12 @@ def get_user_by_id(user_id: int, session: Session = Depends(get_db)) -> user_sch
             raise HTTPException(status_code=404, detail="User not found")
         LOGGER.info(f"User retrieved: {user_id}")
         return user
+    except HTTPException as http_exc:
+        if http_exc.status_code == 404:
+            raise http_exc
+        else:
+            LOGGER.error(f"HTTPException in get_user_by_id for {user_id}: {str(http_exc)}")
+            raise
     except Exception as e:
         LOGGER.error(f"SERVER ERROR in get_user_by_id for {user_id}: {str(e)}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")

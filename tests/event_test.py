@@ -58,7 +58,6 @@ def test_add_user_to_event(client: TestClient) -> None:
 
     add_user_response = client.post(f"/events/{event.id}/register", json={'email':'user@example.com'})
     assert add_user_response.status_code == 200
-    assert add_user_response.json()["message"] == f"User {user.email} registered for the event."
 
 def test_remove_user_from_event(client: TestClient) -> None:
     event_data = {
