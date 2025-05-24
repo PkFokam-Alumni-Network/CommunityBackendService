@@ -1,4 +1,3 @@
-import os
 import uvicorn
 from fastapi.responses import HTMLResponse
 from fastapi import Depends, FastAPI 
@@ -9,30 +8,22 @@ from routers import user_router, announcement_router, event_router
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
+from logging_config import LOGGER
+from settings import settings
 
 # TODO: Init logging and use config/settings.py for env variables
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    ENV = os.getenv("ENV", "development")
-    if ENV == "development":
-        database_url = os.getenv("DATABASE_URL", "sqlite:///database.db")
-    else:
-        database_url = "sqlite:////app/sql_database/database.db"
-
-    database.init_db(database_url)
+    database.init_db(settings.database_url)
     database.Base.metadata.create_all(bind=database.engine)
     yield
 
-origins = [
-    "https://pkfalumni.com",
-    "https://backoffice.pkfalumni.com"
-]
 
 app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

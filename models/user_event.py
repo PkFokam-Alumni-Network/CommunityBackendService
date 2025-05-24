@@ -1,11 +1,11 @@
-from sqlalchemy import Integer, ForeignKey, Column, String
+from sqlalchemy import Integer, ForeignKey, Column, Text
 from sqlalchemy.orm import relationship
 from database import Base
 
 class UserEvent(Base):
     __tablename__ = 'user_events'
 
-    user_email= Column(String, ForeignKey('users.email', ondelete="CASCADE"), primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id', ondelete="CASCADE"), primary_key=True) 
     event_id = Column(Integer, ForeignKey('events.id',  ondelete="CASCADE"), primary_key=True)
     
     user = relationship("User", back_populates="user_events")
