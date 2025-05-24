@@ -5,8 +5,11 @@ from database import get_db
 from schemas import user_schema
 from services.user_service import UserService
 from logging_config import LOGGER
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from utils.func_utils import verify_jwt, invalidate_token
 
 router = APIRouter()
+security = HTTPBearer()
 
 @router.post("/login/", status_code=status.HTTP_200_OK, response_model=user_schema.UserLoginResponse)
 def login(user: user_schema.UserLogin, session: Session = Depends(get_db)) -> user_schema.UserLoginResponse:
@@ -16,7 +19,22 @@ def login(user: user_schema.UserLogin, session: Session = Depends(get_db)) -> us
         return response
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
-
+@router.post("/logout/", status_code=status.HTTP_200_OK)
+def logout(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    try:
+        token = credentials.credentials
+        verify_jwt(token)
+        invalidate_token(token)
+        
+        return {
+            "message": "Successfully logged out",
+            "status": "success",
+            "session_invalidated": True,
+            "token_deleted": "client_should_delete",
+        }
+    
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail=str(e))
 @router.post("/users/", status_code=status.HTTP_201_CREATED, response_model=user_schema.UserCreatedResponse)
 def create_user(user: user_schema.UserCreate, session: Session = Depends(get_db)) -> user_schema.UserCreatedResponse:
     service = UserService(session=session)
