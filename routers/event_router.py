@@ -15,7 +15,6 @@ def create_event(event_data: EventCreate, db: Session = Depends(get_db)) -> Even
     event_service = EventService()
     try:
         event = event_service.create_event(db, event_data)
-        LOGGER.info(f"Event created: event_id={event.id}")
         return event
     except Exception as e:
         LOGGER.error(f"SERVER ERROR in create_event: {str(e)}")
@@ -26,7 +25,6 @@ def get_all_events( db: Session = Depends(get_db)) -> List[EventResponse]:
     event_service = EventService()
     try:
         events = event_service.get_all_events(db)
-        LOGGER.info(f"All events retrieved, count: {len(events)}")
         return events
     except Exception as e:
         LOGGER.error(f"SERVER ERROR in get_all_events: {str(e)}")
@@ -37,7 +35,6 @@ def get_event_by_id(event_id: int, db: Session = Depends(get_db)) -> EventRespon
     event_service = EventService()
     try:
         event = event_service.get_event_by_id(db, event_id=event_id)
-        LOGGER.info(f"Event retrieved: event_id={event_id}")
         return event
     except Exception as e:
         LOGGER.error(f"SERVER ERROR in get_event_by_id for event_id={event_id}: {str(e)}")
@@ -48,7 +45,6 @@ def update_event(event_id: int, event_data: EventUpdate, db: Session = Depends(g
     event_service = EventService()
     try:
         event = event_service.update_event(db, event_id, event_data)
-        LOGGER.info(f"Event updated: event_id={event_id}")
         return event
     except ValueError:
         LOGGER.warning(f"Update failed: Event not found event_id={event_id}")
@@ -77,10 +73,8 @@ def register_user_for_event(event_id: int, event_registration: EventRegistration
     masked_email = event_registration.email[:3] + '****'
     try:
         event_service.register_user_for_event(db, event_registration, event_id)
-        LOGGER.info(f"User registered for event: event_id={event_id}, user={masked_email}")
         return {"message": f"User registered for the event."}
     except ValueError as e:
-        LOGGER.warning(f"Register failed: user={masked_email}, event_id={event_id}, error={str(e)}")
         raise HTTPException(status_code=400, detail=f"User already registered or other error: {str(e)}")
     except Exception as e:
         LOGGER.error(f"SERVER ERROR in register_user_for_event for user={masked_email}, event_id={event_id}: {str(e)}")
@@ -92,7 +86,6 @@ def unregister_user_from_event(event_id: int, event_registration: EventRegistrat
     masked_email = event_registration.email[:3] + '****'
     try:
         event_service.unregister_user_from_event(db, event_registration, event_id)
-        LOGGER.info(f"User unregistered from event: event_id={event_id}, user={masked_email}")
         return {"message": f"User unregistered from the event."}
     except ValueError as e:
         LOGGER.warning(f"Unregister failed: user={masked_email}, event_id={event_id}, error={str(e)}")
@@ -113,7 +106,6 @@ def get_events_with_attendees(db: Session = Depends(get_db)) -> List[EventWithAt
                 LOGGER.info("Special user found, returning empty list.")
                 return []
         events = event_service.get_events_with_attendees(db)
-        LOGGER.info(f"Events with attendees retrieved, count: {len(events)}")
         return events
     except Exception as e:
         LOGGER.error(f"SERVER ERROR in get_events_with_attendees: {str(e)}")
@@ -125,7 +117,6 @@ def get_event_attendees(event_id: int, db: Session = Depends(get_db)) -> List[Us
     event_service = EventService()
     try:
         users = event_service.get_event_attendees(db, event_id)
-        LOGGER.info(f"Attendees retrieved for event_id={event_id}, count: {len(users)}")
         return users
     except Exception as e:
         LOGGER.error(f"SERVER ERROR in get_event_attendees for event_id={event_id}: {str(e)}")
@@ -138,7 +129,6 @@ def get_all_events_of_user(user_email: str, db: Session = Depends(get_db)) -> Li
     masked_email = user_email[:3] + '****'
     try:
         events = event_service.get_user_events(db, user_email)
-        LOGGER.info(f"Events retrieved for user={masked_email}, count: {len(events)}")
         return events
     except Exception as e:
         LOGGER.error(f"SERVER ERROR in get_all_events_of_user for user={masked_email}: {str(e)}")
