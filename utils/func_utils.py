@@ -13,6 +13,11 @@ s3_client = boto3.client(
     aws_secret_access_key=settings.SECRET_KEY
 )
 
+ADMIN_EMAIL = os.getenv('ADMIN_EMAIL')
+SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
+BASE_URL = os.getenv('BASE_URL')
+
+invalidated_tokens= set()
 def get_password_hash(password: str) -> str:
     salt = bcrypt.gensalt()
     hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
@@ -34,6 +39,8 @@ def create_jwt(user_email: str) -> str:
     return token
 
 def verify_jwt(token: str) -> Any | None:
+    if token in invalidated_tokens:
+        raise ValueError("Token has been invalidated (logged out)")
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
         return payload
@@ -41,7 +48,8 @@ def verify_jwt(token: str) -> Any | None:
         raise ValueError("Token has expired")
     except jwt.InvalidTokenError:
         raise ValueError("Invalid token")
-
+def invalidate_token(token: str):
+    invalidated_tokens.add(token)
 def upload_image_to_s3(base64_image: str, object_key:str) -> str:
     image = decode_base64_image(base64_image)
     image = crop_image_to_circle(image)
