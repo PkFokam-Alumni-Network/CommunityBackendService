@@ -14,7 +14,6 @@ def create_announcement(announcement: AnnouncementCreate, session: Session = Dep
     service = AnnouncementService()
     try:
         ann = service.create_announcement(session, announcement)
-        LOGGER.info(f"Announcement created: id={ann.id}")
         return ann
     except ValueError as e:
         LOGGER.warning(f"Announcement creation failed: {str(e)}")
@@ -29,7 +28,6 @@ def get_all_announcements(session: Session = Depends(get_db)) -> list[Announceme
     service = AnnouncementService()
     try:
         anns = service.get_all_announcements(session)
-        LOGGER.info(f"All announcements retrieved, count: {len(anns)}")
         return anns
     except Exception as e:
         LOGGER.error(f"SERVER ERROR in get_all_announcements: {str(e)}")
@@ -41,7 +39,6 @@ def get_announcement_by_id(announcement_id: int, session: Session = Depends(get_
     service = AnnouncementService()
     try:
         ann = service.get_announcement_by_id(session, announcement_id)
-        LOGGER.info(f"Announcement retrieved: id={announcement_id}")
         return ann
     except ValueError as e:
         LOGGER.warning(f"Announcement not found: id={announcement_id}, error={str(e)}")
@@ -57,7 +54,6 @@ def update_announcement(announcement_id: int, announcement: AnnouncementUpdate,
     service = AnnouncementService()
     try:
         ann = service.update_announcement(session, announcement_id, announcement)
-        LOGGER.info(f"Announcement updated: id={announcement_id}")
         return ann
     except ValueError as e:
         LOGGER.warning(f"Announcement update failed: id={announcement_id}, error={str(e)}")
@@ -72,7 +68,6 @@ def delete_announcement(announcement_id: int, session: Session = Depends(get_db)
     service = AnnouncementService()
     try:
         service.delete_announcement(session, announcement_id)
-        LOGGER.info(f"Announcement deleted: id={announcement_id}")
         return AnnouncementResponse(id=announcement_id, message="Announcement deleted successfully.")
     except ValueError as e:
         LOGGER.warning(f"Announcement delete failed: id={announcement_id}, error={str(e)}")
