@@ -38,10 +38,6 @@ def logout(credentials: HTTPAuthorizationCredentials = Depends(security)):
     
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail=str(e))
-    except Exception as e:
-        LOGGER.error(f"SERVER ERROR in login for {masked_email}: {str(e)}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
-
 @router.post("/users/", status_code=status.HTTP_201_CREATED, response_model=user_schema.UserCreatedResponse)
 def create_user(user: user_schema.UserCreate, session: Session = Depends(get_db)) -> user_schema.UserCreatedResponse:
     service = UserService()
