@@ -15,6 +15,7 @@ Examples:
 
 """
 
+
 import argparse
 import random
 from datetime import datetime, timedelta
@@ -32,15 +33,13 @@ from models.announcement import Announcement
 from utils.func_utils import get_password_hash
 from logging_config import LOGGER
 
+
 fake = Faker()
 
 PROFILE_IMAGES = [
     "https://www.w3schools.com/howto/img_avatar.png",
-    "https://www.w3schools.com/howto/img_avatar2.png",
     "https://randomuser.me/api/portraits/men/1.jpg",
     "https://randomuser.me/api/portraits/women/1.jpg",
-    "https://randomuser.me/api/portraits/men/2.jpg",
-    "https://randomuser.me/api/portraits/women/2.jpg",
 ]
 
 EVENT_IMAGES = [
@@ -55,95 +54,43 @@ ANNOUNCEMENT_IMAGES = [
     "https://images.unsplash.com/photo-1588681664899-f142ff2dc9b1",
 ]
 
-DEGREES = ["BSc", "MSc", "PhD", "BEng", "MEng", "MBA", "BBA"]
+DEGREES = ["BSc", "MSc", "BEng", "MEng"]
 
 MAJORS = [
     "Computer Science",
-    "Information Technology",
     "Mechanical Engineering",
-    "Electrical Engineering and Technology",
-    "Economics"
+    "Electrical Engineering and Technology"
+    
 ]
 
 OCCUPATIONS = [
     "Software Engineer",
-    "Data Scientist",
-    "DevOps Engineer",
-    "Full Stack Developer",
-    "Mobile App Developer",
-    "Cloud Architect",
-    "Cybersecurity Analyst",
-    "IT Project Manager",
-    "Product Manager",
-    "System Administrator",
-    "Database Administrator",
-    "UI/UX Designer",
     "Mechanical Engineer",
-    "Electrical Engineer",
-    "Automation Engineer",
-    "Quality Engineer",
-    "Design Engineer",
-    "Manufacturing Engineer",
-    "Financial Analyst",
-    "Business Analyst",
-    "Economic Researcher",
-    "Investment Analyst",
-    "Market Research Analyst",
-    "Consultant",
-    "Entrepreneur",
-    "Technical Lead",
-    "Research Scientist"
+    "Electrical Engineer"
 ]
 
 EVENT_CATEGORIES = [
-    "Workshop",
     "Conference",
     "Networking",
-    "Career Fair",
-    "Seminar",
-    "Webinar",
-    "Social",
     "Educational",
-    "Professional Development",
-    "Panel Discussion",
     "Alumni Reunion",
-    "Hackathon",
-    "Tech Talk",
-    "Industry Talk",
-    "Mentorship Session"
+
 ]
 
 EVENT_LOCATIONS = [
     "Kennesaw Campus - Atrium Building",
-    "Kennesaw Campus - Engineering Technology Center",
-    "Kennesaw Campus - Prillaman Hall",
-    "Kennesaw Campus - Student Center",
     "Marietta Campus - Norton Hall",
-    "Marietta Campus - Architecture Building",
-    "Marietta Campus - Student Center",
     "SOVA Kennesaw - Conference Room A",
-    "SOVA Kennesaw - Main Hall",
-    "Indy Kennesaw - Meeting Room 1",
-    "Indy Kennesaw - Event Space",
-    "Virtual (Zoom)",
-    "Virtual (Google Meet)",
-    "Kennesaw Campus - Library Auditorium",
-    "Marietta Campus - Joe Mack Wilson Student Center"
+    "Indy Kennesaw - Meeting Room 1"
 ]
 
 ANNOUNCEMENT_TITLES = [
     "Call for Mentors: Alumni Mentorship Program",
     "Tech Industry Job Opportunities - New Openings",
-    "Alumni Network Annual Report 2024",
     "Scholarship Opportunities for Graduate Studies",
-    "Partnership with Atlanta Tech Companies",
-    "Alumni Success Stories: Share Your Journey",
     "Upcoming Engineering Workshop Series",
-    "Research Funding for CS/IT Projects",
-    "Call for Speakers: Annual Tech Conference",
-    "Professional Certification Programs Available",
-]
 
+]
 
 def create_sample_users(session: Session, count: int = 3, force: bool = False) -> List[User]:
     existing_count = session.query(User).count()
@@ -404,8 +351,6 @@ def main():
 
     import database
 
-    LOGGER.info(f"Database: {settings.database_url}")
-    LOGGER.info(f"Environment: {settings.ENV}")
 
     database.init_db(settings.database_url)
     database.Base.metadata.create_all(bind=database.engine)
