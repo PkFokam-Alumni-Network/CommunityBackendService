@@ -14,15 +14,14 @@ security = HTTPBearer()
 @router.post("/login/", status_code=status.HTTP_200_OK, response_model=user_schema.UserLoginResponse)
 def login(user: user_schema.UserLogin, session: Session = Depends(get_db)) -> user_schema.UserLoginResponse:
     service = UserService()
+    masked_email = user.email[:3] + '****'
     try:
         response = service.login(session, user.email.lower(), user.password)
-        masked_email = user.email[:3] + '****'
-        LOGGER.info(f"User login successful: {masked_email}")
         return response
     except ValueError as e:
-        masked_email = user.email[:3] + '****'
         LOGGER.warning(f"Login failed for {masked_email}: {str(e)}")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+
 @router.post("/logout/", status_code=status.HTTP_200_OK)
 def logout(credentials: HTTPAuthorizationCredentials = Depends(security)):
     try:
@@ -39,21 +38,22 @@ def logout(credentials: HTTPAuthorizationCredentials = Depends(security)):
     
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail=str(e))
+    except Exception as e:
+        LOGGER.error(f"SERVER ERROR in login for {masked_email}: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
+
 @router.post("/users/", status_code=status.HTTP_201_CREATED, response_model=user_schema.UserCreatedResponse)
 def create_user(user: user_schema.UserCreate, session: Session = Depends(get_db)) -> user_schema.UserCreatedResponse:
     service = UserService()
+    masked_email = user.email[:3] + '****'
     try:
         user_data = user.model_dump()
         new_user = service.register_user(session, **user_data)
-        masked_email = user.email[:3] + '****'
-        LOGGER.info(f"User created: {masked_email}")
         return new_user
     except ValueError as e:
-        masked_email = user.email[:3] + '****'
         LOGGER.error(f"User creation failed for {masked_email}: {str(e)}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
-        masked_email = user.email[:3] + '****'
         LOGGER.error(f"SERVER ERROR in create_user for {masked_email}: {str(e)}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
 
@@ -69,9 +69,7 @@ def get_all_users(session: Session = Depends(get_db), counts: bool = Query(False
                 users = [current_user]
                 break
         if counts:
-            LOGGER.info(f"Returning user count: {len(users)}")
             return {"count": len(users)}
-        LOGGER.info(f"Returning users list, count: {len(users)}")
         return users
     except Exception as e:
         LOGGER.error(f"SERVER ERROR in get_all_users: {str(e)}")
@@ -85,7 +83,6 @@ def get_user_by_id(user_id: int, session: Session = Depends(get_db)) -> user_sch
         if user is None:
             LOGGER.error(f"User not found: {user_id}")
             raise HTTPException(status_code=404, detail="User not found")
-        LOGGER.info(f"User retrieved: {user_id}")
         return user
     except HTTPException as http_exc:
         if http_exc.status_code == 404:
@@ -102,7 +99,6 @@ def get_mentees(user_id: int, session: Session = Depends(get_db)) -> user_schema
     service = UserService()
     try:
         mentees = service.get_mentees(session, user_id)
-        LOGGER.info(f"Mentees retrieved for user: {user_id}, count: {len(mentees)}")
         return mentees
     except Exception as e:
         LOGGER.error(f"SERVER ERROR in get_mentees for {user_id}: {str(e)}")
@@ -114,7 +110,6 @@ def update_user(user_id: int, user_data: user_schema.UserUpdate,
     user_service = UserService()
     try:
         updated_user = user_service.update_user(session, user_id=user_id, updated_data=user_data.model_dump(exclude_unset=True))
-        LOGGER.info(f"User updated: {user_id}")
         return updated_user
     except ValueError as e:
         LOGGER.error(f"User update failed for {user_id}: {str(e)}")
@@ -181,7 +176,6 @@ def get_all_users_internal( session: Session = Depends(get_db)):
     service = UserService()
     try:
         users = service.get_users(session)
-        LOGGER.info(f"Internal users list retrieved, count: {len(users)}")
         return users
     except Exception as e:
         LOGGER.error(f"SERVER ERROR in get_all_users_internal: {str(e)}")
@@ -194,16 +188,13 @@ def request_password_reset(body:user_schema.PasswordResetRequest
     try:
         service.request_password_reset(session, body.email)
         masked = f"{body.email[:3]}****"
-        LOGGER.info(f"Password reset requested for: {masked}")
         return user_schema.PasswordResetRequestResponse(
             message = f"Your reset link has been sent to your email starting with {masked}"
         )
     except ValueError as e:
-        masked = f"{body.email[:3]}****"
         LOGGER.error(f"Password reset request failed for {masked}: {str(e)}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
-        masked = f"{body.email[:3]}****"
         LOGGER.error(f"SERVER ERROR in request_password_reset for {masked}: {str(e)}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
     
@@ -213,7 +204,6 @@ def reset_password(body: user_schema.PasswordReset,
         service = UserService()
         try:
             updated_user = service.reset_password(session, body.new_password, body.token)
-            LOGGER.info(f"Password reset successful")
             return updated_user
         except ValueError as e:
             LOGGER.error(f"Password reset failed: {str(e)}")
