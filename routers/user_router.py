@@ -11,9 +11,9 @@ router = APIRouter()
 @router.post("/login/", status_code=status.HTTP_200_OK, response_model=user_schema.UserLoginResponse)
 def login(user: user_schema.UserLogin, session: Session = Depends(get_db)) -> user_schema.UserLoginResponse:
     service = UserService()
+    masked_email = user.email[:3] + '****'
     try:
         response = service.login(session, user.email.lower(), user.password)
-        masked_email = user.email[:3] + '****'
         return response
     except ValueError as e:
         LOGGER.warning(f"Login failed for {masked_email}: {str(e)}")
@@ -25,10 +25,10 @@ def login(user: user_schema.UserLogin, session: Session = Depends(get_db)) -> us
 @router.post("/users/", status_code=status.HTTP_201_CREATED, response_model=user_schema.UserCreatedResponse)
 def create_user(user: user_schema.UserCreate, session: Session = Depends(get_db)) -> user_schema.UserCreatedResponse:
     service = UserService()
+    masked_email = user.email[:3] + '****'
     try:
         user_data = user.model_dump()
         new_user = service.register_user(session, **user_data)
-        masked_email = user.email[:3] + '****'
         return new_user
     except ValueError as e:
         LOGGER.error(f"User creation failed for {masked_email}: {str(e)}")
