@@ -22,6 +22,10 @@ def login(user: user_schema.UserLogin, session: Session = Depends(get_db)) -> us
         masked_email = user.email[:3] + '****'
         LOGGER.error(f"SERVER ERROR in login for {masked_email}: {str(e)}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
+    except Exception as e:
+        masked_email = user.email[:3] + '****'
+        LOGGER.error(f"SERVER ERROR in login for {masked_email}: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
 
 @router.post("/users/", status_code=status.HTTP_201_CREATED, response_model=user_schema.UserCreatedResponse)
 def create_user(user: user_schema.UserCreate, session: Session = Depends(get_db)) -> user_schema.UserCreatedResponse:
@@ -31,11 +35,19 @@ def create_user(user: user_schema.UserCreate, session: Session = Depends(get_db)
         new_user = service.register_user(session, **user_data)
         masked_email = user.email[:3] + '****'
         LOGGER.info(f"User created: {masked_email}")
+        masked_email = user.email[:3] + '****'
+        LOGGER.info(f"User created: {masked_email}")
         return new_user
     except ValueError as e:
         masked_email = user.email[:3] + '****'
         LOGGER.error(f"User creation failed for {masked_email}: {str(e)}")
+        masked_email = user.email[:3] + '****'
+        LOGGER.error(f"User creation failed for {masked_email}: {str(e)}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        masked_email = user.email[:3] + '****'
+        LOGGER.error(f"SERVER ERROR in create_user for {masked_email}: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
     except Exception as e:
         masked_email = user.email[:3] + '****'
         LOGGER.error(f"SERVER ERROR in create_user for {masked_email}: {str(e)}")
@@ -94,10 +106,13 @@ def update_user(user_id: int, user_data: user_schema.UserUpdate,
     try:
         updated_user = user_service.update_user(session, user_id=user_id, updated_data=user_data.model_dump(exclude_unset=True))
         LOGGER.info(f"User updated: {user_id}")
+        LOGGER.info(f"User updated: {user_id}")
         return updated_user
     except ValueError as e:
+        LOGGER.error(f"User update failed for {user_id}: {str(e)}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
+        LOGGER.error(f"SERVER ERROR in update_user for user {user_id}: {str(e)}")
         LOGGER.error(f"SERVER ERROR in update_user for user {user_id}: {str(e)}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
@@ -107,11 +122,14 @@ def update_user_email(user_id: int, body: user_schema.EmailUpdate, session: Sess
     try:
         updated_user = service.update_user_email(session, user_id=user_id, new_email=body.new_email)
         LOGGER.info(f"User email updated: user_id={user_id}")
+        LOGGER.info(f"User email updated: user_id={user_id}")
         return updated_user
     except ValueError as e:
         LOGGER.error(f"User email update failed for user_id={user_id}: {str(e)}")
+        LOGGER.error(f"User email update failed for user_id={user_id}: {str(e)}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
+        LOGGER.error(f"SERVER ERROR in update_user_email for user_id={user_id}: {str(e)}")
         LOGGER.error(f"SERVER ERROR in update_user_email for user_id={user_id}: {str(e)}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
 
@@ -121,11 +139,14 @@ def update_user_password(user_id: int, body: user_schema.PasswordUpdate, session
     try:
         updated_user = service.update_password(session, old_password=body.old_password, new_password=body.new_password, user_id=user_id)
         LOGGER.info(f"User password updated: {user_id}")
+        LOGGER.info(f"User password updated: {user_id}")
         return updated_user
     except ValueError as e:
         LOGGER.error(f"User password update failed for {user_id}: {str(e)}")
+        LOGGER.error(f"User password update failed for {user_id}: {str(e)}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
+        LOGGER.error(f"SERVER ERROR in update_user_password for user {user_id}: {str(e)}")
         LOGGER.error(f"SERVER ERROR in update_user_password for user {user_id}: {str(e)}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
 
@@ -135,7 +156,9 @@ def update_profile_picture(user_id: int, body: user_schema.ProfilePictureUpdate,
     try:
         image_path = service.save_profile_picture(session, user_id, body.base64_image)
         LOGGER.info(f"Profile picture updated for user: {user_id}")
+        LOGGER.info(f"Profile picture updated for user: {user_id}")
     except Exception as e:
+        LOGGER.error(f"SERVER ERROR in update_profile_picture for user {user_id}: {str(e)}")
         LOGGER.error(f"SERVER ERROR in update_profile_picture for user {user_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error saving the file: {str(e)}")
     return JSONResponse({"image_path":image_path})
@@ -146,9 +169,14 @@ def delete_user(user_id: int, session: Session = Depends(get_db)) -> user_schema
     try:
         service.remove_user(session, user_id)
         LOGGER.info(f"User deleted: {user_id}")
+        LOGGER.info(f"User deleted: {user_id}")
     except ValueError as e:
         LOGGER.error(f"User deletion failed for {user_id}: {str(e)}")
+        LOGGER.error(f"User deletion failed for {user_id}: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        LOGGER.error(f"SERVER ERROR in delete_user for {user_id}: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
     except Exception as e:
         LOGGER.error(f"SERVER ERROR in delete_user for {user_id}: {str(e)}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
@@ -171,14 +199,19 @@ def request_password_reset(body:user_schema.PasswordResetRequest, session: Sessi
         service.request_password_reset(session, body.email)
         masked = f"{body.email[:3]}****"
         LOGGER.info(f"Password reset requested for: {masked}")
+        LOGGER.info(f"Password reset requested for: {masked}")
         return user_schema.PasswordResetRequestResponse(
             message = f"Your reset link has been sent to your email starting with {masked}"
         )
     except ValueError as e:
         masked = f"{body.email[:3]}****"
         LOGGER.error(f"Password reset request failed for {masked}: {str(e)}")
+        masked = f"{body.email[:3]}****"
+        LOGGER.error(f"Password reset request failed for {masked}: {str(e)}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
+        masked = f"{body.email[:3]}****"
+        LOGGER.error(f"SERVER ERROR in request_password_reset for {masked}: {str(e)}")
         masked = f"{body.email[:3]}****"
         LOGGER.error(f"SERVER ERROR in request_password_reset for {masked}: {str(e)}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
@@ -190,11 +223,16 @@ def reset_password(body: user_schema.PasswordReset,
         try:
             updated_user = service.reset_password(session, body.new_password, body.token)
             LOGGER.info(f"Password reset successful")
+            LOGGER.info(f"Password reset successful")
             return updated_user
         except ValueError as e:
             LOGGER.error(f"Password reset failed: {str(e)}")
+            LOGGER.error(f"Password reset failed: {str(e)}")
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
         except Exception as e:
+            LOGGER.error(f"SERVER ERROR in reset_password: {str(e)}")
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
+        
             LOGGER.error(f"SERVER ERROR in reset_password: {str(e)}")
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
         

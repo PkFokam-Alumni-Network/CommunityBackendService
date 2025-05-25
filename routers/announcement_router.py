@@ -6,6 +6,7 @@ from schemas.announcement_schema import AnnouncementCreate, AnnouncementUpdate, 
 from services.announcement_service import AnnouncementService
 from models.announcement import Announcement
 from logging_config import LOGGER
+from logging_config import LOGGER
 
 router = APIRouter()
 
@@ -16,7 +17,11 @@ def create_announcement(announcement: AnnouncementCreate, session: Session = Dep
         ann = service.create_announcement(session, announcement)
         return ann
     except ValueError as e:
+        LOGGER.warning(f"Announcement creation failed: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        LOGGER.error(f"SERVER ERROR in create_announcement: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
     except Exception as e:
         LOGGER.error(f"SERVER ERROR in create_announcement: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -40,7 +45,11 @@ def get_announcement_by_id(announcement_id: int, session: Session = Depends(get_
         ann = service.get_announcement_by_id(session, announcement_id)
         return ann
     except ValueError as e:
+        LOGGER.warning(f"Announcement not found: id={announcement_id}, error={str(e)}")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except Exception as e:
+        LOGGER.error(f"SERVER ERROR in get_announcement_by_id for id={announcement_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
     except Exception as e:
         LOGGER.error(f"SERVER ERROR in get_announcement_by_id for id={announcement_id}: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -54,7 +63,11 @@ def update_announcement(announcement_id: int, announcement: AnnouncementUpdate,
         ann = service.update_announcement(session, announcement_id, announcement)
         return ann
     except ValueError as e:
+        LOGGER.warning(f"Announcement update failed: id={announcement_id}, error={str(e)}")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except Exception as e:
+        LOGGER.error(f"SERVER ERROR in update_announcement for id={announcement_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
     except Exception as e:
         LOGGER.error(f"SERVER ERROR in update_announcement for id={announcement_id}: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -66,9 +79,14 @@ def delete_announcement(announcement_id: int, session: Session = Depends(get_db)
     try:
         service.delete_announcement(session, announcement_id)
         LOGGER.info(f"Announcement deleted: id={announcement_id}")
+        LOGGER.info(f"Announcement deleted: id={announcement_id}")
         return AnnouncementResponse(id=announcement_id, message="Announcement deleted successfully.")
     except ValueError as e:
+        LOGGER.warning(f"Announcement delete failed: id={announcement_id}, error={str(e)}")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except Exception as e:
+        LOGGER.error(f"SERVER ERROR in delete_announcement for id={announcement_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
     except Exception as e:
         LOGGER.error(f"SERVER ERROR in delete_announcement for id={announcement_id}: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")

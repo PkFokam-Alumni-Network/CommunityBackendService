@@ -7,6 +7,7 @@ from services.event_service import EventService
 from database import get_db
 from services.user_service import UserService
 from logging_config import LOGGER
+from logging_config import LOGGER
 
 router = APIRouter()
 
@@ -48,7 +49,11 @@ def update_event(event_id: int, event_data: EventUpdate, db: Session = Depends(g
         return event
     except ValueError:
         LOGGER.warning(f"Update failed: Event not found event_id={event_id}")
+        LOGGER.warning(f"Update failed: Event not found event_id={event_id}")
         raise HTTPException(status_code=404, detail="Event not found")
+    except Exception as e:
+        LOGGER.error(f"SERVER ERROR in update_event for event_id={event_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
     except Exception as e:
         LOGGER.error(f"SERVER ERROR in update_event for event_id={event_id}: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -59,10 +64,15 @@ def delete_event(event_id: int, db: Session = Depends(get_db)) -> Dict:
     try:
         event_service.delete_event(db, event_id)
         LOGGER.info(f"Event deleted: event_id={event_id}")
+        LOGGER.info(f"Event deleted: event_id={event_id}")
         return {"message": "Event deleted successfully."}
     except ValueError:
         LOGGER.warning(f"Delete failed: Event not found event_id={event_id}")
+        LOGGER.warning(f"Delete failed: Event not found event_id={event_id}")
         raise HTTPException(status_code=404, detail="Event not found")
+    except Exception as e:
+        LOGGER.error(f"SERVER ERROR in delete_event for event_id={event_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
     except Exception as e:
         LOGGER.error(f"SERVER ERROR in delete_event for event_id={event_id}: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -70,6 +80,7 @@ def delete_event(event_id: int, db: Session = Depends(get_db)) -> Dict:
 @router.post("/events/{event_id}/register")
 def register_user_for_event(event_id: int, event_registration: EventRegistration, db: Session = Depends(get_db)) -> Dict:
     event_service = EventService()
+    masked_email = event_registration.email[:3] + '****'
     masked_email = event_registration.email[:3] + '****'
     try:
         event_service.register_user_for_event(db, event_registration, event_id)
@@ -84,10 +95,16 @@ def register_user_for_event(event_id: int, event_registration: EventRegistration
 def unregister_user_from_event(event_id: int, event_registration: EventRegistration, db: Session = Depends(get_db)) -> Dict:
     event_service = EventService()
     masked_email = event_registration.email[:3] + '****'
+    masked_email = event_registration.email[:3] + '****'
     try:
         event_service.unregister_user_from_event(db, event_registration, event_id)
         return {"message": f"User unregistered from the event."}
     except ValueError as e:
+        LOGGER.warning(f"Unregister failed: user={masked_email}, event_id={event_id}, error={str(e)}")
+        raise HTTPException(status_code=400, detail=f"User not registered or other error: {str(e)}")
+    except Exception as e:
+        LOGGER.error(f"SERVER ERROR in unregister_user_from_event for user={masked_email}, event_id={event_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
         LOGGER.warning(f"Unregister failed: user={masked_email}, event_id={event_id}, error={str(e)}")
         raise HTTPException(status_code=400, detail=f"User not registered or other error: {str(e)}")
     except Exception as e:
