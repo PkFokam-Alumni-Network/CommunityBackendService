@@ -19,9 +19,9 @@ def test_create_get_announcement(client: TestClient) -> None:
     get_route = f"/announcements/{announcement_id}"
     response = client.get(get_route)
     assert response.status_code == 200
-    announcement: AnnouncementResponse = AnnouncementResponse.model_validate(response.json()) 
-    assert announcement.id == announcement_id
-    assert announcement.title == "Test Announcement"
+    announcementCreateResponse: AnnouncementCreate = AnnouncementCreate.model_validate(response.json()) 
+    assert announcementCreateResponse.id == announcement_id
+    assert announcementCreateResponse.title == "Test Announcement"
 
 def test_get_non_existing_announcement(client: TestClient) -> None:
     response = client.get("/announcements/999")
