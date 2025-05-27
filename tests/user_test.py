@@ -1,5 +1,5 @@
 from fastapi.testclient import TestClient
-from schemas.user_schema import UserCreatedResponse, UserLoginResponse , UserGetResponse, PasswordReset, UserGetResponseInternal
+from schemas.user_schema import UserCreatedResponse, UserLoginResponse , UserGetResponse, UserGetResponseInternal
 from utils.func_utils import verify_jwt
 from pydantic import TypeAdapter
 from typing import List
@@ -211,8 +211,10 @@ def test_update_user_password(client: TestClient) -> None:
     }
     response = client.post("/login/", json=login_data)
     assert response.status_code == 200 
-    password_reset: PasswordReset = PasswordReset.model_validate(response.json())
-    assert password_reset.token is not None
+    loginResponse: UserLoginResponse = UserLoginResponse.model_validate(response.json())
+    assert loginResponse.access_token is not None
+    assert loginResponse.token_type == "bearer"
+
 
 def test_get_user_count(client: TestClient) -> None:
     users_data = [
