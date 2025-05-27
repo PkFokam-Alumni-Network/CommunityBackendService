@@ -1,6 +1,9 @@
 from fastapi.testclient import TestClient
-from schemas.event_schema import EventResponse
+from schemas.event_schema import EventCreate , EventResponse
 from schemas.user_schema import UserCreatedResponse
+from pydantic import TypeAdapter
+from typing import List
+
 
 def test_create_event(client: TestClient) -> None:
     event_data = {
@@ -13,9 +16,10 @@ def test_create_event(client: TestClient) -> None:
     }
     response = client.post("/events/", json=event_data)
     assert response.status_code == 201
-    event = response.json()
-    assert event["title"] == "Test Event"
-    assert event["location"] == "Event Location"
+    eventCreateResponse: EventCreate = EventCreate.model_validate(response.json()) 
+    assert eventCreateResponse.title == "Test Event"
+    assert eventCreateResponse.location == "Event Location"
+   
 
 def test_get_event_by_id(client: TestClient) -> None:
     event_data = {
@@ -27,12 +31,13 @@ def test_get_event_by_id(client: TestClient) -> None:
         "categories": "Tech, Development",
     }
     response = client.post("/events/", json=event_data)
-    event = response.json()
-    event_id = event["id"]
-    response = client.get(f"/events/{event_id}")
-    assert response.status_code == 200
-    assert response.json()["title"] == "Test Event"
-    assert response.json()["location"] == "Event Location"
+    event: EventResponse = EventResponse.model_validate(response.json()) 
+    event_id = event.id
+    get_response = client.get(f"/events/{event_id}")
+    assert get_response.status_code == 200
+    fetched_event = EventResponse.model_validate(get_response.json())
+    assert fetched_event.title == "Test Event"
+    assert fetched_event.location == "Event Location"
 
 def test_add_user_to_event(client: TestClient) -> None:
     event_data = {
@@ -111,6 +116,7 @@ def test_get_all_event_attendees(client: TestClient) -> None:
 
     response = client.get(f"/events/{event.id}/users")
     assert response.status_code == 200
-    attendees = response.json()
+   
+    attendees =  TypeAdapter(List[UserCreatedResponse]).validate_python(response.json())
     assert len(attendees) == 1
-    assert attendees[0]["email"] ==user.email
+    assert attendees[0].email ==user.email
