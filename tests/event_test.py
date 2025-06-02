@@ -3,6 +3,7 @@ from schemas.event_schema import EventCreate , EventResponse
 from schemas.user_schema import UserCreatedResponse
 from pydantic import TypeAdapter
 from typing import List
+from datetime import datetime, timedelta
 
 
 def test_create_event(client: TestClient) -> None:
@@ -120,3 +121,40 @@ def test_get_all_event_attendees(client: TestClient) -> None:
     attendees =  TypeAdapter(List[UserCreatedResponse]).validate_python(response.json())
     assert len(attendees) == 1
     assert attendees[0].email ==user.email
+def test_cannot_register_for_past_event(client: TestClient) -> None:
+    """Test that users cannot register for past events"""
+    from datetime import datetime, timedelta
+    
+    # Create a past event (ended yesterday)
+    past_time = datetime.utcnow() - timedelta(days=1)
+    event_data = {
+        "title": "Past Event",
+        "start_time": (past_time - timedelta(hours=2)).isoformat(),
+        "end_time": past_time.isoformat(),  # Ended yesterday
+        "location": "Test Location",
+        "description": "This event has already ended",
+        "categories": "Test"
+    }
+    
+    event_response = client.post("/events/", json=event_data)
+    assert event_response.status_code == 201
+    event: EventResponse = EventResponse.model_validate(event_response.json())
+    
+    # Create a user
+    user_data = {
+        "email": "pastuser@example.com",
+        "first_name": "Past",
+        "last_name": "User",
+        "password": "testpassword"
+    }
+    user_response = client.post("/users/", json=user_data)
+    assert user_response.status_code == 201
+    
+    # Try to register for the past event - should fail
+    registration_response = client.post(
+        f"/events/{event.id}/register", 
+        json={'email': 'pastuser@example.com'}
+    )
+    
+    assert registration_response.status_code == 400
+    assert "Cannot register for past events" in registration_response.json()["detail"]
