@@ -7,6 +7,9 @@ from sqlalchemy.orm import sessionmaker, Session
 from fastapi.testclient import TestClient
 from main import app
 import database
+from datetime import datetime, timezone, timedelta
+from models.user import User
+from utils.func_utils import get_password_hash
 
 @pytest.fixture(scope="session")
 def temp_db_url() -> Generator[str, None, None]:
@@ -53,3 +56,30 @@ def client(db_session: Session) -> Generator[TestClient, None, None]:
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()
+@pytest.fixture
+def test_user(db_session):
+    """Create a test user for session testing"""
+    user = User(
+        email="test@example.com",
+        first_name="Test",
+        last_name="User",
+        password=get_password_hash("testpassword123"),
+        address="123 Test Street",
+        phone="1234567890",
+        is_active=True
+    )
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+    return user
+
+@pytest.fixture
+def test_session_data():
+    """Sample session data for testing"""
+    return {
+        "token": "test_jwt_token_123",
+        "device_type": "desktop",
+        "expires_at": datetime.now(timezone.utc) + timedelta(hours=24)
+    }
+
+
