@@ -31,3 +31,4 @@ class User(Base):
 
     mentor = relationship("User", remote_side=[id], backref="mentees", foreign_keys=[mentor_id])
     user_events = relationship("UserEvent", back_populates="user", cascade="all, delete-orphan")
+    sessions = relationship("Session", back_populates="user") 
