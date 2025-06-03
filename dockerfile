@@ -4,6 +4,7 @@ FROM python:3.11-slim
 # Set the working directory in the container
 WORKDIR /app
 
+
 # Copy the requirements.txt file to the working directory
 COPY requirements.txt .
 
@@ -17,5 +18,9 @@ COPY . .
 EXPOSE 9000
 
 # Command to run the FastAPI app using uvicorn
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "9000", "--proxy-headers", "--forwarded-allow-ips", "*"]
+# Copy the start script
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
 
+# Run the startup script
+CMD ["/start.sh"]

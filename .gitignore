@@ -166,3 +166,5 @@ uploads
 
 # Vscode
 .vscode/
+
+database.db

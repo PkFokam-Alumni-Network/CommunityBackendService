@@ -1,22 +1,32 @@
-import os, tempfile
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import sessionmaker, declarative_base
+from utils.retry import retry_on_db_error
 
-ENV = os.getenv("ENV", "development")
-if ENV == "development":
-    temp_db_file = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
-    DATABASE_URL = f"sqlite:///{temp_db_file.name}"
-else:
-    DATABASE_URL = "sqlite:////app/sql_database/database.db" #the extra / is necessary to access the volume
-
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
+engine = None
+SessionLocal = None
+
+@retry_on_db_error()
+def init_db(database_url: str):
+    global engine, SessionLocal
+    engine = create_engine(
+        database_url,
+        pool_pre_ping=True,
+        pool_recycle=900, # 15 minutes
+        pool_timeout=30,
+        pool_size=10,
+        max_overflow=20,
+        connect_args={"check_same_thread": False} if database_url.startswith("sqlite") else {}
+    )
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def get_db():
+    from database import SessionLocal  # ensure it's set
     db = SessionLocal()
     try:
         yield db
+    except:
+        db.rollback()
+        raise
     finally:
         db.close()

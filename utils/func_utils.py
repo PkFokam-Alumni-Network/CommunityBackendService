@@ -1,25 +1,17 @@
-import boto3, hashlib, os, bcrypt, jwt, datetime
-
+import boto3, hashlib,os, bcrypt, jwt, datetime
 from typing import Any
-from dotenv import load_dotenv
 from logging_config import LOGGER
 from utils.image_utils import crop_image_to_circle, decode_base64_image
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail, Email
+from settings import settings
 
-load_dotenv()
-SECRET_KEY = os.getenv('SECRET_KEY', 'DEFAULT_KEY')
-ACCESS_KEY = os.getenv('ACCESS_KEY','DEFAULT_KEY')
-BUCKET_NAME = os.getenv('BUCKET_NAME','DEFAULT_BUCKET')
+
 s3_client = boto3.client(
     's3',
-    aws_access_key_id=ACCESS_KEY,
-    aws_secret_access_key=SECRET_KEY
+    aws_access_key_id=settings.ACCESS_KEY,
+    aws_secret_access_key=settings.SECRET_KEY
 )
-
-ADMIN_EMAIL = os.getenv('ADMIN_EMAIL')
-SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
-BASE_URL = os.getenv('BASE_URL')
 
 def get_password_hash(password: str) -> str:
     salt = bcrypt.gensalt()
@@ -38,12 +30,12 @@ def create_jwt(user_email: str) -> str:
         'user_id': user_email,
         'exp': datetime.datetime.now(tz=time_zone) + datetime.timedelta(hours=1)
     }
-    token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
+    token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
     return token
 
 def verify_jwt(token: str) -> Any | None:
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
         return payload
     except jwt.ExpiredSignatureError:
         raise ValueError("Token has expired")
@@ -55,25 +47,34 @@ def upload_image_to_s3(base64_image: str, object_key:str) -> str:
     image = crop_image_to_circle(image)
     try:
         s3_client.put_object(
-            Bucket = BUCKET_NAME,
+            Bucket = settings.BUCKET_NAME,
             Body = image,
             ContentType = 'image/jpeg',
             Key = object_key)
-        LOGGER.info(f"File uploaded to S3 bucket '{BUCKET_NAME}' with key '{object_key}'.")
-        return f"https://{BUCKET_NAME}.s3.us-east-2.amazonaws.com/{object_key}"
+        LOGGER.info(f"File uploaded to S3 bucket '{settings.BUCKET_NAME}' with key '{object_key}'.")
+        return f"https://{settings.BUCKET_NAME}.s3.us-east-2.amazonaws.com/{object_key}"
     except Exception as e:
         LOGGER.error(f"Error uploading file to key {object_key}: {e}")
         raise ValueError("Error uploading file to S3 bucket")
 
-def reset_password_email(email: str, token: str):
-    link = f"{BASE_URL}/password-reset?token={token}"
+
+def reset_password_email(email: str, token: str, name: str):
+    link = f"{settings.BASE_URL}/password-reset?token={token}"
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    template_path = os.path.join(base_dir, "templates", "password_reset_email.html")
+    template_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "templates", "password_reset.html")
+    with open(template_path, "r", encoding='utf-8') as f:
+        html_content = f.read()
+    html_content = html_content.replace("{{name}}", name)
+    html_content = html_content.replace("{link}", link)
+
     message = Mail(
-        from_email = Email(ADMIN_EMAIL, name="PACI_SUPPORT"),
-        to_emails = email,
-        subject = "Password Reset",
-        html_content = f"<p>Click the <a href='{link}'>link</a> to reset your password.</p>",
+        from_email=Email(settings.ADMIN_EMAIL, name="PACI SUPPORT"),
+        to_emails=email,
+        subject="Password Reset",
+        html_content=html_content,
     )
-    sg = SendGridAPIClient(SENDGRID_API_KEY)
+    sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
     try:
         response = sg.send(message)
         LOGGER.info(f"Password reset link sent to {email}.")
@@ -81,6 +82,7 @@ def reset_password_email(email: str, token: str):
     except Exception as e:
         LOGGER.error(f"Error sending password reset email to {email}: {e}")
         raise ValueError("Error sending password reset email")
+
     
 
 
