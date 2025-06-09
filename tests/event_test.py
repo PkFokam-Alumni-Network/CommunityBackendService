@@ -3,11 +3,11 @@ from schemas.event_schema import EventCreate , EventResponse
 from schemas.user_schema import UserCreatedResponse
 from pydantic import TypeAdapter
 from typing import List
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 
 def test_create_event(client: TestClient) -> None:
-    future_time = datetime.utcnow() + timedelta(days=7)  
+    future_time = datetime.now(timezone.utc) + timedelta(days=7)
     event_data = {
         "title": "Test Event",
         "start_time": future_time.isoformat(),
@@ -24,7 +24,7 @@ def test_create_event(client: TestClient) -> None:
    
 
 def test_get_event_by_id(client: TestClient) -> None:
-    future_time = datetime.utcnow() + timedelta(days=7)
+    future_time = datetime.now(timezone.utc) + timedelta(days=7)
     event_data = {
         "title": "Test Event",
         "start_time": future_time.isoformat(),
@@ -43,7 +43,7 @@ def test_get_event_by_id(client: TestClient) -> None:
     assert fetched_event.location == "Event Location"
 
 def test_add_user_to_event(client: TestClient) -> None:
-    future_time = datetime.utcnow() + timedelta(days=7) 
+    future_time = datetime.now(timezone.utc) + timedelta(days=7)
     event_data = {
         "title": "Test Event",
         "start_time": future_time.isoformat(),
@@ -69,7 +69,7 @@ def test_add_user_to_event(client: TestClient) -> None:
     assert add_user_response.status_code == 200
 
 def test_remove_user_from_event(client: TestClient) -> None:
-    future_time = datetime.utcnow() + timedelta(days=7)  
+    future_time = datetime.now(timezone.utc) + timedelta(days=7)
     event_data = {
         "title": "Test Event",
         "start_time": future_time.isoformat(),
@@ -96,7 +96,7 @@ def test_remove_user_from_event(client: TestClient) -> None:
     assert remove_user_response.status_code == 200
 
 def test_get_all_event_attendees(client: TestClient) -> None:
-    future_time = datetime.utcnow() + timedelta(days=7)  
+    future_time = datetime.now(timezone.utc) + timedelta(days=7)
     event_data = {
         "title": "Test Event",
         "start_time": future_time.isoformat(),
@@ -126,13 +126,13 @@ def test_get_all_event_attendees(client: TestClient) -> None:
     attendees =  TypeAdapter(List[UserCreatedResponse]).validate_python(response.json())
     assert len(attendees) == 1
     assert attendees[0].email == user.email
+
 def test_cannot_register_for_past_event(client: TestClient) -> None:
-    """Test that users cannot register for past events"""
-    past_time = datetime.utcnow() - timedelta(days=1)
+    past_time = datetime.now(timezone.utc) - timedelta(days=1)
     event_data = {
         "title": "Past Event",
         "start_time": (past_time - timedelta(hours=2)).isoformat(),
-        "end_time": past_time.isoformat(),  # Ended yesterday
+        "end_time": past_time.isoformat(),
         "location": "Test Location",
         "description": "This event has already ended",
         "categories": "Test"
@@ -141,6 +141,7 @@ def test_cannot_register_for_past_event(client: TestClient) -> None:
     event_response = client.post("/events/", json=event_data)
     assert event_response.status_code == 201
     event: EventResponse = EventResponse.model_validate(event_response.json())
+    
     user_data = {
         "email": "pastuser@example.com",
         "first_name": "Past",
@@ -149,6 +150,7 @@ def test_cannot_register_for_past_event(client: TestClient) -> None:
     }
     user_response = client.post("/users/", json=user_data)
     assert user_response.status_code == 201
+    
     registration_response = client.post(
         f"/events/{event.id}/register", 
         json={'email': 'pastuser@example.com'}
