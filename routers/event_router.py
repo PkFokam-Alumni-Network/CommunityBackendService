@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from typing import Dict, List
+from typing import Dict, List, Optional
 from schemas.event_schema import EventBase, EventCreate, EventRegistration, EventResponse, EventUpdate, EventWithAttendees
 from schemas.user_schema import UserGetResponse
 from services.event_service import EventService
@@ -21,10 +21,16 @@ def create_event(event_data: EventCreate, db: Session = Depends(get_db)) -> Even
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.get("/events/", status_code=status.HTTP_200_OK, response_model=List[EventResponse])
-def get_all_events( db: Session = Depends(get_db)) -> List[EventResponse]:
+def get_all_events(
+    db: Session = Depends(get_db),
+    user_email: Optional[str] = Query(None, description="Filter events by user email")
+) -> List[EventResponse]:
     event_service = EventService()
     try:
-        events = event_service.get_all_events(db)
+        if user_email:
+            events = event_service.get_user_events(db, user_email)
+        else:
+            events = event_service.get_all_events(db)
         return events
     except Exception as e:
         LOGGER.error(f"SERVER ERROR in get_all_events: {str(e)}")
@@ -122,14 +128,3 @@ def get_event_attendees(event_id: int, db: Session = Depends(get_db)) -> List[Us
         LOGGER.error(f"SERVER ERROR in get_event_attendees for event_id={event_id}: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
-# TODO: Use user_id instead of user_email
-@router.get("/users/{user_email}/events", response_model=List[EventResponse])
-def get_all_events_of_user(user_email: str, db: Session = Depends(get_db)) -> List[EventBase]:
-    event_service = EventService()
-    masked_email = user_email[:3] + '****'
-    try:
-        events = event_service.get_user_events(db, user_email)
-        return events
-    except Exception as e:
-        LOGGER.error(f"SERVER ERROR in get_all_events_of_user for user={masked_email}: {str(e)}")
-        raise HTTPException(status_code=500, detail="Internal server error")
