@@ -1,7 +1,8 @@
 from typing import Optional, List
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.exc import IntegrityError, OperationalError
 from models.user import User
+from schemas.user_schema import UserCreate
 from utils.singleton_meta import SingletonMeta
 from utils.retry import retry_on_db_error
 
