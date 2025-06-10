@@ -7,6 +7,7 @@ from repository.user_event_repository import UserEventRepository
 from models.user import User
 from schemas.event_schema import EventCreate, EventRegistration, EventUpdate, EventWithAttendees
 from utils.singleton_meta import SingletonMeta
+from datetime import datetime, timezone
 
 class EventService(metaclass=SingletonMeta):
     def create_event(self, db: Session, event_data: EventCreate) -> Event:
@@ -32,8 +33,18 @@ class EventService(metaclass=SingletonMeta):
         event_repository.delete_event(db, event_id)
 
     def register_user_for_event(self, db: Session, event_registration: EventRegistration, event_id: int) -> None:
+        event_repository = EventRepository()
         user_event_repository = UserEventRepository()
         user_email = event_registration.email
+        
+        event = event_repository.get_event_by_id(db, event_id)
+        if not event:
+            raise ValueError("Event not found.")
+        
+        current_time = datetime.now(timezone.utc).replace(tzinfo=None)
+        if event.end_time < current_time:
+            raise ValueError("Cannot register for past events.")
+        
         if user_event_repository.is_user_registered_for_event(db, user_email, event_id):
             raise ValueError("User is already registered for this event.")
         user_event_repository.add_user_to_event(db, user_email, event_id)
