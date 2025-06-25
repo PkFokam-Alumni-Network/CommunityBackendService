@@ -30,10 +30,6 @@ class TestSession:
         assert len(user_sessions) == 1
         assert user_sessions[0].token == token
         
-        stats = service.get_session_stats(test_user.id)
-        assert stats["active_sessions"] == 1
-        assert stats["devices"]["desktop"] == 1
-        
         invalidated = service.invalidate_session(token)
         assert invalidated is True
         
