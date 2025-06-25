@@ -82,7 +82,23 @@ def reset_password_email(email: str, token: str, name: str):
     except Exception as e:
         LOGGER.error(f"Error sending password reset email to {email}: {e}")
         raise ValueError("Error sending password reset email")
-
+def detect_device_type(user_agent: str) -> str:
+    if not user_agent:
+        return "unknown"
+    
+    user_agent_lower = user_agent.lower()
+    
+    indicators = {
+        "mobile": ["mobile", "android", "iphone", "samsung", "huawei", "xiaomi"],
+        "tablet": ["ipad", "tablet"],
+        "desktop": ["windows", "macintosh", "linux", "ubuntu"]
+    }
+    
+    for device_type, keywords in indicators.items():
+        if any(keyword in user_agent_lower for keyword in keywords):
+            return device_type
+    
+    return "unknown"
     
 
 
