@@ -1,22 +1,11 @@
-# repository/session_repository.py - Database operations for sessions
 from typing import List, Optional
 from sqlalchemy.orm import Session as DBSession
 from sqlalchemy.exc import IntegrityError
 from models.session import Session
 from utils.singleton_meta import SingletonMeta
-from datetime import datetime
+from datetime import datetime,timezone
 
-class SessionRepository(metaclass=SingletonMeta):
-    """
-    Repository for session database operations
-    
-    Handles:
-    - Creating new sessions
-    - Finding sessions by token or user
-    - Deleting expired sessions
-    - Managing user session limits
-    """
-    
+class SessionRepository(metaclass=SingletonMeta): 
     def __init__(self, db_session: DBSession):
         self.db: DBSession = db_session
 
@@ -27,7 +16,7 @@ class SessionRepository(metaclass=SingletonMeta):
                 token=token,
                 expires_at=expires_at,
                 device_type=device_type,
-                created_at=datetime.utcnow()  
+                created_at=datetime.now(timezone.utc).replace(tzinfo=None)
             )
             
             self.db.add(session)
@@ -50,7 +39,7 @@ class SessionRepository(metaclass=SingletonMeta):
         return self.db.query(Session).filter(Session.user_id == user_id).all()
 
     def get_active_sessions_by_user(self, user_id: int) -> List[Session]:
-        now = datetime.utcnow()  
+        now = datetime.now(timezone.utc).replace(tzinfo=None)  
         return self.db.query(Session).filter(Session.user_id == user_id, Session.expires_at > now).all()
 
     def delete_session_by_token(self, token: str) -> bool:

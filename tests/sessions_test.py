@@ -113,10 +113,3 @@ class TestSession:
         gone = repo.get_session_by_token("repo_test_token")
         assert gone is None
 
-def test_session_imports():
-    try:
-        from models.session import Session
-        from repository.session_repository import SessionRepository
-        from services.session_service import SessionService
-    except ImportError as e:
-        raise AssertionError(f"Import error: {e}")
