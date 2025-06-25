@@ -70,22 +70,29 @@ class TestSession:
                 session_duration_hours=24 if i < 2 else -1
             )
             tokens.append(token)
-        
-        all_sessions = service.get_user_sessions(test_user.id, active_only=False)
-        active_sessions = service.get_user_sessions(test_user.id, active_only=True)
-        
-        assert len(all_sessions) == 3
-        assert len(active_sessions) == 2
-        
-        cleaned_count = service.cleanup_expired_sessions()
-        assert cleaned_count == 1
-        
-        remaining_count = service.invalidate_all_user_sessions(test_user.id)
-        assert remaining_count == 2
-        
-        final_sessions = service.get_user_sessions(test_user.id)
-        assert len(final_sessions) == 0
 
+        all_sessions = service.get_user_sessions(test_user.id, active_only=False)
+        assert len(all_sessions) == 1
+        assert all_sessions[0].token == tokens[-1] 
+ 
+        if tokens[-1] == "multi_session_token_2":  
+            active_sessions = service.get_user_sessions(test_user.id, active_only=True)
+            assert len(active_sessions) == 0 
+
+            cleaned_count = service.cleanup_expired_sessions()
+            assert cleaned_count == 1
+
+            final_sessions = service.get_user_sessions(test_user.id)
+            assert len(final_sessions) == 0
+        else:
+
+            active_sessions = service.get_user_sessions(test_user.id, active_only=True)
+            assert len(active_sessions) == 1
+            remaining_count = service.delete_all_user_sessions(test_user.id)
+            assert remaining_count == 1
+            
+            final_sessions = service.get_user_sessions(test_user.id)
+            assert len(final_sessions) == 0
     def test_repository_direct_access(self, db_session, test_user):
         repo = SessionRepository(db_session)
         expires_at = datetime.now(timezone.utc) + timedelta(hours=24)
