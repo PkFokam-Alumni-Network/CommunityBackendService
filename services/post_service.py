@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from models.post import Post
 from repository.post_repository import PostRepository
-from schemas.post_schema import PostCreate
+from schemas.post_schema import PostCreate, PostUpdate
 
 class PostService:
     def __init__(self, session: Session):
@@ -25,14 +25,14 @@ class PostService:
         post = self.post_repository.get_post_by_id(post_id)
         return post is not None and post.author_id == user_id
 
-    def update_post(self, post_id: int, user_id: int, updated_data: dict) -> Post:
+    def update_post(self, post_id: int, user_id: int, updated_data: PostUpdate) -> Post:
         db_post = self.post_repository.get_post_by_id(post_id)
         if not db_post:
             raise ValueError("Post not found.")
         if db_post.author_id != user_id:
-            raise PermissionError("Not authorized to update this post.")
+            raise PermissionError("Not authorized")
         
-        for key, value in updated_data.items():
+        for key, value in updated_data.model_dump().items():
             if hasattr(db_post, key):
                 setattr(db_post, key, value)
         return self.post_repository.update_post(db_post)
@@ -46,32 +46,10 @@ class PostService:
     def get_recent_posts_by_category(self, category: str, limit: int = 10, page: int = 1) -> List[Post]:
         return self.post_repository.get_post_by_category(category, limit=limit, page=page)
 
-    def update_post_title(self, post_id: int, user_id: int, new_title: str) -> Optional[Post]:
-        db_post = self.post_repository.get_post_by_id(post_id)
-        if not db_post:
-            raise ValueError("Post not found.")
-        if db_post.author_id != user_id:
-            raise PermissionError("Not authorized to update this post.")
-        
-        db_post.title = new_title
-        self.post_repository.update_post(db_post, user_id)
-        return db_post
-    
-    def update_post_category(self, post_id: int, user_id: int, new_category: str) -> Optional[Post]:
-        db_post = self.post_repository.get_post_by_id(post_id)
-        if not db_post:
-            raise ValueError("Post not found.")
-        if db_post.author_id != user_id:
-            raise PermissionError("Not authorized to update this post.")
-        
-        db_post.category = new_category
-        self.post_repository.update_post(db_post, user_id)
-        return db_post
-
     def delete_post(self, post_id: int, user_id: int) -> None:
         post = self.post_repository.get_post_by_id(post_id)
         if not post:
             raise ValueError("Post not found.")
         if post.author_id != user_id:
-            raise PermissionError("Not authorized to delete this post.")
+            raise PermissionError("Not authorized")
         self.post_repository.delete_post(post_id, user_id)

@@ -166,3 +166,4 @@ uploads
 
 # Vscode
 .vscode/
+.DS_Store

@@ -1,6 +1,7 @@
 from typing import Optional, List
 from sqlalchemy.orm import Session
 from models.post import Post
+from utils.singleton_meta import SingletonMeta
 
 class PostRepository(metaclass=SingletonMeta):
     def __init__(self, session: Session):
