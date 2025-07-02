@@ -6,38 +6,38 @@ from models.post import Post
 from models.user import User
 from services.user_service import UserService
 from schemas.post_schema import PostResponse
+from schemas.user_schema import UserCreatedResponse
 from tests.conftest import create_and_teardown_tables, client
 
 @pytest.fixture(scope="function", autouse=True)
 def setup_and_teardown_db() -> Generator[TestClient, None, None]:
-    yield from create_and_teardown_tables([Base.metadata])
+    yield from create_and_teardown_tables([User.metadata, Post.metadata])
 
 @pytest.fixture(scope="function")
 def test_users() -> list[User]:
-    db = next(get_db())
-    db.query(User).delete()
-    db.commit()
+    user1_data = {
+        "email":"alice@example.com",
+        "first_name":"Alice",
+        "last_name":"Test",
+        "password":"pass123"
+    }
 
-    user_service = UserService(db)
+    user2_data = {
+        "email":"bob@example.com",
+        "first_name":"Bob",
+        "last_name":"Test",
+        "password":"pass123"
+    }
+    user3_data = {
+        "email":"warren@example.com",
+        "first_name":"Warren",
+        "last_name":"Test",
+        "password":"pass123"
+    }
 
-    user1 = user_service.register_user(
-        email="alice@example.com",
-        first_name="Alice",
-        last_name="Test",
-        password="pass123"
-    )
-    user2 = user_service.register_user(
-        email="bob@example.com",
-        first_name="Bob",
-        last_name="Test",
-        password="pass123"
-    )
-    user3 = user_service.register_user(
-        email="charlie@example.com",
-        first_name="Charlie",
-        last_name="Test",
-        password="pass123"
-    )
+    user1 = UserCreatedResponse.model_validate(client.post("/users/", json=user1_data).json())
+    user2 = UserCreatedResponse.model_validate(client.post("/users/", json=user2_data).json())
+    user3 = UserCreatedResponse.model_validate(client.post("/users/", json=user3_data).json())
 
     return [user1, user2, user3]
 
@@ -55,7 +55,7 @@ def test_create_get_post(test_users):
     new_post: PostResponse = PostResponse.model_validate(response.json())
     assert new_post.title == "First Test Post"
     assert new_post.content == "This is a test"
-    assert new_post.author_id == 1
+    assert new_post.author_id == user1.id
 
     response = client.get(f"/posts/{new_post.id}")
     assert response.status_code == 200
@@ -71,6 +71,7 @@ def test_get_recent_posts(test_users):
         assert post_response.status_code == 201
 
     response = client.get("/posts/recent")
+    print(response)
     assert response.status_code == 200
     assert len(response.json()) >= 3
 

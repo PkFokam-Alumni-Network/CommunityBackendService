@@ -22,7 +22,13 @@ class PostRepository(metaclass=SingletonMeta):
 
     def get_recent_posts(self, limit: int = 10, page: int = 1) -> List[Post]:
         offset = (page - 1) * limit
-        return self.db.query(Post).order_by(Post.created_at.desc()).offset(offset).limit(limit).all()
+        return (
+            self.db.query(Post)
+            .order_by(Post.created_at.desc())
+            .offset(offset)
+            .limit(limit)
+            .all()
+        )
     
     def get_post_by_category(self, category: str, limit: int = 10, page: int = 1) -> List[Post]:
         offset = (page - 1) * limit
