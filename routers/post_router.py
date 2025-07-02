@@ -18,8 +18,8 @@ def get_recent_posts(category: Optional[str] = Query(None, description="Filter b
     post_service = PostService(session=session) 
     
     if category:
-        return post_service.get_recent_posts_by_category(category, page, limit)
-    return post_service.get_recent_posts(page, limit)
+        return post_service.get_recent_posts_by_category(category, limit, page)
+    return post_service.get_recent_posts(limit, page)
 
 @router.get("/{post_id}", status_code=status.HTTP_200_OK, response_model=PostResponse)
 def get_post(post_id: int, session: Session = Depends(get_db)) -> PostResponse:

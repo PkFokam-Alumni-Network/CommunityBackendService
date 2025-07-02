@@ -52,4 +52,4 @@ class PostService:
             raise ValueError("Post not found.")
         if post.author_id != user_id:
             raise PermissionError("Not authorized")
-        self.post_repository.delete_post(post_id, user_id)
+        self.post_repository.delete_post(post_id)
