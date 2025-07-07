@@ -17,7 +17,7 @@ class PostRepository(metaclass=SingletonMeta):
             self.db.rollback()
             raise RuntimeError(f"An error occurred: {e}")
 
-    def get_post_by_id(self, post_id: int):
+    def get_post_by_id(self, post_id: int) -> Optional[Post]:
         return self.db.query(Post).filter(Post.id == post_id).first()
 
     def get_recent_posts(self, limit: int = 10, page: int = 1) -> List[Post]:
@@ -41,8 +41,10 @@ class PostRepository(metaclass=SingletonMeta):
             .all()
         )
     
-    def update_post(self, updated_post: Post) -> Optional[Post]: #Only the author
+    def update_post(self, updated_post: Post) -> Optional[Post]:
         db_post = self.get_post_by_id(updated_post.id)
+        if not db_post:
+            raise ValueError("Post not found.")
         try:
             self.db.merge(updated_post)
             self.db.commit()
@@ -54,6 +56,8 @@ class PostRepository(metaclass=SingletonMeta):
         
     def delete_post(self, post_id: int) -> None:
         db_post = self.get_post_by_id(post_id)
+        if not db_post:
+            raise ValueError("Post not found.")
         try:
             self.db.delete(db_post)
             self.db.commit()

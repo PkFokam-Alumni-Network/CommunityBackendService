@@ -1,4 +1,4 @@
-from typing import List, Optional, Type
+from typing import List, Optional
 from sqlalchemy.orm import Session
 
 from models.post import Post
@@ -14,7 +14,7 @@ class PostService:
             title=post_data.title,
             content=post_data.content,
             category=post_data.category,
-            author_id=user_id  # setting user as the author
+            author_id=user_id  # setting current user as the author
         )
         return self.post_repository.create_post(post)
 
@@ -32,7 +32,7 @@ class PostService:
         if db_post.author_id != user_id:
             raise PermissionError("Not authorized")
         
-        for key, value in updated_data.model_dump().items():
+        for key, value in updated_data.model_dump(exclude_unset=True).items():
             if hasattr(db_post, key):
                 setattr(db_post, key, value)
         return self.post_repository.update_post(db_post)

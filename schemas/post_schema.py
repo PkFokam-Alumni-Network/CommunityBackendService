@@ -3,14 +3,14 @@ from datetime import datetime
 from typing import Optional
 
 class PostCreate(BaseModel):
-    title: Optional[str] = None
-    content: Optional[str] = None
+    title: str
+    content: str
     category: Optional[str] = None
 
 class PostUpdate(BaseModel):
-    title: str
-    content: str
-    category: str
+    title: Optional[str] = None
+    content: Optional[str] = None
+    category: Optional[str] = None
 
 class PostResponse(BaseModel):
     id: int

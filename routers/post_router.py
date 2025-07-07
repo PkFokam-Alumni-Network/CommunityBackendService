@@ -35,7 +35,7 @@ def update_post(post_id: int, user_id: int, post_data: PostUpdate, session: Sess
     try:
         return post_service.update_post(post_id, user_id, post_data)
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except PermissionError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
 
@@ -44,8 +44,8 @@ def delete_post(post_id: int, user_id: int, session: Session = Depends(get_db)) 
     post_service = PostService(session=session)
     try:
         post_service.delete_post(post_id, user_id)
-        return PostDeletedResponse(message=f"post with ID {post_id} was successfully deleted")
+        return PostDeletedResponse(message=f"Post with ID {post_id} was successfully deleted")
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except PermissionError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
