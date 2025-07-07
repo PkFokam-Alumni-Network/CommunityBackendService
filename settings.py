@@ -27,9 +27,9 @@ class Settings:
             self.SECRET_KEY = os.getenv("SECRET_KEY", "DEFAULT_KEY")
             self.ACCESS_KEY = os.getenv("ACCESS_KEY", "DEFAULT_KEY")
             self.BUCKET_NAME = os.getenv("BUCKET_NAME", "DEFAULT_BUCKET")
-            self.ADMIN_EMAIL = os.getenv('ADMIN_EMAIL')
-            self.SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
-            self.BASE_URL = os.getenv('BASE_URL')
+            self.ADMIN_EMAIL = os.getenv("ADMIN_EMAIL")
+            self.SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
+            self.BASE_URL = os.getenv("BASE_URL")
             self.DATABASE_URL = os.getenv("DATABASE_URL")
             self.DOCS_AUTH_USERNAME = os.getenv("DOCS_AUTH_USERNAME")
             self.DOCS_AUTH_PASSWORD = os.getenv("DOCS_AUTH_PASSWORD")
@@ -45,7 +45,9 @@ class Settings:
 
     @property
     def database_url(self):
-        return self.DATABASE_URL
+        if self.ENV == "development":
+            return "sqlite:///database.db"
+        else:
+            return self.DATABASE_URL
 
 settings = Settings()
-
