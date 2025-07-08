@@ -26,6 +26,8 @@ class CommentRepository(metaclass=SingletonMeta):
     
     def update_comment(self, updated_comment: Comment) -> Optional[Comment]:
         db_comment = self.get_comment_by_id(updated_comment.id)
+        if not db_comment:
+            raise ValueError("Comment not found.")
         try:
             self.db.merge(updated_comment)
             self.db.commit()
@@ -36,9 +38,11 @@ class CommentRepository(metaclass=SingletonMeta):
             raise RuntimeError(f"Error updating comment: {e}")
     
     def delete_comment(self, comment_id: int) -> None:
-        comment = self.get_comment_by_id(comment_id)
+        db_comment = self.get_comment_by_id(comment_id)
+        if not db_comment:
+            raise ValueError("Comment not found.")
         try:
-            self.db.delete(comment)
+            self.db.delete(db_comment)
             self.db.commit()
         except Exception as e:
             self.db.rollback()

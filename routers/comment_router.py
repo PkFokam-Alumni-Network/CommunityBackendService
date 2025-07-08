@@ -6,17 +6,17 @@ from schemas.comment_schema import CommentCreate, CommentUpdate, CommentResponse
 from services.comment_service import CommentService
 from database import get_db
 
-router = APIRouter(prefix="/posts/{post_id}/comments", tags=["Comments"])
+router = APIRouter()
 
-@router.post("/", status_code=status.HTTP_201_CREATED, response_model=CommentResponse)
-def add_comment(post_id: int, comment_data: CommentCreate, session: Session = Depends(get_db)) -> CommentResponse:
+@router.post("/posts/{post_id}/comments", status_code=status.HTTP_201_CREATED, response_model=CommentResponse)
+def add_comment(comment_data: CommentCreate, post_id: int, user_id: int, session: Session = Depends(get_db)) -> CommentResponse:
     comment_service = CommentService(session=session)
     try:
-        return comment_service.add_comment(post_id, comment_data)
+        return comment_service.add_comment(comment_data, post_id, user_id)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
-@router.get("/", status_code=status.HTTP_200_OK, response_model=List[CommentResponse])
+@router.get("/posts/{post_id}/comments", status_code=status.HTTP_200_OK, response_model=List[CommentResponse])
 def list_comments(post_id: int, session: Session = Depends(get_db)) -> List[CommentResponse]:
     comment_service = CommentService(session=session)
     try:
@@ -24,26 +24,26 @@ def list_comments(post_id: int, session: Session = Depends(get_db)) -> List[Comm
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
-@router.get("/{comment_id}", status_code=status.HTTP_200_OK, response_model=CommentResponse)
-def get_comment(post_id: int, comment_id: int, session: Session = Depends(get_db)) -> CommentResponse:
+@router.get("/comments/{comment_id}", status_code=status.HTTP_200_OK, response_model=CommentResponse)
+def get_comment(comment_id: int, session: Session = Depends(get_db)) -> CommentResponse:
     comment_service = CommentService(session=session)
     comment = comment_service.get_comment_by_id(comment_id)
     if not comment:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Comment not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Comment not found.")
     return comment
 
-@router.put("/{comment_id}", status_code=status.HTTP_200_OK, response_model=CommentResponse)
-def update_comment(post_id: int, comment_id: int, user_id: int, comment_data: CommentUpdate, session: Session = Depends(get_db)) -> CommentResponse:
+@router.put("/comments/{comment_id}", status_code=status.HTTP_200_OK, response_model=CommentResponse)
+def update_comment(comment_id: int, user_id: int, comment_data: CommentUpdate, session: Session = Depends(get_db)) -> CommentResponse:
     comment_service = CommentService(session=session)
     try:
         return comment_service.update_comment(comment_id, user_id, comment_data)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except PermissionError as e:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
 
-@router.delete("/{comment_id}", status_code=status.HTTP_200_OK)
-def delete_comment(post_id: int, comment_id: int, user_id: int, session: Session = Depends(get_db)) -> dict:
+@router.delete("/comments/{comment_id}", status_code=status.HTTP_200_OK)
+def delete_comment(comment_id: int, user_id: int, session: Session = Depends(get_db)) -> dict:
     comment_service = CommentService(session=session)
     try:
         comment_service.delete_comment(comment_id, user_id)
@@ -51,4 +51,4 @@ def delete_comment(post_id: int, comment_id: int, user_id: int, session: Session
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except PermissionError as e:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))

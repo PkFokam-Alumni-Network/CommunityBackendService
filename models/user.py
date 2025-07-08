@@ -32,4 +32,5 @@ class User(Base):
 
     user_events = relationship("UserEvent", back_populates="user")
     posts = relationship("Post", back_populates="author")
+    comments = relationship("Comment", back_populates="author", cascade="all, delete-orphan")
     

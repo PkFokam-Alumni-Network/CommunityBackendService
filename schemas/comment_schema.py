@@ -1,16 +1,17 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 
 class CommentCreate(BaseModel):
-    post_id: int
-    author_id: int
     content: str
 
 class CommentUpdate(BaseModel):
     content: str
 
-class CommentResponse(CommentCreate):
+class CommentResponse(BaseModel):
     id: int
+    post_id: int
+    author_id: int
+    content: str
     created_at: datetime
     updated_at: datetime
 
