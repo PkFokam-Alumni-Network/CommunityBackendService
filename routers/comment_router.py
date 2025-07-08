@@ -17,7 +17,7 @@ def add_comment(comment_data: CommentCreate, post_id: int, user_id: int, session
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 @router.get("/posts/{post_id}/comments", status_code=status.HTTP_200_OK, response_model=List[CommentResponse])
-def list_comments(post_id: int, session: Session = Depends(get_db)) -> List[CommentResponse]:
+def get_comments(post_id: int, session: Session = Depends(get_db)) -> List[CommentResponse]:
     comment_service = CommentService(session=session)
     try:
         return comment_service.get_comments_by_post(post_id)
