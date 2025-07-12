@@ -2,6 +2,7 @@ from unittest.mock import MagicMock, patch
 from sqlalchemy.orm import Session
 from models.announcement import Announcement
 from services.email_service import EmailService
+from datetime import datetime
 import pytest
 
 
@@ -11,8 +12,8 @@ def mock_announcement():
         id=1,
         title="Test Announcement",
         description="This is a test email announcement.",
-        announcement_date="2023-10-10T10:00:00",
-        announcement_deadline="2023-12-31T23:59:59",
+        announcement_date=datetime(2023, 10, 10, 10, 0, 0),
+        announcement_deadline=datetime(2023, 12, 31, 23, 59, 59),
         image="test_image_url"
     )
 
