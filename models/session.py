@@ -12,5 +12,6 @@ class Session(Base):
     token = Column(String, unique=True, index=True, nullable=False)
     expires_at = Column(DateTime, nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None), nullable=False) 
+    is_active = Column(Boolean, default=True, nullable=False)
     
     user = relationship("User", back_populates="sessions")

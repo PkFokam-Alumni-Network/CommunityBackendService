@@ -38,11 +38,15 @@ class SessionService(metaclass=SingletonMeta):
         return self.repository.get_sessions_by_user(user_id)
     
     def invalidate_session(self, token: str) -> bool:
-        return self.repository.delete_session_by_token(token)
+        return self.repository.invalidate_session_by_token(token)
     
     def delete_all_user_sessions(self, user_id: int) -> int:
         return self.repository.delete_all_user_sessions(user_id)
         
     def cleanup_expired_sessions(self) -> int:
         return self.repository.cleanup_expired_sessions()
+    def delete_session_by_token(self, token: str) -> bool:
+        return self.repository.delete_session_by_token(token)
         
+    def delete_all_user_sessions(self, user_id: int) -> int:
+        return self.repository.delete_all_user_sessions(user_id)

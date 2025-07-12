@@ -33,15 +33,14 @@ class SessionRepository(metaclass=SingletonMeta):
             raise ValueError(f"Failed to create session: {e}")
 
     def get_session_by_token(self, token: str) -> Optional[Session]:
-        return self.db.query(Session).filter(Session.token == token).first()
+        return self.db.query(Session).filter(Session.token == token, Session.is_active == True).first()
 
     def get_sessions_by_user(self, user_id: int) -> List[Session]:
         return self.db.query(Session).filter(Session.user_id == user_id).all()
 
     def get_active_sessions_by_user(self, user_id: int) -> List[Session]:
         now = datetime.now(timezone.utc).replace(tzinfo=None)  
-        return self.db.query(Session).filter(Session.user_id == user_id, Session.expires_at > now).all()
-
+        return self.db.query(Session).filter(Session.user_id == user_id, Session.is_active == True,Session.expires_at > now).all()
     def delete_session_by_token(self, token: str) -> bool:
         try:
             session = self.get_session_by_token(token)
@@ -64,14 +63,42 @@ class SessionRepository(metaclass=SingletonMeta):
         except Exception as e:
             self.db.rollback()
             raise ValueError(f"Failed to delete user sessions: {e}")
+    def invalidate_session_by_token(self, token: str) -> bool:
+        try:
+            session = self.db.query(Session).filter(Session.token == token, Session.is_active == True).first()
+            if session:
+                session.is_active = False
+                self.db.commit()
+                return True
+            return False
+        except Exception as e:
+            self.db.rollback()
+            raise ValueError(f"Failed to invalidate session: {e}")
+
+    def invalidate_all_user_sessions(self, user_id: int) -> int:
+        try:
+            updated_count = self.db.query(Session).filter(
+                Session.user_id == user_id, 
+                Session.is_active == True
+            ).update({"is_active": False})
+            
+            self.db.commit()
+            return updated_count
+            
+        except Exception as e:
+            self.db.rollback()
+            raise ValueError(f"Failed to invalidate user sessions: {e}")
 
     def cleanup_expired_sessions(self) -> int:
         try:
-            now = datetime.utcnow()  
-            deleted_count = self.db.query(Session).filter(Session.expires_at <= now).delete()
+            now = datetime.now(timezone.utc).replace(tzinfo=None)
+            updated_count = self.db.query(Session).filter(
+                Session.expires_at <= now, 
+                Session.is_active == True
+            ).update({"is_active": False})
             
             self.db.commit()
-            return deleted_count
+            return updated_count
             
         except Exception as e:
             self.db.rollback()
