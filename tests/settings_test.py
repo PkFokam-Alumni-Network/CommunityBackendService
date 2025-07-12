@@ -53,6 +53,16 @@ def test_settings_with_production_env(monkeypatch):
     monkeypatch.setenv("SECRETS_MANAGER_NAME", "creds")
     monkeypatch.setenv("AWS_REGION", "us-east-1")
     monkeypatch.setenv("DATABASE_URL", "postgresql://user:password@localhost/test_db")
+    monkeypatch.setenv("SECRET_KEY", "prod_secret")
+    monkeypatch.setenv("ACCESS_KEY", "prod_access")
+    monkeypatch.setenv("BUCKET_NAME", "prod_bucket")
+    monkeypatch.setenv("BREVO_API_KEY", "brevokey")
+    monkeypatch.setenv("ADMIN_NAME", "PACI TEAM")
+    monkeypatch.setenv("ADMIN_EMAIL", "admin@prod.com")
+    monkeypatch.setenv("SENDGRID_API_KEY", "sendgridkey")
+    monkeypatch.setenv("BASE_URL", "https://prod.example.com")
+    monkeypatch.setenv("DOCS_AUTH_USERNAME", "admin")
+    monkeypatch.setenv("DOCS_AUTH_PASSWORD", "secret")
 
     s = Settings()
     assert s.ENV == "production"
