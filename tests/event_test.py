@@ -16,6 +16,7 @@ def test_create_event(client: TestClient) -> None:
     event = response.json()
     assert event["title"] == "Test Event"
     assert event["location"] == "Event Location"
+    assert event["is_active"] == True
 
 def test_get_event_by_id(client: TestClient) -> None:
     event_data = {
