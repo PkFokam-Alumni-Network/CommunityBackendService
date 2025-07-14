@@ -1,6 +1,8 @@
 from fastapi.testclient import TestClient
-from schemas.user_schema import UserCreatedResponse
+from schemas.user_schema import UserCreatedResponse, UserLoginResponse , UserGetResponse, UserGetResponseInternal
 from utils.func_utils import verify_jwt
+from pydantic import TypeAdapter
+from typing import List
 
 def test_correct_login(client: TestClient) -> None:
     user_data = {
@@ -18,9 +20,11 @@ def test_correct_login(client: TestClient) -> None:
     }
     response = client.post("/login/", json=login_data)
     assert response.status_code == 200
-    assert "access_token" in response.json()
-    assert response.json()["token_type"] == "bearer"
-    access_token = response.json()["access_token"]
+    loginResponse: UserLoginResponse =UserLoginResponse.model_validate(response.json()) 
+
+    assert loginResponse.access_token is not None
+    assert  loginResponse.token_type == "bearer"
+    access_token =  loginResponse.access_token
     payload = verify_jwt(access_token)
     assert payload is not None
     assert payload["user_id"] == user_data["email"]
@@ -64,14 +68,14 @@ def test_get_all_users(client: TestClient) -> None:
 
     response = client.get("/users/")
     assert response.status_code == 200
-    response_data = response.json()
-    assert isinstance(response_data, list)
-    assert len(response_data) == len(users_data)
+    users = TypeAdapter(List[UserGetResponse]).validate_python(response.json())
+    assert isinstance(users, list)
+    assert len(users) == len(users_data)
 
     for i, user in enumerate(users_data):
-        assert response_data[i]["email"] == user["email"]
-        assert response_data[i]["first_name"] == user["first_name"]
-        assert response_data[i]["last_name"] == user["last_name"]
+        assert users[i].email == user["email"]
+        assert users[i].first_name == user["first_name"]
+        assert users[i].last_name == user["last_name"]
 
 def test_create_get_user(client: TestClient) -> None:
     response = client.post("/users/", json={
@@ -94,7 +98,8 @@ def test_create_get_user(client: TestClient) -> None:
 
     response = client.get(f"/users/{user.id}")
     assert response.status_code == 200
-    assert response.json()["email"] == "test_email@example.com"
+    user_response: UserGetResponse = UserGetResponse.model_validate(response.json())
+    assert user_response.email == "test_email@example.com"
 
 def test_get_non_existing_user(client: TestClient) -> None:
     response = client.get("/users/2")
@@ -137,7 +142,6 @@ def test_delete_existing_user(client: TestClient) -> None:
 #         "password": "securepassword",
 #     })
 #     assert mentor_response.status_code == 201
-
 #     mentee_response = client.post("/users/", json={
 #         "email": "mentee@example.com",
 #         "first_name": "Mentee",
@@ -145,7 +149,8 @@ def test_delete_existing_user(client: TestClient) -> None:
 #         "password": "securepassword",
 #     })
 #     assert mentee_response.status_code == 201
-#     user_id = mentee_response.json()["id"]
+#     mentee: UserGetResponse = UserGetResponse.model_validate(mentee_response.json())
+#     user_id = mentee.id
 
 #     response = client.put(f"/users/{user_id}", json={"mentor_email": mentor_email})
 #     assert response.status_code == 200
@@ -165,8 +170,8 @@ def test_update_user(client: TestClient) -> None:
     update_data = {"first_name": "UpdatedJohn"}
     response = client.put(f"/users/{user['id']}", json=update_data)
     assert response.status_code == 200
-    updated_user = response.json()
-    assert updated_user["first_name"] == "UpdatedJohn"
+    updated_user = UserGetResponse.model_validate(response.json())
+    assert updated_user.first_name == "UpdatedJohn"
 
 def test_update_user_email(client: TestClient) -> None:
     user_data = {
@@ -181,8 +186,8 @@ def test_update_user_email(client: TestClient) -> None:
     new_email = "new_email@example.com"
     response = client.put(f"/users/{user['id']}/update-email", json={"new_email": new_email})
     assert response.status_code == 200
-    updated_user = response.json()
-    assert updated_user["email"] == new_email
+    updated_user: UserGetResponse = UserGetResponse.model_validate(response.json())
+    assert updated_user.email == new_email
 
 def test_update_user_password(client: TestClient) -> None:
     user_data = {
@@ -205,8 +210,11 @@ def test_update_user_password(client: TestClient) -> None:
         "password": "newsecurepassword"
     }
     response = client.post("/login/", json=login_data)
-    assert response.status_code == 200
-    assert "access_token" in response.json()
+    assert response.status_code == 200 
+    loginResponse: UserLoginResponse = UserLoginResponse.model_validate(response.json())
+    assert loginResponse.access_token is not None
+    assert loginResponse.token_type == "bearer"
+
 
 def test_get_user_count(client: TestClient) -> None:
     users_data = [
@@ -232,10 +240,9 @@ def test_get_active_users(client: TestClient) -> None:
 
     response = client.get("/users/?active=true")
     assert response.status_code == 200
-    active_users = response.json()
+    active_users = TypeAdapter(List[UserGetResponseInternal]).validate_python(response.json())
     assert len(active_users) == 2
-    assert all(user["is_active"] for user in active_users)
-
+    assert all(user.is_active for user in active_users)
     response = client.get("/users/?counts=true&active=true")
     assert response.status_code == 200
     assert response.json()["count"] == 2
@@ -251,6 +258,6 @@ def test_get_all_users_filters_by_name(client: TestClient) -> None:
 
     response = client.get("/users/")
     assert response.status_code == 200
-    users = response.json()
+    users = TypeAdapter(List[UserGetResponse]).validate_python(response.json())
     assert len(users) == 1
-    assert users[0]["first_name"] == "Ella"
+    assert users[0].first_name == "Ella"
