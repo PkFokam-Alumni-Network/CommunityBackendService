@@ -13,7 +13,7 @@ class Event(Base):
     description = Column(Text, nullable=True)
     image = Column(Text, nullable=True)
     categories = Column(Text)  # Stored as comma separated values
-    is_active = Column(Boolean, default=True, nullable=False)  # Indicates if the event is currently active  
+    is_active = Column(Boolean, default=True, nullable=False)  
 
     user_events = relationship("UserEvent", back_populates="event", cascade="all, delete-orphan")
 
