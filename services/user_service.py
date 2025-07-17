@@ -94,11 +94,11 @@ class UserService(metaclass=SingletonMeta):
         return self.user_repository.get_all_mentees(db, user_id)
 
     # TODO: Uncomment and implement this method when the mentor assignment feature with id is implemented 
-    def unassign_mentor(self, db: Session, mentee_email: str):
-        mentee = self.user_repository.get_user_by_email(db, mentee_email)
+    def unassign_mentor(self, db: Session, mentee_id: str):
+        mentee = self.user_repository.get_user_by_id(db, mentee_id)
         if not mentee.mentor_id:
             return 
-        return self.update_user(db, mentee_email, {"mentor_email": None})
+        return self.update_user(db, mentee_id, {"mentor_id": None})
 
     def update_user_email(self, db: Session, user_id: int, new_email: str) -> Optional[User]:
         if not user_id:
