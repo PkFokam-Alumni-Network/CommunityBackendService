@@ -1,5 +1,7 @@
+import json
 import os
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 import pytest
 from settings import Settings
 
@@ -42,28 +44,41 @@ def test_settings_defaults_without_env_vars():
 def test_settings_with_production_env(monkeypatch):
     """Test settings when production environment variables are set."""
     monkeypatch.setenv("ENV", "production")
-    monkeypatch.setenv("SECRET_KEY", "prod_secret")
-    monkeypatch.setenv("ACCESS_KEY", "prod_access")
-    monkeypatch.setenv("BUCKET_NAME", "prod_bucket")
-    monkeypatch.setenv("ADMIN_EMAIL", "admin@prod.com")
-    monkeypatch.setenv("SENDGRID_API_KEY", "sendgridkey")
-    monkeypatch.setenv("BASE_URL", "https://prod.example.com")
-    monkeypatch.setenv("DOCS_AUTH_USERNAME", "admin")
-    monkeypatch.setenv("DOCS_AUTH_PASSWORD", "secret")
-    monkeypatch.setenv("DATABASE_URL", "sqlite:////app/sql_database/database.db")
+    monkeypatch.setenv("SECRETS_MANAGER_NAME", "paci/backend/creds")
+    monkeypatch.setenv("AWS_REGION", "us-east-1")
 
-    s = Settings()
-    assert s.ENV == "production"
-    assert s.SECRET_KEY == "prod_secret"
-    assert s.ACCESS_KEY == "prod_access"
-    assert s.BUCKET_NAME == "prod_bucket"
-    assert s.ADMIN_EMAIL == "admin@prod.com"
-    assert s.SENDGRID_API_KEY == "sendgridkey"
-    assert s.BASE_URL == "https://prod.example.com"
-    assert s.DOCS_AUTH_USERNAME == "admin"
-    assert s.DOCS_AUTH_PASSWORD == "secret"
-    assert s.cors_origins == [
-        "https://pkfalumni.com",
-        "https://backoffice.pkfalumni.com"
-    ]
-    assert s.database_url == "sqlite:////app/sql_database/database.db"
+    mocked_secrets = {
+        "SECRET_KEY": "prod_secret",
+        "ACCESS_KEY": "prod_access",
+        "BUCKET_NAME": "prod_bucket",
+        "ADMIN_EMAIL": "admin@prod.com",
+        "SENDGRID_API_KEY": "sendgridkey",
+        "BASE_URL": "https://prod.example.com",
+        "DATABASE_URL": "sqlite:////app/sql_database/database.db",
+        "DOCS_AUTH_USERNAME": "admin",
+        "DOCS_AUTH_PASSWORD": "secret",
+    }
+
+    with patch("boto3.client") as mock_boto_client:
+        mock_secrets_client = MagicMock()
+        mock_secrets_client.get_secret_value.return_value = {
+            "SecretString": json.dumps(mocked_secrets)
+        }
+        mock_boto_client.return_value = mock_secrets_client
+
+
+        s = Settings()
+        assert s.ENV == "production"
+        assert s.SECRET_KEY == "prod_secret"
+        assert s.ACCESS_KEY == "prod_access"
+        assert s.BUCKET_NAME == "prod_bucket"
+        assert s.ADMIN_EMAIL == "admin@prod.com"
+        assert s.SENDGRID_API_KEY == "sendgridkey"
+        assert s.BASE_URL == "https://prod.example.com"
+        assert s.DOCS_AUTH_USERNAME == "admin"
+        assert s.DOCS_AUTH_PASSWORD == "secret"
+        assert s.cors_origins == [
+            "https://pkfalumni.com",
+            "https://backoffice.pkfalumni.com"
+        ]
+        assert s.database_url == "sqlite:////app/sql_database/database.db"
