@@ -18,7 +18,7 @@ class PostService:
         )
         return self.post_repository.create_post(post)
 
-    def post_exists(self, post_id: int) -> bool:
+    def is_post_exists(self, post_id: int) -> bool:
         return self.post_repository.get_post_by_id(post_id) is not None
     
     def is_post_owned_by_user(self, post_id: int, user_id: int) -> bool:

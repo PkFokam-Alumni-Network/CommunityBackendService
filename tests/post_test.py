@@ -28,18 +28,11 @@ def test_users() -> list[User]:
         "last_name":"Test",
         "password":"pass123"
     }
-    user3_data = {
-        "email":"warren@example.com",
-        "first_name":"Warren",
-        "last_name":"Test",
-        "password":"pass123"
-    }
 
     user1 = UserCreatedResponse.model_validate(client.post("/users/", json=user1_data).json())
     user2 = UserCreatedResponse.model_validate(client.post("/users/", json=user2_data).json())
-    user3 = UserCreatedResponse.model_validate(client.post("/users/", json=user3_data).json())
 
-    return [user1, user2, user3]
+    return [user1, user2]
 
 
 def test_create_get_post(test_users):
@@ -63,17 +56,18 @@ def test_create_get_post(test_users):
 
 def test_get_recent_posts(test_users):
     for i, user in enumerate(test_users, start=1):
-        post_response = client.post("/posts/", json={
-            "title": f"Post {i}",
-            "content": f"Content {i}",
-            "category": "Career"
-        }, params={"user_id": user.id})
-        assert post_response.status_code == 201
+        for category in ["Career", "Immigration", "Job search"]:
+            post_response = client.post("/posts/", json={
+                "title": f"Post {i}",
+                "content": f"Content {i}",
+                "category": f"{category}"
+            }, params={"user_id": user.id})
+            assert post_response.status_code == 201
 
     response = client.get("/posts/recent")
     print(response)
     assert response.status_code == 200
-    assert len(response.json()) >= 3
+    assert len(response.json()) >= 6
 
 
 def test_get_recent_posts_by_category(test_users):
@@ -116,7 +110,7 @@ def test_update_post_success(test_users):
 
 
 def test_update_post_unauthorized(test_users):
-    user1, user2 = test_users[0], test_users[1]
+    user1, user2 = test_users
     post = client.post("/posts/", json={
         "title": "Unauthorized Edit",
         "content": "Don't touch",
@@ -148,7 +142,7 @@ def test_delete_post_success(test_users):
 
 
 def test_delete_post_unauthorized(test_users):
-    user1, user2 = test_users[0], test_users[1]
+    user1, user2 = test_users
     post = client.post("/posts/", json={
         "title": "Do Not Delete",
         "content": "Mine only",

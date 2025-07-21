@@ -15,4 +15,4 @@ class Post(Base):
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     author = relationship("User", back_populates="posts")
-    comments = relationship("Comment", back_populates="post", cascade="all, delete-orphan")
+    # comments = relationship("Comment", back_populates="post", cascade="all, delete-orphan")
