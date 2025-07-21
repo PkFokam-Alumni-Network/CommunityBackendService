@@ -6,6 +6,7 @@ from models.user import User
 from models.announcement import Announcement
 from logging_config import LOGGER
 from settings import settings  
+from pathlib import Path
 from repository.user_repository import UserRepository
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 import os
@@ -24,8 +25,10 @@ class EmailService:
 
         self.user_repo = UserRepository()
         
+        base_dir = Path(__file__).resolve().parent
+        templates_path = base_dir / "templates"
         self.template_env = Environment(
-            loader=FileSystemLoader(searchpath=os.path.join(os.getcwd(), "templates")),
+            loader=FileSystemLoader(searchpath=templates_path),
             autoescape=select_autoescape(['html', 'xml'])
         )
 
