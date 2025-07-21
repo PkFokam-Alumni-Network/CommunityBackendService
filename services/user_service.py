@@ -9,20 +9,29 @@ from repository.user_repository import UserRepository
 from schemas import user_schema
 from utils.func_utils import (check_password, create_jwt, get_password_hash, upload_image_to_s3, reset_password_email, verify_jwt)
 from utils.image_utils import validate_image
+from services.session_service import SessionService
 from utils.singleton_meta import SingletonMeta
+
 
 
 class UserService(metaclass=SingletonMeta):
     def __init__(self):
         self.user_repository = UserRepository()
 
-    def login(self, db: Session, email: str, password: str) -> user_schema.UserLoginResponse:
+    def login(self, db: Session, email: str, password: str,user_agent: str = None) -> user_schema.UserLoginResponse:
         if not email or not password:
             raise ValueError("Email and password are required.")
         user = self.user_repository.get_user_by_email(db, email)
         if not user or not check_password(password, user.password):
             raise ValueError("Invalid email or password")
         token = create_jwt(user.email)
+        
+        session_service = SessionService(db)
+        session_service.create_user_session(
+            user_id=user.id,
+            token=token,
+            user_agent=user_agent or "unknown"
+        )
         user_login_response: user_schema.UserLoginResponse = user_schema.UserLoginResponse.create_user_login_response(user, access_token=token)
         return user_login_response
 
