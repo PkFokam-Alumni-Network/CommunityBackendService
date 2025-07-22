@@ -41,7 +41,7 @@ class EmailService:
         )
         self.email_api.send_transac_email(send_email)
 
-    def send_announcement_email(self, db: Session, announcement: Announcement) -> None:
+    def send_general_email(self, db: Session, announcement: Announcement) -> None:
         try:
             users = self.user_repo.get_users(db, active=False)
             if not users:
@@ -75,7 +75,7 @@ class EmailService:
             LOGGER.error(f"Unexpected error in sending email: {e}")
             raise
 
-    def send_email_to_user(self, user: User, announcement: Announcement) -> None:
+    def send_specific_email(self, user: User, announcement: Announcement) -> None:
         try:
             if not user.email:
                 LOGGER.warning(f"User {user.id} has no email.")
