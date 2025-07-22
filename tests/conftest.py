@@ -6,7 +6,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from fastapi.testclient import TestClient
 from main import app
-import database
+import core.database as database
 
 @pytest.fixture(scope="session")
 def temp_db_url() -> Generator[str, None, None]:

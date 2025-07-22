@@ -1,11 +1,11 @@
 from typing import Type, List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from database import get_db
+from core.database import get_db
 from schemas.announcement_schema import AnnouncementCreate, AnnouncementUpdate, AnnouncementResponse
 from services.announcement_service import AnnouncementService
 from models.announcement import Announcement
-from logging_config import LOGGER
+from core.logging_config import LOGGER
 
 router = APIRouter()
 

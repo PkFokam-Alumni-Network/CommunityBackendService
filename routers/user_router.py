@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Query, status, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
-from database import get_db
+from core.database import get_db
 from schemas import user_schema
 from services.user_service import UserService
-from logging_config import LOGGER
+from core.logging_config import LOGGER
 
 router = APIRouter()
 

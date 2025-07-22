@@ -25,13 +25,13 @@ from faker import Faker
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
-from settings import settings
-from database import init_db, SessionLocal, Base
+from core.settings import settings
+from core.database import init_db, SessionLocal, Base
 from models.user import User, UserRole
 from models.event import Event
 from models.announcement import Announcement
 from utils.func_utils import get_password_hash
-from logging_config import LOGGER
+from core.logging_config import LOGGER
 
 
 fake = Faker()
@@ -349,7 +349,7 @@ def main():
         LOGGER.error("You must specify what to create. Use --help for all options.")
         return
 
-    import database
+    import core.database as database
 
 
     database.init_db(settings.database_url)

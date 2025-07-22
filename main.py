@@ -2,16 +2,16 @@ import uvicorn
 from fastapi.responses import HTMLResponse
 from fastapi import Depends, FastAPI, HTTPException
 from typing import AsyncGenerator
-from auth import get_current_username
-import database
+from core.auth import get_current_username
+import core.database as database
 from sqlalchemy import text
-from database import get_db
+from core.database import get_db
 from routers import user_router, announcement_router, event_router
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
-from logging_config import LOGGER
-from settings import settings
+from core.logging_config import LOGGER
+from core.settings import settings
 from datetime import datetime
 
 # TODO: Init logging and use config/settings.py for env variables
