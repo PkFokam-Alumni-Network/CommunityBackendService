@@ -6,10 +6,12 @@ services:
     container_name: fastapi_app
     ports:
       - "9000:9000"
-    volumes:
-      - sqlite_data:/app/sql_database
     environment:
       - ENV=production
-
-volumes:
-  sqlite_data:
+      - DATABASE_URL=${DATABASE_URL}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/health"]
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 10s

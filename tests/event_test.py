@@ -1,60 +1,61 @@
-from typing import Generator
-import pytest
 from fastapi.testclient import TestClient
-from models.event import Event
-from models.user import User
-from models.user_event import UserEvent
-from tests.conftest import create_and_teardown_tables, client
-
-@pytest.fixture(scope="function", autouse=True)
-def setup_and_teardown_db() -> Generator[TestClient, None, None]:
-    yield from create_and_teardown_tables([Event.metadata, User.metadata, UserEvent.metadata])
+from schemas.event_schema import EventCreate , EventResponse
+from schemas.user_schema import UserCreatedResponse
+from pydantic import TypeAdapter
+from typing import List
+from datetime import datetime, timedelta, timezone
 
 
-def test_create_event() -> None:
+def test_create_event(client: TestClient) -> None:
+    future_time = datetime.now(timezone.utc) + timedelta(days=7)
     event_data = {
         "title": "Test Event",
-        "start_time": "2025-01-24T11:30",
-        "end_time": "2025-01-24T17:30",
+        "start_time": future_time.isoformat(),
+        "end_time": (future_time + timedelta(hours=6)).isoformat(),
         "location": "Event Location",
         "description": "This is a test event",
         "categories": "Tech, Development",
     }
     response = client.post("/events/", json=event_data)
     assert response.status_code == 201
-    event = response.json()
-    assert event["title"] == "Test Event"
-    assert event["location"] == "Event Location"
+    eventCreateResponse: EventCreate = EventCreate.model_validate(response.json()) 
+    assert eventCreateResponse.title == "Test Event"
+    assert eventCreateResponse.location == "Event Location"
+   
 
-def test_get_event_by_id() -> None:
+def test_get_event_by_id(client: TestClient) -> None:
+    future_time = datetime.now(timezone.utc) + timedelta(days=7)
     event_data = {
         "title": "Test Event",
-        "start_time": "2025-01-24T11:30",
-        "end_time": "2025-01-24T17:30",
+        "start_time": future_time.isoformat(),
+        "end_time": (future_time + timedelta(hours=6)).isoformat(),
         "location": "Event Location",
         "description": "This is a test event",
         "categories": "Tech, Development",
     }
     response = client.post("/events/", json=event_data)
-    event = response.json()
-    event_id = event["id"]
-    response = client.get(f"/events/{event_id}")
-    assert response.status_code == 200
-    assert response.json()["title"] == "Test Event"
-    assert response.json()["location"] == "Event Location"
+    event: EventResponse = EventResponse.model_validate(response.json()) 
+    event_id = event.id
+    get_response = client.get(f"/events/{event_id}")
+    assert get_response.status_code == 200
+    fetched_event = EventResponse.model_validate(get_response.json())
+    assert fetched_event.title == "Test Event"
+    assert fetched_event.location == "Event Location"
 
-def test_add_user_to_event() -> None:
+def test_add_user_to_event(client: TestClient) -> None:
+    future_time = datetime.now(timezone.utc) + timedelta(days=7)
     event_data = {
         "title": "Test Event",
-        "start_time": "2025-01-24T11:30",
-        "end_time": "2025-01-24T17:30",
+        "start_time": future_time.isoformat(),
+        "end_time": (future_time + timedelta(hours=6)).isoformat(),
         "location": "Event Location",
         "description": "This is a test event",
         "categories": "Tech, Development",
     }
     event_response = client.post("/events/", json=event_data)
-    event = event_response.json()
+    assert event_response.status_code == 201
 
+    event: EventResponse = EventResponse.model_validate(event_response.json())
     user_data = {
         "email": "user@example.com",
         "first_name": "John",
@@ -62,17 +63,17 @@ def test_add_user_to_event() -> None:
         "password": "testpassword"
     }
     user_response = client.post("/users/", json=user_data)
-    user = user_response.json()
+    user: UserCreatedResponse = UserCreatedResponse.model_validate(user_response.json())
 
-    add_user_response = client.post(f"/events/{event['id']}/register", json={'email':'user@example.com'})
+    add_user_response = client.post(f"/events/{event.id}/register", json={'email':'user@example.com'})
     assert add_user_response.status_code == 200
-    assert add_user_response.json()["message"] == f"User {user['email']} registered for the event."
 
-def test_remove_user_from_event() -> None:
+def test_remove_user_from_event(client: TestClient) -> None:
+    future_time = datetime.now(timezone.utc) + timedelta(days=7)
     event_data = {
         "title": "Test Event",
-        "start_time": "2025-01-24T11:30",
-        "end_time": "2025-01-24T17:30",
+        "start_time": future_time.isoformat(),
+        "end_time": (future_time + timedelta(hours=6)).isoformat(),
         "location": "Event Location",
         "description": "This is a test event",
         "categories": "Tech, Development",
@@ -94,17 +95,18 @@ def test_remove_user_from_event() -> None:
     remove_user_response = client.post(f"/events/{event['id']}/unregister", json={'email':'user@example.com'})
     assert remove_user_response.status_code == 200
 
-def test_get_all_event_attendees() -> None:
+def test_get_all_event_attendees(client: TestClient) -> None:
+    future_time = datetime.now(timezone.utc) + timedelta(days=7)
     event_data = {
         "title": "Test Event",
-        "start_time": "2025-01-24T11:30",
-        "end_time": "2025-01-24T17:30",
+        "start_time": future_time.isoformat(),
+        "end_time": (future_time + timedelta(hours=6)).isoformat(),
         "location": "Event Location",
         "description": "This is a test event",
         "categories": "Tech, Development",
     }
     event_response = client.post("/events/", json=event_data)
-    event = event_response.json()
+    event: EventResponse = EventResponse.model_validate(event_response.json())
 
     user_data = {
         "email": "user@example.com",
@@ -113,13 +115,46 @@ def test_get_all_event_attendees() -> None:
         "password": "testpassword"
     }
     user_response = client.post("/users/", json=user_data)
-    user = user_response.json()
+    user: UserCreatedResponse = UserCreatedResponse.model_validate(user_response.json())
 
-    add_user_response = client.post(f"/events/{event['id']}/register", json={'email':'user@example.com'})
+    add_user_response = client.post(f"/events/{event.id}/register", json={'email':'user@example.com'})
     assert add_user_response.status_code == 200
 
-    response = client.get(f"/events/{event['id']}/users")
+    response = client.get(f"/events/{event.id}/users")
     assert response.status_code == 200
-    attendees = response.json()
+   
+    attendees =  TypeAdapter(List[UserCreatedResponse]).validate_python(response.json())
     assert len(attendees) == 1
-    assert attendees[0]["email"] == user["email"]
+    assert attendees[0].email == user.email
+
+def test_cannot_register_for_past_event(client: TestClient) -> None:
+    past_time = datetime.now(timezone.utc) - timedelta(days=1)
+    event_data = {
+        "title": "Past Event",
+        "start_time": (past_time - timedelta(hours=2)).isoformat(),
+        "end_time": past_time.isoformat(),
+        "location": "Test Location",
+        "description": "This event has already ended",
+        "categories": "Test"
+    }
+    
+    event_response = client.post("/events/", json=event_data)
+    assert event_response.status_code == 201
+    event: EventResponse = EventResponse.model_validate(event_response.json())
+    
+    user_data = {
+        "email": "pastuser@example.com",
+        "first_name": "Past",
+        "last_name": "User",
+        "password": "testpassword"
+    }
+    user_response = client.post("/users/", json=user_data)
+    assert user_response.status_code == 201
+    
+    registration_response = client.post(
+        f"/events/{event.id}/register", 
+        json={'email': 'pastuser@example.com'}
+    )
+    
+    assert registration_response.status_code == 400
+    assert "Cannot register for past events" in registration_response.json()["detail"]

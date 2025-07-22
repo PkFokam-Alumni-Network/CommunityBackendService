@@ -5,3 +5,5 @@ from .user_event import UserEvent
 from .post import Post
 # from .comment import Comment
 # from .upvote import Upvote
+from .announcement import Announcement
+from database import Base

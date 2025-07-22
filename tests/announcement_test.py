@@ -1,14 +1,7 @@
-from typing import Generator
+
 from fastapi.testclient import TestClient
-import pytest
-from models.announcement import Announcement
-from tests.conftest import create_and_teardown_tables, client
-
-@pytest.fixture(scope="function", autouse=True)
-def setup_and_teardown_db() -> Generator[TestClient, None, None]:
-    yield from create_and_teardown_tables([Announcement.metadata])
-
-def test_create_get_announcement() -> None:
+from schemas.announcement_schema import AnnouncementCreate, AnnouncementResponse
+def test_create_get_announcement(client: TestClient) -> None:
     create_route = "/announcements/"
     response = client.post(
         create_route,
@@ -26,14 +19,15 @@ def test_create_get_announcement() -> None:
     get_route = f"/announcements/{announcement_id}"
     response = client.get(get_route)
     assert response.status_code == 200
-    assert response.json()["id"] == announcement_id
-    assert response.json()["title"] == "Test Announcement"
+    announcementCreateResponse: AnnouncementCreate = AnnouncementCreate.model_validate(response.json()) 
+    assert announcementCreateResponse.id == announcement_id
+    assert announcementCreateResponse.title == "Test Announcement"
 
-def test_get_non_existing_announcement() -> None:
+def test_get_non_existing_announcement(client: TestClient) -> None:
     response = client.get("/announcements/999")
     assert response.status_code == 404
 
-def test_create_announcement_duplicate() -> None:
+def test_create_announcement_duplicate(client: TestClient) -> None:
     response = client.post(
         "/announcements/",
         json={
@@ -56,9 +50,10 @@ def test_create_announcement_duplicate() -> None:
         },
     )
     assert response.status_code == 400
-    assert response.json()["detail"] == "Announcement with this title already exists."
+    assert response.json()["detail"] =="Announcement with this title already exists."
 
-def test_create_announcement_date_before_deadline() -> None:
+
+def test_create_announcement_date_before_deadline(client: TestClient) -> None:
     response = client.post(
         "/announcements/",
         json={
@@ -73,7 +68,7 @@ def test_create_announcement_date_before_deadline() -> None:
     assert response.json()["detail"] == "Announcement date must be before announcement deadline."
 
 
-def test_delete_existing_announcement() -> None:
+def test_delete_existing_announcement(client: TestClient) -> None:
     create_response = client.post(
         "/announcements/",
         json={
@@ -88,10 +83,11 @@ def test_delete_existing_announcement() -> None:
     new_announcement = create_response.json()
     announcement_id = new_announcement["id"]
     delete_route = f"/announcements/{announcement_id}"
-    delete_response = client.delete(delete_route)
+    delete_response = client.delete(delete_route)    
     assert delete_response.status_code == 200
-    assert delete_response.json()["id"] == announcement_id
-    assert delete_response.json()["message"] == "Announcement deleted successfully."
+    announcement: AnnouncementResponse = AnnouncementResponse.model_validate(delete_response.json()) 
+    assert announcement.id == announcement_id
+    assert announcement.message == "Announcement deleted successfully."
     delete_response = client.delete(delete_route)
     assert delete_response.status_code == 404
     assert delete_response.json()["detail"] == "Announcement not found"
