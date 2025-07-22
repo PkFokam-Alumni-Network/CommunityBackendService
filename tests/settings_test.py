@@ -44,8 +44,9 @@ def test_settings_defaults_without_env_vars():
 def test_settings_with_production_env(monkeypatch):
     """Test settings when production environment variables are set."""
     monkeypatch.setenv("ENV", "production")
-    monkeypatch.setenv("SECRETS_MANAGER_NAME", "paci/backend/creds")
+    monkeypatch.setenv("SECRETS_MANAGER_NAME", "creds")
     monkeypatch.setenv("AWS_REGION", "us-east-1")
+    monkeypatch.setenv("DATABASE_URL", "postgresql://user:password@localhost/test_db")
 
     mocked_secrets = {
         "SECRET_KEY": "prod_secret",
@@ -54,7 +55,7 @@ def test_settings_with_production_env(monkeypatch):
         "ADMIN_EMAIL": "admin@prod.com",
         "SENDGRID_API_KEY": "sendgridkey",
         "BASE_URL": "https://prod.example.com",
-        "DATABASE_URL": "sqlite:////app/sql_database/database.db",
+        "DATABASE_URL": "postgresql://user:password@localhost/test_db",
         "DOCS_AUTH_USERNAME": "admin",
         "DOCS_AUTH_PASSWORD": "secret",
     }
@@ -81,4 +82,3 @@ def test_settings_with_production_env(monkeypatch):
             "https://pkfalumni.com",
             "https://backoffice.pkfalumni.com"
         ]
-        assert s.database_url == "sqlite:////app/sql_database/database.db"

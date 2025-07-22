@@ -16,7 +16,7 @@ def init_db(database_url: str):
         pool_timeout=30,
         pool_size=10,
         max_overflow=20,
-        connect_args={"check_same_thread": False} if database_url.startswith("sqlite") else {}
+        connect_args= {}
     )
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

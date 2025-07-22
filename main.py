@@ -17,7 +17,7 @@ from datetime import datetime
 # TODO: Init logging and use config/settings.py for env variables
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    database.init_db(settings.database_url)
+    database.init_db(settings.DATABASE_URL)
     database.Base.metadata.create_all(bind=database.engine)
     yield
 

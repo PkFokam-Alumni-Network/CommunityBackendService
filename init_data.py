@@ -369,7 +369,7 @@ def main():
     import core.database as database
 
 
-    database.init_db(settings.database_url)
+    database.init_db(settings.DATABASE_URL)
     database.Base.metadata.create_all(bind=database.engine)
 
     session = database.SessionLocal()
