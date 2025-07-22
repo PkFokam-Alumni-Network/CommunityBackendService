@@ -26,7 +26,6 @@ def temp_db_url() -> Generator[str, None, None]:
 def engine(temp_db_url: str):
     test_engine = create_engine(temp_db_url, connect_args={"check_same_thread": False})
     database.Base.metadata.create_all(bind=test_engine)
-    print("\nDB: ", temp_db_url)
     database.engine = test_engine
     database.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
     yield test_engine
