@@ -43,11 +43,4 @@ class Settings:
             "https://backoffice.pkfalumni.com"
         ]
 
-    @property
-    def database_url(self):
-        if self.ENV == "development":
-            return "sqlite:///database.db"
-        else:
-            return self.DATABASE_URL
-
 settings = Settings()
