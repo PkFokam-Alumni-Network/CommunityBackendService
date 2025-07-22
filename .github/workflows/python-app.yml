@@ -16,16 +16,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    # Add this "services" block to start a PostgreSQL container
     services:
       postgres:
-        image: postgres:13 # You can specify a version
-        # Set database credentials and name matching your conftest.py
+        image: postgres:16-alpine
         env:
           POSTGRES_USER: user
           POSTGRES_PASSWORD: password
           POSTGRES_DB: test_db
-        # Health check to ensure the database is ready before tests run
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -61,7 +58,6 @@ jobs:
         find . -name "*.py" | xargs pylint --exit-zero
 
     - name: Run tests with Pytest
-      # Add this "env" block to provide the database URL to your tests
       env:
         TEST_DATABASE_URL: postgresql://user:password@localhost:5432/test_db
       run: |
