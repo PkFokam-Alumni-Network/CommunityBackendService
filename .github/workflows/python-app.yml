@@ -16,6 +16,22 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    # Add this "services" block to start a PostgreSQL container
+    services:
+      postgres:
+        image: postgres:13 # You can specify a version
+        # Set database credentials and name matching your conftest.py
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: test_db
+        # Health check to ensure the database is ready before tests run
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -30,6 +46,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install ruff black pylint pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        pip install psycopg2-binary
 
     - name: Run Ruff (lint & auto-fix)
       run: |
@@ -44,6 +61,8 @@ jobs:
         find . -name "*.py" | xargs pylint --exit-zero
 
     - name: Run tests with Pytest
+      # Add this "env" block to provide the database URL to your tests
+      env:
+        TEST_DATABASE_URL: postgresql://user:password@localhost:5432/test_db
       run: |
         pytest
-
