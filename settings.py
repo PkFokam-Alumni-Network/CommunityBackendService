@@ -1,6 +1,9 @@
 import os
 import boto3
 import json
+from dotenv import load_dotenv
+load_dotenv()
+
 
 class Settings:
     def __init__(self):

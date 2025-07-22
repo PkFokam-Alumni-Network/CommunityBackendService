@@ -54,14 +54,37 @@ ANNOUNCEMENT_IMAGES = [
     "https://images.unsplash.com/photo-1588681664899-f142ff2dc9b1",
 ]
 
-DEGREES = ["BSc", "MSc", "BEng", "MEng"]
-
+DEGREE_LEVELS = ["BSc", "MSc", "BEng", "MEng", "PhD"]
 MAJORS = [
     "Computer Science",
     "Mechanical Engineering",
-    "Electrical Engineering and Technology"
-    
+    "Electrical Engineering and Technology",
+    "Civil Engineering",
+    "Economics",
+    "Information Technology",
+    "Business Administration",
 ]
+
+UNIVERSITIES = [
+    "PkFokam Institute of Excellence",
+    "Kennesaw State University",
+    "Georgia Tech",
+    "Massachusetts Institute of Technology",
+    "University of Cambridge",
+    "Harvard University",
+    "Stanford University",
+]
+
+def generate_random_degree() -> dict:
+    return {
+        "degree_level": random.choice(DEGREE_LEVELS),
+        "major": random.choice(MAJORS),
+        "graduation_year": random.randint(2010, 2024),
+        "university": random.choice(UNIVERSITIES)
+    }
+
+
+
 
 OCCUPATIONS = [
     "Software Engineer",
@@ -112,9 +135,12 @@ def create_sample_users(session: Session, count: int = 3, force: bool = False) -
             phone=fake.phone_number(),
             image=random.choice(PROFILE_IMAGES),
             bio="Administrator account for the PkFokam Alumni Network.",
-            graduation_year=random.randint(2010, 2020),
-            degree="MSc",
-            major="Computer Science",
+            degrees= [{
+                "degree_level": "MSc",
+                "major": "Mechanical Engineering",
+                "graduation_year": 2022,
+                "university": "Georgia Tech"
+            }],
             current_occupation="System Administrator",
             linkedin_profile="https://linkedin.com/in/admin-pkfalumni",
             instagram_profile="https://instagram.com/admin.pkfalumni",
@@ -138,9 +164,9 @@ def create_sample_users(session: Session, count: int = 3, force: bool = False) -
         last_name = fake.last_name()
         email = f"{first_name.lower()}.{last_name.lower()}{random.randint(1, 999)}@pkfalumni.com"
 
-        graduation_year = random.randint(2010, 2023)
-        degree = random.choice(DEGREES)
-        major = random.choice(MAJORS)
+        degrees = [generate_random_degree() for _ in range(random.randint(1, 2))]
+        primary_degree = degrees[0]
+        major = primary_degree["major"]
 
         if major in ["Computer Science", "Information Technology"]:
             occupation = random.choice([o for o in OCCUPATIONS if any(tech in o for tech in ["Software", "Data", "IT", "Developer", "Cloud", "Cyber", "Database", "UI/UX", "System", "DevOps"])])
@@ -159,10 +185,8 @@ def create_sample_users(session: Session, count: int = 3, force: bool = False) -
             address=fake.address().replace('\n', ', '),
             phone=fake.phone_number(),
             image=random.choice(PROFILE_IMAGES),
-            bio=f"I graduated from PkFokam Institute with a {degree} in {major}. Currently working as a {occupation}. " + fake.paragraph(nb_sentences=2),
-            graduation_year=graduation_year,
-            degree=degree,
-            major=major,
+           bio=f"I graduated from PkFokam Institute with a {degrees[0]['degree_level']} in {degrees[0]['major']}. Currently working as a {occupation}. " + fake.paragraph(nb_sentences=2),
+            degrees=degrees,
             current_occupation=occupation,
             linkedin_profile=f"https://linkedin.com/in/{first_name.lower()}-{last_name.lower()}",
             instagram_profile=f"https://instagram.com/{first_name.lower()}{last_name.lower()}" if random.random() > 0.3 else None,
