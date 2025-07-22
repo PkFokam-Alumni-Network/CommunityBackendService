@@ -52,10 +52,10 @@ jobs:
     - name: Format with Black
       run: |
         black .
+        
+    - name: Debug resolve postgres host
+      run: getent hosts postgres
 
-    - name: Lint with Pylint
-      run: |
-        find . -name "*.py" | xargs pylint --exit-zero
 
     - name: Run tests with Pytest
       env:
