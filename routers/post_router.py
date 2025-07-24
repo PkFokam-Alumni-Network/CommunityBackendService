@@ -4,7 +4,7 @@ from typing import List, Dict, Optional
 
 from schemas.post_schema import PostCreate, PostUpdate, PostResponse, PostDeletedResponse
 from services.post_service import PostService
-from database import get_db
+from core.database import get_db
 
 router = APIRouter(prefix="/posts", tags=["Posts"])
 
