@@ -78,7 +78,7 @@ def register_user_for_event(event_id: int, event_registration: EventRegistration
     masked_email = event_registration.email[:3] + '****'
     try:
         event_service.register_user_for_event(db, event_registration, event_id)
-        return {"message": f"User registered for the event."}
+        return {"message": "User registered for the event."}
     except ValueError as e:
         LOGGER.warning(f"Register failed: user={masked_email}, event_id={event_id}, error={str(e)}")
         raise HTTPException(status_code=400, detail=f"User already registered or other error: {str(e)}")

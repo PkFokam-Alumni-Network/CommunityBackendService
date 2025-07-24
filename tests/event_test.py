@@ -18,9 +18,9 @@ def test_create_event(client: TestClient) -> None:
     }
     response = client.post("/events/", json=event_data)
     assert response.status_code == 201
-    eventCreateResponse: EventCreate = EventCreate.model_validate(response.json()) 
-    assert eventCreateResponse.title == "Test Event"
-    assert eventCreateResponse.location == "Event Location"
+    event_created_response: EventCreate = EventCreate.model_validate(response.json()) 
+    assert event_created_response.title == "Test Event"
+    assert event_created_response.location == "Event Location"
    
 
 def test_get_event_by_id(client: TestClient) -> None:
@@ -63,7 +63,7 @@ def test_add_user_to_event(client: TestClient) -> None:
         "password": "testpassword"
     }
     user_response = client.post("/users/", json=user_data)
-    user: UserCreatedResponse = UserCreatedResponse.model_validate(user_response.json())
+    _: UserCreatedResponse = UserCreatedResponse.model_validate(user_response.json())
 
     add_user_response = client.post(f"/events/{event.id}/register", json={'email':'user@example.com'})
     assert add_user_response.status_code == 200

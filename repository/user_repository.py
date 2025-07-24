@@ -35,7 +35,7 @@ class UserRepository(metaclass=SingletonMeta):
     @retry_on_db_error()
     def get_users(self, db: Session, active) -> List[User]:
         if active:
-            return db.query(User).filter(User.is_active == True).all()
+            return db.query(User).filter(User.is_active).all()
         return db.query(User).all()
 
     @retry_on_db_error()

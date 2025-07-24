@@ -1,4 +1,5 @@
-import base64, io
+import base64
+import io
 from PIL import Image, ImageDraw
 
 MAX_FILE_SIZE = 10 * 1024 * 1024 # 10MB

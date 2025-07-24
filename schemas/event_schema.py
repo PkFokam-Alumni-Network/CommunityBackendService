@@ -2,7 +2,7 @@ from pydantic import BaseModel, ConfigDict, EmailStr
 from datetime import datetime
 from typing import List, Optional
 
-from schemas.user_schema import Attendee, UserGetResponse
+from schemas.user_schema import Attendee
 
 class EventBase(BaseModel):
     title: str
