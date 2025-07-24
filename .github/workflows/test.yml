@@ -15,6 +15,9 @@ jobs:
     name: 🧪 Run Pytest
     runs-on: ubuntu-latest
 
+    container:
+      image: python:3.11
+
     services:
       postgres:
         image: postgres:16-alpine
