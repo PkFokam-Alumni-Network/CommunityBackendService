@@ -92,7 +92,7 @@ def unregister_user_from_event(event_id: int, event_registration: EventRegistrat
     masked_email = event_registration.email[:3] + '****'
     try:
         event_service.unregister_user_from_event(db, event_registration, event_id)
-        return {"message": f"User unregistered from the event."}
+        return {"message": "User unregistered from the event."}
     except ValueError as e:
         LOGGER.warning(f"Unregister failed: user={masked_email}, event_id={event_id}, error={str(e)}")
         raise HTTPException(status_code=400, detail=f"User not registered or other error: {str(e)}")

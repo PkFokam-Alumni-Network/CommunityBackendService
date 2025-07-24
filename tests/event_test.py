@@ -21,7 +21,7 @@ def test_create_event(client: TestClient) -> None:
     event_created_response: EventCreate = EventCreate.model_validate(response.json()) 
     assert event_created_response.title == "Test Event"
     assert event_created_response.location == "Event Location"
-    assert event_created_response.is_active == True
+    assert event_created_response.is_active
 
 
 def test_get_event_by_id(client: TestClient) -> None:
