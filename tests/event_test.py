@@ -18,10 +18,10 @@ def test_create_event(client: TestClient) -> None:
     }
     response = client.post("/events/", json=event_data)
     assert response.status_code == 201
-    eventCreateResponse: EventCreate = EventCreate.model_validate(response.json()) 
+    eventCreateResponse: EventCreate = EventCreate.model_validate(response.json())
     assert eventCreateResponse.title == "Test Event"
     assert eventCreateResponse.location == "Event Location"
-   
+    assert eventCreateResponse.is_active == True
 
 def test_get_event_by_id(client: TestClient) -> None:
     future_time = datetime.now(timezone.utc) + timedelta(days=7)
