@@ -37,11 +37,13 @@ jobs:
           apt-get update
           apt-get install -y gcc libpq-dev build-essential lsb-release
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Cache pip
+        uses: actions/cache@v4
         with:
-          python-version: "3.11"
-          cache: "pip"
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
       - name: Install dependencies
         run: |

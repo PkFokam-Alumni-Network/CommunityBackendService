@@ -1,8 +1,6 @@
 name: Lint
 
 on:
-  push:
-    branches: ["main"]
   pull_request:
     branches: ["main"]
 
@@ -12,7 +10,7 @@ concurrency:
 
 jobs:
   ruff:
-    name: ✨ Ruff Lint & Auto-format
+    name: Ruff Lint & Auto-format (on PR)
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -34,16 +32,17 @@ jobs:
       - name: Run Ruff check
         run: ruff check .
 
-      - name: Run Ruff format (and apply fixes)
+      - name: Format code with Ruff
         run: ruff format .
 
-      - name: Commit and push formatting changes
+      - name: Commit and push formatting changes (if any)
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           if ! git diff --quiet; then
             git add .
-            git commit -m "🤖 Auto-format code with Ruff"
+            git commit -m "Auto-format code with Ruff"
             git push
           else
             echo "No formatting changes to commit."
+          fi
