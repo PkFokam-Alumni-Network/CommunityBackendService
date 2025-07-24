@@ -12,11 +12,15 @@ concurrency:
 
 jobs:
   ruff:
-    name: ✨ Run Ruff to check formatting
+    name: ✨ Ruff Lint & Auto-format
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -27,7 +31,19 @@ jobs:
       - name: Install Ruff
         run: pip install ruff
 
-      - name: Run linter and formatter check
+      - name: Run Ruff check
+        run: ruff check .
+
+      - name: Run Ruff format (and apply fixes)
+        run: ruff format .
+
+      - name: Commit and push formatting changes
         run: |
-          ruff check .
-          ruff format --check .
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if ! git diff --quiet; then
+            git add .
+            git commit -m "🤖 Auto-format code with Ruff"
+            git push
+          else
+            echo "No formatting changes to commit."

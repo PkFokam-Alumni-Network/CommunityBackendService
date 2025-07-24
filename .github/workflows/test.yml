@@ -35,7 +35,7 @@ jobs:
       - name: Install system dependencies
         run: |
           apt-get update
-          apt-get install -y gcc libpq-dev build-essential
+          apt-get install -y gcc libpq-dev build-essential lsb-release
 
       - name: Set up Python
         uses: actions/setup-python@v5
