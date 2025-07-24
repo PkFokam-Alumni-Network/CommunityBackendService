@@ -1,7 +1,7 @@
 import pytest
 from typing import Generator
 from fastapi.testclient import TestClient
-from database import Base, engine, get_db
+from core.database import Base, engine, get_db
 from models.post import Post
 from models.user import User
 from services.user_service import UserService
