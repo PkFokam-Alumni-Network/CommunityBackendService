@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, Text, DateTime
 from core.database import Base
 
+
 class Announcement(Base):
     __tablename__ = "announcements"
 

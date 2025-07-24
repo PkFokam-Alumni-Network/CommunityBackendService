@@ -1,6 +1,8 @@
 import boto3
 import json
 import os
+
+
 class Settings:
     def __init__(self):
         self.ENV = os.getenv("ENV", "development")
@@ -43,9 +45,7 @@ class Settings:
     def cors_origins(self):
         if self.ENV == "development":
             return ["*"]
-        return [
-            "https://pkfalumni.com",
-            "https://backoffice.pkfalumni.com"
-        ]
+        return ["https://pkfalumni.com", "https://backoffice.pkfalumni.com"]
+
 
 settings = Settings()
