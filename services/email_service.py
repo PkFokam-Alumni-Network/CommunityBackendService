@@ -1,15 +1,13 @@
-from typing import List
 import sib_api_v3_sdk
 from sib_api_v3_sdk.rest import ApiException
 from sqlalchemy.orm import Session
 from models.user import User
 from models.announcement import Announcement
-from logging_config import LOGGER
-from settings import settings  
+from core.logging_config import LOGGER
+from core.settings import settings  
 from pathlib import Path
 from repository.user_repository import UserRepository
 from jinja2 import Environment, FileSystemLoader, select_autoescape
-import os
 
 
 class EmailService:
