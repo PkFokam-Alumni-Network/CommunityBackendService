@@ -1,5 +1,5 @@
 from fastapi.testclient import TestClient
-from schemas.user_schema import UserCreatedResponse, UserLoginResponse , UserGetResponse, UserGetResponseInternal
+from schemas.user_schema import UserCreatedResponse, UserLoginResponse , UserGetResponse, UserGetResponseInternal, Degree
 from utils.func_utils import verify_jwt
 from pydantic import TypeAdapter
 from typing import List
@@ -261,3 +261,30 @@ def test_get_all_users_filters_by_name(client: TestClient) -> None:
     users = TypeAdapter(List[UserGetResponse]).validate_python(response.json())
     assert len(users) == 1
     assert users[0].first_name == "Ella"
+    
+def test_create_user_with_multiple_degrees(client: TestClient) -> None:
+    user_data = {
+        "email": "multi_degrees@example.com",
+        "first_name": "Multi",
+        "last_name": "DegreeUser",
+        "password": "securepassword",
+        "degrees": [
+            {
+                "degree_level": "BSc",
+                "major": "Computer Science",
+                "graduation_year": 2020,
+                "university": "KSU"
+            },
+            {
+                "degree_level": "MSc",
+                "major": "Data Science",
+                "graduation_year": 2022,
+                "university": "MIT"
+            }
+        ]
+    }
+    response = client.post("/users/", json=user_data)
+    assert response.status_code == 201
+    user = response.json()
+    assert len(user["degrees"]) == 2
+    assert user["degrees"][0]["degree_level"] == "BSc"

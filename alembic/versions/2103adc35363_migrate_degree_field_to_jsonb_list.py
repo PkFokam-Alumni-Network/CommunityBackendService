@@ -8,7 +8,7 @@ Create Date: 2025-07-21 20:00:00.000000
 
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import JSON
 
 
 # revision identifiers, used by Alembic.
@@ -19,10 +19,10 @@ depends_on = None
 
 
 def upgrade():
-    # 1. Add new degrees column
-    op.add_column('users', sa.Column('degrees', JSONB(astext_type=sa.Text()), nullable=True))
+    # Add new degrees column
+    op.add_column('users', sa.Column('degrees', JSON(astext_type=sa.Text()), nullable=True))
 
-    # 2. Copy data from old fields into new JSONB field
+    #Copy data from old fields into new JSONB field
     op.execute("""
         UPDATE users SET degrees = jsonb_build_array(
             jsonb_build_object(
@@ -35,10 +35,6 @@ def upgrade():
         WHERE degree IS NOT NULL
     """)
 
-    # 3. OPTIONAL: Drop old fields (only if you’re sure everything migrated)
-    # op.drop_column('users', 'degree')
-    # op.drop_column('users', 'major')
-    # op.drop_column('users', 'graduation_year')
 
 
 def downgrade():
