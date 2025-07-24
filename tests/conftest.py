@@ -7,7 +7,9 @@ from fastapi.testclient import TestClient
 from main import app
 import core.database as database
 
-TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL", "postgresql://user:password@postgres:5432/test_db")
+TEST_DATABASE_URL = os.getenv(
+    "TEST_DATABASE_URL", "postgresql://user:password@postgres:5432/test_db"
+)
 
 
 @pytest.fixture(scope="session")
@@ -22,10 +24,13 @@ def engine(db_url: str):
     test_engine = create_engine(db_url)
     database.Base.metadata.create_all(bind=test_engine)
     database.engine = test_engine
-    database.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
+    database.SessionLocal = sessionmaker(
+        autocommit=False, autoflush=False, bind=test_engine
+    )
     yield test_engine
     database.Base.metadata.drop_all(bind=test_engine)
     test_engine.dispose()
+
 
 @pytest.fixture(scope="function")
 def db_session(engine) -> Generator[Session, None, None]:
@@ -36,6 +41,7 @@ def db_session(engine) -> Generator[Session, None, None]:
         yield session
     finally:
         session.close()
+
 
 @pytest.fixture(scope="function")
 def client(db_session: Session) -> Generator[TestClient, None, None]:

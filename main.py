@@ -14,6 +14,7 @@ from core.logging_config import LOGGER
 from core.settings import settings
 from datetime import datetime
 
+
 # TODO: Init logging and use config/settings.py for env variables
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
@@ -35,10 +36,10 @@ app.include_router(user_router.router)
 app.include_router(announcement_router.router)
 app.include_router(event_router.router)
 
+
 @app.get("/")
-async def read_root(
-):
-    return  {"message": "PACI API"}
+async def read_root():
+    return {"message": "PACI API"}
 
 
 @app.get("/docs", response_class=HTMLResponse)
@@ -50,9 +51,9 @@ async def get_docs(username: str = Depends(get_current_username)) -> HTMLRespons
 async def get_redoc(username: str = Depends(get_current_username)) -> HTMLResponse:
     return get_redoc_html(openapi_url="/openapi.json", title="redoc")
 
+
 @app.get("/health")
 async def health_check():
-   
     try:
         db = next(get_db())
         try:
@@ -64,19 +65,22 @@ async def health_check():
             raise HTTPException(status_code=503, detail="Database connection failed")
         finally:
             db.close()
-        
+
         return {
             "status": "healthy",
             "service": "PACI Community Backend",
             "database": "connected",
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
-    
+
     except HTTPException:
         raise
     except Exception as e:
         LOGGER.error(f"Health check failed: {str(e)}")
         raise HTTPException(status_code=503, detail="Service unavailable")
 
+
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=9000,proxy_headers=True, forwarded_allow_ips="*")
+    uvicorn.run(
+        app, host="0.0.0.0", port=9000, proxy_headers=True, forwarded_allow_ips="*"
+    )
