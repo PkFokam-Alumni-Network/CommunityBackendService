@@ -4,9 +4,9 @@ from typing import Dict, List, Optional
 from schemas.event_schema import EventBase, EventCreate, EventRegistration, EventResponse, EventUpdate, EventWithAttendees
 from schemas.user_schema import UserGetResponse
 from services.event_service import EventService
-from database import get_db
+from core.database import get_db
 from services.user_service import UserService
-from logging_config import LOGGER
+from core.logging_config import LOGGER
 
 router = APIRouter()
 
