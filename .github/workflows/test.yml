@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: python:3.11
+      image: python:3.11-slim
 
     services:
       postgres:
@@ -31,6 +31,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          apt-get update
+          apt-get install -y gcc libpq-dev build-essential
 
       - name: Set up Python
         uses: actions/setup-python@v5
