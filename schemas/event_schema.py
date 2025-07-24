@@ -13,6 +13,8 @@ class EventBase(BaseModel):
     categories: Optional[str] = None
     image: Optional[str] = "https://cdn-cjhkj.nitrocdn.com/krXSsXVqwzhduXLVuGLToUwHLNnSxUxO/assets/images/optimized/rev-b135bb1/spotme.com/wp-content/uploads/2020/07/Hero-1.jpg"
 
+    is_active: bool = True
+
     model_config = ConfigDict(from_attributes=True)
 
 class EventCreate(EventBase):
