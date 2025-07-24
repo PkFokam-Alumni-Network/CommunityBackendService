@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: python:3.11
+      image: python:3.11-slim
 
     services:
       postgres:
