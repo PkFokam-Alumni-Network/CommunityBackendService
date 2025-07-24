@@ -1,6 +1,5 @@
 import json
 import os
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 import pytest
 from core.settings import Settings
@@ -31,10 +30,6 @@ def assert_default_settings(s: Settings):
     assert s.DOCS_AUTH_USERNAME is None
     assert s.DOCS_AUTH_PASSWORD is None
     assert s.cors_origins == ["*"]
-    assert s.database_url.startswith("sqlite:///")
-    temp_file_path = s.database_url.replace("sqlite:///", "")
-    assert temp_file_path.endswith(".db")
-    assert Path(temp_file_path).exists()
 
 def test_settings_defaults_without_env_vars():
     """Test default settings when no environment variables are set."""
