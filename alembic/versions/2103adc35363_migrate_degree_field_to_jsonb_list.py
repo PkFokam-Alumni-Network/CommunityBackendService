@@ -1,43 +1,61 @@
-"""migrate degree field to JSON list
+"""migrate degree field to jsonb list
 
 Revision ID: 2103adc35363
 Revises: 7dc36ecb2bc8
-Create Date: 2025-07-21 17:44:10.846292
-"""
+Create Date: 2025-07-21 20:00:00.000000
 
-from typing import Sequence, Union
+"""
 
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy import inspect
+from sqlalchemy.dialects.postgresql import JSONB
 
 
 # revision identifiers, used by Alembic.
-revision: str = '2103adc35363'
-down_revision: Union[str, None] = None
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+revision = '2103adc35363'
+down_revision = '7dc36ecb2bc8'
+branch_labels = None
+depends_on = None
 
 
 def upgrade():
-    # Only modify the 'users' table
+    # 1. Add new degrees column
+    op.add_column('users', sa.Column('degrees', JSONB(astext_type=sa.Text()), nullable=True))
 
-    bind = op.get_bind()
-    inspector = inspect(bind)
-    columns = [col['name'] for col in inspector.get_columns('users')]
+    # 2. Copy data from old fields into new JSONB field
+    op.execute("""
+        UPDATE users SET degrees = jsonb_build_array(
+            jsonb_build_object(
+                'degree_level', degree,
+                'major', major,
+                'graduation_year', graduation_year,
+                'university', 'Unknown University'
+            )
+        )
+        WHERE degree IS NOT NULL
+    """)
 
-    # Drop 'degree' column if it exists
-    if 'degree' in columns:
-        op.drop_column('users', 'degree')
-
-    # Add 'degrees' JSON column
-    op.add_column('users', sa.Column(
-        'degrees',
-        sa.JSON(),
-        nullable=True,
-    ))
+    # 3. OPTIONAL: Drop old fields (only if you’re sure everything migrated)
+    # op.drop_column('users', 'degree')
+    # op.drop_column('users', 'major')
+    # op.drop_column('users', 'graduation_year')
 
 
 def downgrade():
-    op.drop_column('users', 'degrees')
+    # Add back old columns if needed
     op.add_column('users', sa.Column('degree', sa.String(), nullable=True))
+    op.add_column('users', sa.Column('major', sa.String(), nullable=True))
+    op.add_column('users', sa.Column('graduation_year', sa.Integer(), nullable=True))
+
+    # Pull back data from JSONB
+    op.execute("""
+        UPDATE users
+        SET
+            degree = degrees->0->>'degree_level',
+            major = degrees->0->>'major',
+            graduation_year = (degrees->0->>'graduation_year')::integer
+        WHERE degrees IS NOT NULL
+    """)
+
+    # Drop degrees field
+    op.drop_column('users', 'degrees')
