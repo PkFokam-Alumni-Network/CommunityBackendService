@@ -1,30 +1,25 @@
 import os
-import tempfile
 import pytest
 from typing import Generator
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from fastapi.testclient import TestClient
 from main import app
-import database
+import core.database as database
+
+TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL", "postgresql://user:password@postgres:5432/test_db")
+
 
 @pytest.fixture(scope="session")
-def temp_db_url() -> Generator[str, None, None]:
-    """Creates a temp SQLite DB file and cleans it up after the session."""
-    tmpfile = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
-    db_path = tmpfile.name
-    tmpfile.close()
-    db_url = f"sqlite:///{db_path}"
-    yield db_url
-    try:
-        os.unlink(db_path)
-    except PermissionError:
-        print(f"Could not delete temp file {db_path}, it might still be in use.")
+def db_url() -> str:
+    """Provides the PostgreSQL test database URL."""
+    return TEST_DATABASE_URL
 
 
 @pytest.fixture(scope="function")
-def engine(temp_db_url: str):
-    test_engine = create_engine(temp_db_url, connect_args={"check_same_thread": False})
+def engine(db_url: str):
+    """Creates the PostgreSQL engine and initializes the schema."""
+    test_engine = create_engine(db_url)
     database.Base.metadata.create_all(bind=test_engine)
     database.engine = test_engine
     database.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
