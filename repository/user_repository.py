@@ -78,3 +78,11 @@ class UserRepository(metaclass=SingletonMeta):
             return mentees if mentees else []
         except Exception as e:
             raise RuntimeError(f"An error occurred while retrieving mentees: {e}")
+        
+    @retry_on_db_error()
+    def get_users_emails(self, db: Session) -> List[str]:
+        try:
+            users = db.query(User).all()
+            return [user.email for user in users if user.email]
+        except Exception as e:
+            raise RuntimeError(f"An error occurred while retrieving user emails: {e}")

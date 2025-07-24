@@ -5,6 +5,9 @@ from core.database import get_db
 from schemas import user_schema
 from services.user_service import UserService
 from core.logging_config import LOGGER
+from services.email_service import EmailService
+from models.announcement import Announcement
+
 
 router = APIRouter()
 
@@ -306,30 +309,34 @@ def request_password_reset(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
         LOGGER.error(f"SERVER ERROR in request_password_reset for {masked}: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal server error",
-        )
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
+    
+@router.put("/password-reset", status_code=status.HTTP_200_OK, response_model=user_schema.UserUpdate)
+def reset_password(body: user_schema.PasswordReset,
+                   session: Session = Depends(get_db)) -> user_schema.UserUpdate:
+        service = UserService()
+        try:
+            updated_user = service.reset_password(session, body.new_password, body.token)
+            return updated_user
+        except ValueError as e:
+            LOGGER.error(f"Password reset failed: {str(e)}")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        except Exception as e:
+            LOGGER.error(f"SERVER ERROR in reset_password: {str(e)}")
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
 
+router.post("/users/{user_id}/send-announcement",  status_code=status.HTTP_200_OK, response_model=user_schema.UserUpdate)
+def send_announcement_to_user(user_id: int, announcement: Announcement, session: Session = Depends(get_db)):
+    from repository.user_repository import UserRepository
+    email_service = EmailService()
+    user_repo = UserRepository()
 
-@router.put(
-    "/password-reset",
-    status_code=status.HTTP_200_OK,
-    response_model=user_schema.UserUpdate,
-)
-def reset_password(
-    body: user_schema.PasswordReset, session: Session = Depends(get_db)
-) -> user_schema.UserUpdate:
-    service = UserService()
+    user = user_repo.get_user_by_id(session, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
     try:
-        updated_user = service.reset_password(session, body.new_password, body.token)
-        return updated_user
-    except ValueError as e:
-        LOGGER.error(f"Password reset failed: {str(e)}")
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        email_service.send_email_to_user(user, announcement)
+        return {"message": f"Email sent to {user.email}"}
     except Exception as e:
-        LOGGER.error(f"SERVER ERROR in reset_password: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal server error",
-        )
+        raise HTTPException(status_code=500, detail=str(e))
