@@ -1,5 +1,4 @@
 import os
-import tempfile
 import pytest
 from typing import Generator
 from sqlalchemy import create_engine
@@ -8,7 +7,7 @@ from fastapi.testclient import TestClient
 from main import app
 import core.database as database
 
-TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL", "postgresql://user:password@postgres/test_db")
+TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL", "postgresql://user:password@postgres:5432/test_db")
 
 
 @pytest.fixture(scope="session")
