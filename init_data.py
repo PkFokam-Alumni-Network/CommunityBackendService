@@ -25,13 +25,12 @@ from faker import Faker
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
-from settings import settings
-from database import init_db, SessionLocal, Base
+from core.settings import settings
 from models.user import User, UserRole
 from models.event import Event
 from models.announcement import Announcement
 from utils.func_utils import get_password_hash
-from logging_config import LOGGER
+from core.logging_config import LOGGER
 
 
 fake = Faker()
@@ -92,16 +91,21 @@ ANNOUNCEMENT_TITLES = [
 
 ]
 
-def create_sample_users(session: Session, count: int = 3, force: bool = False) -> List[User]:
-    existing_count = session.query(User).count()
-    if existing_count > 0 and not force:
-        LOGGER.info(f"Found {existing_count} existing users. Use --force to recreate.")
-        return session.query(User).all()
+def _select_occupation(major: str) -> str:
+    tech_keywords = ["Software", "Data", "IT", "Developer", "Cloud", "Cyber", "Database", "UI/UX", "System", "DevOps"]
+    econ_keywords = ["Financial", "Business", "Economic", "Investment", "Market"]
+    if major in ["Computer Science", "Information Technology"]:
+        return random.choice([o for o in OCCUPATIONS if any(tech in o for tech in tech_keywords)])
+    elif major in ["Mechanical Engineering", "Electrical Engineering and Technology"]:
+        return random.choice([o for o in OCCUPATIONS if "Engineer" in o and not any(tech in o for tech in ["Software", "Data"])])
+    elif major == "Economics":
+        return random.choice([o for o in OCCUPATIONS if any(econ in o for econ in econ_keywords)])
+    else:
+        return random.choice(OCCUPATIONS)
 
-    users = []
+def _create_admin_user(session: Session, users: list) -> None:
     admin_email = "admin@pkfalumni.com"
     admin_user = session.query(User).filter(User.email == admin_email).first()
-
     if not admin_user:
         admin_user = User(
             email=admin_email,
@@ -133,7 +137,16 @@ def create_sample_users(session: Session, count: int = 3, force: bool = False) -
     else:
         users.append(admin_user)
 
-    for i in range(count - 1):
+def create_sample_users(session: Session, count: int = 3, force: bool = False) -> List[User]:
+    existing_count = session.query(User).count()
+    if existing_count > 0 and not force:
+        LOGGER.info(f"Found {existing_count} existing users. Use --force to recreate.")
+        return session.query(User).all()
+
+    users = []
+    _create_admin_user(session, users)
+
+    for _ in range(count - 1):
         first_name = fake.first_name()
         last_name = fake.last_name()
         email = f"{first_name.lower()}.{last_name.lower()}{random.randint(1, 999)}@pkfalumni.com"
@@ -141,15 +154,7 @@ def create_sample_users(session: Session, count: int = 3, force: bool = False) -
         graduation_year = random.randint(2010, 2023)
         degree = random.choice(DEGREES)
         major = random.choice(MAJORS)
-
-        if major in ["Computer Science", "Information Technology"]:
-            occupation = random.choice([o for o in OCCUPATIONS if any(tech in o for tech in ["Software", "Data", "IT", "Developer", "Cloud", "Cyber", "Database", "UI/UX", "System", "DevOps"])])
-        elif major in ["Mechanical Engineering", "Electrical Engineering and Technology"]:
-            occupation = random.choice([o for o in OCCUPATIONS if "Engineer" in o and not any(tech in o for tech in ["Software", "Data"])])
-        elif major == "Economics":
-            occupation = random.choice([o for o in OCCUPATIONS if any(econ in o for econ in ["Financial", "Business", "Economic", "Investment", "Market"])])
-        else:
-            occupation = random.choice(OCCUPATIONS)
+        occupation = _select_occupation(major)
 
         user = User(
             email=email,
@@ -184,6 +189,53 @@ def create_sample_users(session: Session, count: int = 3, force: bool = False) -
     return users
 
 
+def _generate_event_details(i: int, count: int, current_date: datetime, event_titles: List[str]) -> dict:
+    if i < count // 3:
+        start_date = current_date - timedelta(days=random.randint(1, 180))
+    elif i < 2 * (count // 3):
+        start_date = current_date + timedelta(days=random.randint(1, 30))
+    else:
+        start_date = current_date + timedelta(days=random.randint(31, 180))
+
+    start_date = start_date.replace(
+        hour=random.randint(9, 18),
+        minute=random.choice([0, 30]),
+        second=0,
+        microsecond=0
+    )
+
+    duration_hours = random.randint(1, 4)
+    end_date = start_date + timedelta(hours=duration_hours)
+
+    if i < len(event_titles):
+        title = event_titles[i]
+    else:
+        title = fake.sentence(nb_words=random.randint(4, 8)).rstrip('.')
+
+    location = random.choice(EVENT_LOCATIONS)
+
+    if "Workshop" in title:
+        description = f"Join us for this hands-on workshop where you'll learn practical skills. {fake.paragraph(nb_sentences=2)}"
+    elif "Career" in title:
+        description = f"Connect with top employers and explore career opportunities. {fake.paragraph(nb_sentences=2)}"
+    elif "Panel" in title:
+        description = f"Hear from industry experts and alumni leaders. {fake.paragraph(nb_sentences=2)}"
+    else:
+        description = fake.paragraph(nb_sentences=random.randint(3, 5))
+
+    num_categories = random.randint(1, 3)
+    categories = ','.join(random.sample(EVENT_CATEGORIES, num_categories))
+
+    return {
+        "title": title,
+        "start_time": start_date,
+        "end_time": end_date,
+        "location": location,
+        "description": description,
+        "categories": categories,
+        "image": random.choice(EVENT_IMAGES)
+    }
+
 def create_sample_events(session: Session, count: int = 3, force: bool = False) -> List[Event]:
     existing_count = session.query(Event).count()
     if existing_count > 0 and not force:
@@ -204,50 +256,15 @@ def create_sample_events(session: Session, count: int = 3, force: bool = False) 
     ]
 
     for i in range(count):
-        if i < count // 3:
-            start_date = current_date - timedelta(days=random.randint(1, 180))
-        elif i < 2 * (count // 3):
-            start_date = current_date + timedelta(days=random.randint(1, 30))
-        else:
-            start_date = current_date + timedelta(days=random.randint(31, 180))
-
-        start_date = start_date.replace(
-            hour=random.randint(9, 18),
-            minute=random.choice([0, 30]),
-            second=0,
-            microsecond=0
-        )
-
-        duration_hours = random.randint(1, 4)
-        end_date = start_date + timedelta(hours=duration_hours)
-
-        if i < len(event_titles):
-            title = event_titles[i]
-        else:
-            title = fake.sentence(nb_words=random.randint(4, 8)).rstrip('.')
-
-        location = random.choice(EVENT_LOCATIONS)
-
-        if "Workshop" in title:
-            description = f"Join us for this hands-on workshop where you'll learn practical skills. {fake.paragraph(nb_sentences=2)}"
-        elif "Career" in title:
-            description = f"Connect with top employers and explore career opportunities. {fake.paragraph(nb_sentences=2)}"
-        elif "Panel" in title:
-            description = f"Hear from industry experts and alumni leaders. {fake.paragraph(nb_sentences=2)}"
-        else:
-            description = fake.paragraph(nb_sentences=random.randint(3, 5))
-
-        num_categories = random.randint(1, 3)
-        categories = ','.join(random.sample(EVENT_CATEGORIES, num_categories))
-
+        details = _generate_event_details(i, count, current_date, event_titles)
         event = Event(
-            title=title,
-            start_time=start_date,
-            end_time=end_date,
-            location=location,
-            description=description,
-            categories=categories,
-            image=random.choice(EVENT_IMAGES)
+            title=details["title"],
+            start_time=details["start_time"],
+            end_time=details["end_time"],
+            location=details["location"],
+            description=details["description"],
+            categories=details["categories"],
+            image=details["image"]
         )
 
         session.add(event)
@@ -255,14 +272,27 @@ def create_sample_events(session: Session, count: int = 3, force: bool = False) 
             session.commit()
             session.refresh(event)
             events.append(event)
-            LOGGER.info(f"Created event: {title}")
-
+            LOGGER.info(f"Created event: {details['title']}")
         except IntegrityError:
             session.rollback()
-            LOGGER.error(f"Event with title '{title}' already exists")
+            LOGGER.error(f"Event with title '{details['title']}' already exists")
 
     return events
 
+
+def _generate_announcement_title(i: int, current_date: datetime, base_titles: List[str]) -> str:
+    if i < len(base_titles):
+        return f"{base_titles[i]} - {current_date.strftime('%Y%m%d%H%M%S')}{i}"
+    return f"{fake.sentence(nb_words=random.randint(5, 10)).rstrip('.')} - {current_date.strftime('%Y%m%d%H%M%S')}{i}"
+
+def _generate_announcement_description(title: str) -> str:
+    if "Mentor" in title:
+        return "We are looking for experienced alumni to mentor current students. Share your knowledge and help shape the next generation of professionals. " + fake.paragraph(nb_sentences=3)
+    if "Job" in title or "Opportunit" in title:
+        return "New positions available at our partner companies. Opportunities for recent graduates and experienced professionals in various fields. " + fake.paragraph(nb_sentences=3)
+    if "Scholarship" in title:
+        return "Financial support available for qualifying students pursuing graduate studies. Applications are now open. " + fake.paragraph(nb_sentences=3)
+    return fake.paragraph(nb_sentences=random.randint(4, 8))
 
 def create_sample_announcements(session: Session, count: int = 3, force: bool = False) -> List[Announcement]:
     existing_count = session.query(Announcement).count()
@@ -272,6 +302,11 @@ def create_sample_announcements(session: Session, count: int = 3, force: bool = 
 
     announcements = []
     current_date = datetime.now()
+    base_titles = [
+        "Call for Mentors: Alumni Mentorship Program",
+        "Tech Industry Job Opportunities - New Openings", 
+        "Alumni Network Annual Report 2024"
+    ]
 
     for i in range(count):
         if i < count // 2:
@@ -283,26 +318,8 @@ def create_sample_announcements(session: Session, count: int = 3, force: bool = 
 
         has_deadline = random.random() < 0.8
 
-        # Generate unique titles with timestamp to avoid duplicates
-        base_titles = [
-            "Call for Mentors: Alumni Mentorship Program",
-            "Tech Industry Job Opportunities - New Openings", 
-            "Alumni Network Annual Report 2024"
-        ]
-        
-        if i < len(base_titles):
-            title = f"{base_titles[i]} - {current_date.strftime('%Y%m%d%H%M%S')}{i}"
-        else:
-            title = f"{fake.sentence(nb_words=random.randint(5, 10)).rstrip('.')} - {current_date.strftime('%Y%m%d%H%M%S')}{i}"
-
-        if "Mentor" in title:
-            description = "We are looking for experienced alumni to mentor current students. Share your knowledge and help shape the next generation of professionals. " + fake.paragraph(nb_sentences=3)
-        elif "Job" in title or "Opportunit" in title:
-            description = "New positions available at our partner companies. Opportunities for recent graduates and experienced professionals in various fields. " + fake.paragraph(nb_sentences=3)
-        elif "Scholarship" in title:
-            description = "Financial support available for qualifying students pursuing graduate studies. Applications are now open. " + fake.paragraph(nb_sentences=3)
-        else:
-            description = fake.paragraph(nb_sentences=random.randint(4, 8))
+        title = _generate_announcement_title(i, current_date, base_titles)
+        description = _generate_announcement_description(title)
 
         announcement = Announcement(
             title=title,
@@ -349,10 +366,10 @@ def main():
         LOGGER.error("You must specify what to create. Use --help for all options.")
         return
 
-    import database
+    import core.database as database
 
 
-    database.init_db(settings.database_url)
+    database.init_db(settings.DATABASE_URL)
     database.Base.metadata.create_all(bind=database.engine)
 
     session = database.SessionLocal()

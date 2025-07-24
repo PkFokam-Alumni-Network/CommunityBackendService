@@ -1,5 +1,5 @@
 from datetime import datetime
-from logging_config import LOGGER
+from core.logging_config import LOGGER
 from typing import List, Optional, Type
 
 from sqlalchemy.orm import Session

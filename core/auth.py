@@ -2,7 +2,7 @@ import secrets
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi import Depends, HTTPException, status
 from typing import Annotated
-from settings import settings
+from core.settings import settings
 
 security = HTTPBasic()
 def get_current_username(credentials: Annotated[HTTPBasicCredentials, Depends(security)]) -> str:

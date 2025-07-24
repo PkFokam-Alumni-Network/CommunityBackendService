@@ -56,5 +56,6 @@ jobs:
     - name: Run tests with Pytest
       env:
         TEST_DATABASE_URL: postgresql://user:password@postgres:5432/test_db
+        DATABASE_URL: postgresql://user:password@postgres:5432/test_db
       run: |
         pytest

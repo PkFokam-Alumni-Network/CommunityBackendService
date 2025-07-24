@@ -20,7 +20,9 @@ EXPOSE 9000
 # Command to run the FastAPI app using uvicorn
 # Copy the start script
 COPY start.sh /start.sh
+
 RUN chmod +x /start.sh
+
 
 # Run the startup script
 CMD ["/start.sh"]

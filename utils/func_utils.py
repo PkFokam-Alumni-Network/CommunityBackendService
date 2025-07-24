@@ -1,10 +1,10 @@
 import boto3, hashlib,os, bcrypt, jwt, datetime
 from typing import Any
-from logging_config import LOGGER
+from core.logging_config import LOGGER
 from utils.image_utils import crop_image_to_circle, decode_base64_image
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail, Email
-from settings import settings
+from core.settings import settings
 
 
 s3_client = boto3.client(
