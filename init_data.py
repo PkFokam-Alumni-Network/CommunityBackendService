@@ -1,4 +1,3 @@
-
 """
 Database initialization script for PkFokam Alumni Network backend.
 Creates sample data for development and testing environments.
@@ -14,7 +13,6 @@ Examples:
     python init_data.py --all --users 3 --announcements 2 --events 1 (create a maximum of 3 of each even if you specified a value more than 3)
 
 """
-
 
 import argparse
 import random
@@ -58,29 +56,23 @@ DEGREES = ["BSc", "MSc", "BEng", "MEng"]
 MAJORS = [
     "Computer Science",
     "Mechanical Engineering",
-    "Electrical Engineering and Technology"
-    
+    "Electrical Engineering and Technology",
 ]
 
-OCCUPATIONS = [
-    "Software Engineer",
-    "Mechanical Engineer",
-    "Electrical Engineer"
-]
+OCCUPATIONS = ["Software Engineer", "Mechanical Engineer", "Electrical Engineer"]
 
 EVENT_CATEGORIES = [
     "Conference",
     "Networking",
     "Educational",
     "Alumni Reunion",
-
 ]
 
 EVENT_LOCATIONS = [
     "Kennesaw Campus - Atrium Building",
     "Marietta Campus - Norton Hall",
     "SOVA Kennesaw - Conference Room A",
-    "Indy Kennesaw - Meeting Room 1"
+    "Indy Kennesaw - Meeting Room 1",
 ]
 
 ANNOUNCEMENT_TITLES = [
@@ -88,20 +80,43 @@ ANNOUNCEMENT_TITLES = [
     "Tech Industry Job Opportunities - New Openings",
     "Scholarship Opportunities for Graduate Studies",
     "Upcoming Engineering Workshop Series",
-
 ]
 
+
 def _select_occupation(major: str) -> str:
-    tech_keywords = ["Software", "Data", "IT", "Developer", "Cloud", "Cyber", "Database", "UI/UX", "System", "DevOps"]
+    tech_keywords = [
+        "Software",
+        "Data",
+        "IT",
+        "Developer",
+        "Cloud",
+        "Cyber",
+        "Database",
+        "UI/UX",
+        "System",
+        "DevOps",
+    ]
     econ_keywords = ["Financial", "Business", "Economic", "Investment", "Market"]
     if major in ["Computer Science", "Information Technology"]:
-        return random.choice([o for o in OCCUPATIONS if any(tech in o for tech in tech_keywords)])
+        return random.choice(
+            [o for o in OCCUPATIONS if any(tech in o for tech in tech_keywords)]
+        )
     elif major in ["Mechanical Engineering", "Electrical Engineering and Technology"]:
-        return random.choice([o for o in OCCUPATIONS if "Engineer" in o and not any(tech in o for tech in ["Software", "Data"])])
+        return random.choice(
+            [
+                o
+                for o in OCCUPATIONS
+                if "Engineer" in o
+                and not any(tech in o for tech in ["Software", "Data"])
+            ]
+        )
     elif major == "Economics":
-        return random.choice([o for o in OCCUPATIONS if any(econ in o for econ in econ_keywords)])
+        return random.choice(
+            [o for o in OCCUPATIONS if any(econ in o for econ in econ_keywords)]
+        )
     else:
         return random.choice(OCCUPATIONS)
+
 
 def _create_admin_user(session: Session, users: list) -> None:
     admin_email = "admin@pkfalumni.com"
@@ -112,7 +127,7 @@ def _create_admin_user(session: Session, users: list) -> None:
             first_name="Admin",
             last_name="User",
             password=get_password_hash("admin123"),
-            address=fake.address().replace('\n', ', '),
+            address=fake.address().replace("\n", ", "),
             phone=fake.phone_number(),
             image=random.choice(PROFILE_IMAGES),
             bio="Administrator account for the PkFokam Alumni Network.",
@@ -123,7 +138,7 @@ def _create_admin_user(session: Session, users: list) -> None:
             linkedin_profile="https://linkedin.com/in/admin-pkfalumni",
             instagram_profile="https://instagram.com/admin.pkfalumni",
             role=UserRole.admin,
-            is_active=True
+            is_active=True,
         )
         session.add(admin_user)
         try:
@@ -137,7 +152,10 @@ def _create_admin_user(session: Session, users: list) -> None:
     else:
         users.append(admin_user)
 
-def create_sample_users(session: Session, count: int = 3, force: bool = False) -> List[User]:
+
+def create_sample_users(
+    session: Session, count: int = 3, force: bool = False
+) -> List[User]:
     existing_count = session.query(User).count()
     if existing_count > 0 and not force:
         LOGGER.info(f"Found {existing_count} existing users. Use --force to recreate.")
@@ -161,18 +179,21 @@ def create_sample_users(session: Session, count: int = 3, force: bool = False) -
             first_name=first_name,
             last_name=last_name,
             password=get_password_hash("password123"),
-            address=fake.address().replace('\n', ', '),
+            address=fake.address().replace("\n", ", "),
             phone=fake.phone_number(),
             image=random.choice(PROFILE_IMAGES),
-            bio=f"I graduated from PkFokam Institute with a {degree} in {major}. Currently working as a {occupation}. " + fake.paragraph(nb_sentences=2),
+            bio=f"I graduated from PkFokam Institute with a {degree} in {major}. Currently working as a {occupation}. "
+            + fake.paragraph(nb_sentences=2),
             graduation_year=graduation_year,
             degree=degree,
             major=major,
             current_occupation=occupation,
             linkedin_profile=f"https://linkedin.com/in/{first_name.lower()}-{last_name.lower()}",
-            instagram_profile=f"https://instagram.com/{first_name.lower()}{last_name.lower()}" if random.random() > 0.3 else None,
+            instagram_profile=f"https://instagram.com/{first_name.lower()}{last_name.lower()}"
+            if random.random() > 0.3
+            else None,
             role=UserRole.user,
-            is_active=True
+            is_active=True,
         )
 
         session.add(user)
@@ -189,7 +210,9 @@ def create_sample_users(session: Session, count: int = 3, force: bool = False) -
     return users
 
 
-def _generate_event_details(i: int, count: int, current_date: datetime, event_titles: List[str]) -> dict:
+def _generate_event_details(
+    i: int, count: int, current_date: datetime, event_titles: List[str]
+) -> dict:
     if i < count // 3:
         start_date = current_date - timedelta(days=random.randint(1, 180))
     elif i < 2 * (count // 3):
@@ -201,7 +224,7 @@ def _generate_event_details(i: int, count: int, current_date: datetime, event_ti
         hour=random.randint(9, 18),
         minute=random.choice([0, 30]),
         second=0,
-        microsecond=0
+        microsecond=0,
     )
 
     duration_hours = random.randint(1, 4)
@@ -210,7 +233,7 @@ def _generate_event_details(i: int, count: int, current_date: datetime, event_ti
     if i < len(event_titles):
         title = event_titles[i]
     else:
-        title = fake.sentence(nb_words=random.randint(4, 8)).rstrip('.')
+        title = fake.sentence(nb_words=random.randint(4, 8)).rstrip(".")
 
     location = random.choice(EVENT_LOCATIONS)
 
@@ -224,7 +247,7 @@ def _generate_event_details(i: int, count: int, current_date: datetime, event_ti
         description = fake.paragraph(nb_sentences=random.randint(3, 5))
 
     num_categories = random.randint(1, 3)
-    categories = ','.join(random.sample(EVENT_CATEGORIES, num_categories))
+    categories = ",".join(random.sample(EVENT_CATEGORIES, num_categories))
 
     return {
         "title": title,
@@ -233,10 +256,13 @@ def _generate_event_details(i: int, count: int, current_date: datetime, event_ti
         "location": location,
         "description": description,
         "categories": categories,
-        "image": random.choice(EVENT_IMAGES)
+        "image": random.choice(EVENT_IMAGES),
     }
 
-def create_sample_events(session: Session, count: int = 3, force: bool = False) -> List[Event]:
+
+def create_sample_events(
+    session: Session, count: int = 3, force: bool = False
+) -> List[Event]:
     existing_count = session.query(Event).count()
     if existing_count > 0 and not force:
         LOGGER.info(f"Found {existing_count} existing events. Use --force to recreate.")
@@ -264,7 +290,7 @@ def create_sample_events(session: Session, count: int = 3, force: bool = False) 
             location=details["location"],
             description=details["description"],
             categories=details["categories"],
-            image=details["image"]
+            image=details["image"],
         )
 
         session.add(event)
@@ -280,32 +306,49 @@ def create_sample_events(session: Session, count: int = 3, force: bool = False) 
     return events
 
 
-def _generate_announcement_title(i: int, current_date: datetime, base_titles: List[str]) -> str:
+def _generate_announcement_title(
+    i: int, current_date: datetime, base_titles: List[str]
+) -> str:
     if i < len(base_titles):
         return f"{base_titles[i]} - {current_date.strftime('%Y%m%d%H%M%S')}{i}"
     return f"{fake.sentence(nb_words=random.randint(5, 10)).rstrip('.')} - {current_date.strftime('%Y%m%d%H%M%S')}{i}"
 
+
 def _generate_announcement_description(title: str) -> str:
     if "Mentor" in title:
-        return "We are looking for experienced alumni to mentor current students. Share your knowledge and help shape the next generation of professionals. " + fake.paragraph(nb_sentences=3)
+        return (
+            "We are looking for experienced alumni to mentor current students. Share your knowledge and help shape the next generation of professionals. "
+            + fake.paragraph(nb_sentences=3)
+        )
     if "Job" in title or "Opportunit" in title:
-        return "New positions available at our partner companies. Opportunities for recent graduates and experienced professionals in various fields. " + fake.paragraph(nb_sentences=3)
+        return (
+            "New positions available at our partner companies. Opportunities for recent graduates and experienced professionals in various fields. "
+            + fake.paragraph(nb_sentences=3)
+        )
     if "Scholarship" in title:
-        return "Financial support available for qualifying students pursuing graduate studies. Applications are now open. " + fake.paragraph(nb_sentences=3)
+        return (
+            "Financial support available for qualifying students pursuing graduate studies. Applications are now open. "
+            + fake.paragraph(nb_sentences=3)
+        )
     return fake.paragraph(nb_sentences=random.randint(4, 8))
 
-def create_sample_announcements(session: Session, count: int = 3, force: bool = False) -> List[Announcement]:
+
+def create_sample_announcements(
+    session: Session, count: int = 3, force: bool = False
+) -> List[Announcement]:
     existing_count = session.query(Announcement).count()
     if existing_count > 0 and not force:
-        LOGGER.info(f"Found {existing_count} existing announcements. Use --force to recreate.")
+        LOGGER.info(
+            f"Found {existing_count} existing announcements. Use --force to recreate."
+        )
         return session.query(Announcement).all()
 
     announcements = []
     current_date = datetime.now()
     base_titles = [
         "Call for Mentors: Alumni Mentorship Program",
-        "Tech Industry Job Opportunities - New Openings", 
-        "Alumni Network Annual Report 2024"
+        "Tech Industry Job Opportunities - New Openings",
+        "Alumni Network Annual Report 2024",
     ]
 
     for i in range(count):
@@ -326,7 +369,7 @@ def create_sample_announcements(session: Session, count: int = 3, force: bool = 
             description=description,
             announcement_date=announcement_date,
             announcement_deadline=deadline_date if has_deadline else None,
-            image=random.choice(ANNOUNCEMENT_IMAGES)
+            image=random.choice(ANNOUNCEMENT_IMAGES),
         )
 
         session.add(announcement)
@@ -344,21 +387,35 @@ def create_sample_announcements(session: Session, count: int = 3, force: bool = 
 
 def check_existing_data(session: Session) -> Dict[str, int]:
     counts = {
-        'users': session.query(User).count(),
-        'events': session.query(Event).count(),
-        'announcements': session.query(Announcement).count(),
+        "users": session.query(User).count(),
+        "events": session.query(Event).count(),
+        "announcements": session.query(Announcement).count(),
     }
     return counts
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Initialize database with sample data.')
+    parser = argparse.ArgumentParser(
+        description="Initialize database with sample data."
+    )
 
-    parser.add_argument('--users', type=int, metavar='N', help='Create N sample users')
-    parser.add_argument('--announcements', type=int, metavar='N', help='Create N sample announcements')
-    parser.add_argument('--events', type=int, metavar='N', help='Create N sample events')
-    parser.add_argument('--all', action='store_true', help='Create all types of data (3 each by default)')
-    parser.add_argument('--force', action='store_true', help='Force recreation of data even if records exist')
+    parser.add_argument("--users", type=int, metavar="N", help="Create N sample users")
+    parser.add_argument(
+        "--announcements", type=int, metavar="N", help="Create N sample announcements"
+    )
+    parser.add_argument(
+        "--events", type=int, metavar="N", help="Create N sample events"
+    )
+    parser.add_argument(
+        "--all",
+        action="store_true",
+        help="Create all types of data (3 each by default)",
+    )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Force recreation of data even if records exist",
+    )
 
     args = parser.parse_args()
 
@@ -368,7 +425,6 @@ def main():
 
     import core.database as database
 
-
     database.init_db(settings.DATABASE_URL)
     database.Base.metadata.create_all(bind=database.engine)
 
@@ -376,7 +432,9 @@ def main():
 
     try:
         existing_counts = check_existing_data(session)
-        LOGGER.info(f"Current database state - Users: {existing_counts['users']}, Events: {existing_counts['events']}, Announcements: {existing_counts['announcements']}")
+        LOGGER.info(
+            f"Current database state - Users: {existing_counts['users']}, Events: {existing_counts['events']}, Announcements: {existing_counts['announcements']}"
+        )
 
         if args.users:
             count = min(args.users, 3)
@@ -391,25 +449,35 @@ def main():
         elif args.announcements:
             count = min(args.announcements, 3)
             announcements = create_sample_announcements(session, count, args.force)
-            LOGGER.info(f"Successfully created/found {len(announcements)} announcements")
+            LOGGER.info(
+                f"Successfully created/found {len(announcements)} announcements"
+            )
 
         elif args.all:
             LOGGER.info("Creating all types of sample data...")
             user_count = min(args.users, 3) if args.users else 3
             event_count = min(args.events, 3) if args.events else 3
             announcement_count = min(args.announcements, 3) if args.announcements else 3
-            
+
             users = create_sample_users(session, user_count, args.force)
             events = create_sample_events(session, event_count, args.force)
-            announcements = create_sample_announcements(session, announcement_count, args.force)
+            announcements = create_sample_announcements(
+                session, announcement_count, args.force
+            )
 
-            LOGGER.info(f"Sample data creation completed - Users: {len(users)}, Events: {len(events)}, Announcements: {len(announcements)}")
+            LOGGER.info(
+                f"Sample data creation completed - Users: {len(users)}, Events: {len(events)}, Announcements: {len(announcements)}"
+            )
 
         final_counts = check_existing_data(session)
-        LOGGER.info(f"Final database state - Users: {final_counts['users']}, Events: {final_counts['events']}, Announcements: {final_counts['announcements']}")
+        LOGGER.info(
+            f"Final database state - Users: {final_counts['users']}, Events: {final_counts['events']}, Announcements: {final_counts['announcements']}"
+        )
 
         if args.users or args.all:
-            LOGGER.info("Login credentials - Admin: admin@pkfalumni.com / admin123, Regular users: [firstname].[lastname][number]@pkfalumni.com / password123")
+            LOGGER.info(
+                "Login credentials - Admin: admin@pkfalumni.com / admin123, Regular users: [firstname].[lastname][number]@pkfalumni.com / password123"
+            )
 
     except Exception as e:
         LOGGER.error(f"Error creating sample data: {e}")

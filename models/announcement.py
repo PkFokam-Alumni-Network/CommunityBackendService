@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, Text, Text, DateTime
+from sqlalchemy import Column, Integer, Text, DateTime
 from core.database import Base
+
 
 class Announcement(Base):
     __tablename__ = "announcements"
