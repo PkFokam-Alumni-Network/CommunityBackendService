@@ -68,11 +68,6 @@ def get_all_users(
     service = UserService()
     try:
         users = service.get_users(session, active=active)
-        for user in users:
-            if user.first_name == "Ella" or user.last_name == "James":
-                current_user = user
-                users = [current_user]
-                break
         if counts:
             return {"count": len(users)}
         return users
