@@ -5,8 +5,8 @@ from models.user import User
 from utils.singleton_meta import SingletonMeta
 from utils.retry import retry_on_db_error
 
-class UserRepository(metaclass=SingletonMeta):
 
+class UserRepository(metaclass=SingletonMeta):
     @retry_on_db_error()
     def add_user(self, db: Session, user: User) -> User:
         try:
@@ -23,7 +23,7 @@ class UserRepository(metaclass=SingletonMeta):
         except Exception as e:
             db.rollback()
             raise RuntimeError(f"An error occurred: {e}")
-    
+
     @retry_on_db_error()
     def get_user_by_id(self, db: Session, user_id: int) -> Optional[User]:
         return db.query(User).filter(User.id == user_id).first()
@@ -35,7 +35,7 @@ class UserRepository(metaclass=SingletonMeta):
     @retry_on_db_error()
     def get_users(self, db: Session, active) -> List[User]:
         if active:
-            return db.query(User).filter(User.is_active == True).all()
+            return db.query(User).filter(User.is_active).all()
         return db.query(User).all()
 
     @retry_on_db_error()
@@ -57,7 +57,7 @@ class UserRepository(metaclass=SingletonMeta):
         user = self.get_user_by_id(db, user_id)
         if not user:
             raise ValueError("User not found.")
-        
+
         try:
             db.delete(user)
             db.commit()

@@ -2,6 +2,12 @@
 
 The part of the community website hosting all the backend and the services
 
+# PRE-REQUISITES
+
+- Python version 3.12
+- Docker desktop
+- Postman
+
 # HOW TO GET STARTED
 
 - Clone the repo with: `git clone https://github.com/PkFokam-Alumni-Network/CommunityBackendService.git`
@@ -17,6 +23,7 @@ The part of the community website hosting all the backend and the services
 # HOW TO RUN YOUR SERVER LOCALLY
 
 - `uvicorn main:app --reload`
+- `docker compose -f docker-compose.dev.yaml up`
 
 # HOW TO MAKE CODE CHANGES
 

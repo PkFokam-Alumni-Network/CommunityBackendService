@@ -2,10 +2,14 @@ import secrets
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi import Depends, HTTPException, status
 from typing import Annotated
-from settings import settings
+from core.settings import settings
 
 security = HTTPBasic()
-def get_current_username(credentials: Annotated[HTTPBasicCredentials, Depends(security)]) -> str:
+
+
+def get_current_username(
+    credentials: Annotated[HTTPBasicCredentials, Depends(security)],
+) -> str:
     current_username_bytes = credentials.username.encode("utf8")
     correct_username_bytes = settings.DOCS_AUTH_USERNAME.encode("utf8")
     is_correct_username = secrets.compare_digest(
