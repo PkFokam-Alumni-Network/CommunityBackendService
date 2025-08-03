@@ -5,3 +5,12 @@ from .user_event import UserEvent
 from .announcement import Announcement
 from .session import Session
 from database import Base
+from core.database import Base
+
+__all__ = [
+    "Base",
+    "User",
+    "Event",
+    "UserEvent",
+    "Announcement",
+]
