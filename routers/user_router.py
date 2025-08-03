@@ -9,12 +9,12 @@ from logging_config import LOGGER
 router = APIRouter()
 
 @router.post("/login/", status_code=status.HTTP_200_OK, response_model=user_schema.UserLoginResponse)
-def login(user: user_schema.UserLogin,request: Request, session: Session = Depends(get_db)) -> user_schema.UserLoginResponse:
+def login(user: user_schema.UserLogin, request: Request, session: Session = Depends(get_db)) -> user_schema.UserLoginResponse:
     service = UserService()
     masked_email = user.email[:3] + '****'
     try:
         user_agent = request.headers.get("user-agent", "unknown")
-        response = service.login(session, user.email.lower(), user.password,user_agent)
+        response = service.login(session, user.email.lower(), user.password, user_agent)
         return response
     except ValueError as e:
         LOGGER.warning(f"Login failed for {masked_email}: {str(e)}")

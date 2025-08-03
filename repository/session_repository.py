@@ -25,9 +25,6 @@ class SessionRepository(metaclass=SingletonMeta):
             
             return session
             
-        except IntegrityError as e:
-            self.db.rollback()
-            raise ValueError(f"Session already exists or invalid data: {e}")
         except Exception as e:
             self.db.rollback()
             raise ValueError(f"Failed to create session: {e}")
@@ -41,6 +38,7 @@ class SessionRepository(metaclass=SingletonMeta):
     def get_active_sessions_by_user(self, user_id: int) -> List[Session]:
         now = datetime.now(timezone.utc).replace(tzinfo=None)  
         return self.db.query(Session).filter(Session.user_id == user_id, Session.is_active == True,Session.expires_at > now).all()
+    
     def delete_session_by_token(self, token: str) -> bool:
         try:
             session = self.get_session_by_token(token)
@@ -63,6 +61,7 @@ class SessionRepository(metaclass=SingletonMeta):
         except Exception as e:
             self.db.rollback()
             raise ValueError(f"Failed to delete user sessions: {e}")
+        
     def invalidate_session_by_token(self, token: str) -> bool:
         try:
             session = self.db.query(Session).filter(Session.token == token, Session.is_active == True).first()
