@@ -90,14 +90,25 @@ class UserService(metaclass=SingletonMeta):
             LOGGER.error("Error saving profile picture. ", e)
             raise e
     
+    # Function to get all the mentees of a mentor using his id.
     def get_mentees(self, db: Session, user_id: int) -> List[type[User]]:
         return self.user_repository.get_all_mentees(db, user_id)
-
-    # TODO: Uncomment and implement this method when the mentor assignment feature with id is implemented 
-    def unassign_mentor(self, db: Session, mentee_id: str):
+    
+    # Function to assign a mentor to a student using ids
+    def assign_mentor(self, db: Session, mentee_id: int, mentor_id: int):
         mentee = self.user_repository.get_user_by_id(db, mentee_id)
+        mentor = self.user_repository.get_user_by_id(db, mentor_id)
+        # Check if the mentee and the mentor exist
+        if not mentee or not mentor:
+            raise ValueError("User not found")
+        return self.update_user(db, mentee_id, {"mentor_id": mentor_id})
+
+    # Function to unassign a mentor to a student using ids 
+    def unassign_mentor(self, db: Session, mentee_id: int):
+        mentee = self.user_repository.get_user_by_id(db, mentee_id)
+        # Check if the mentee was already assigned a mentor
         if not mentee.mentor_id:
-            return 
+            raise ValueError("Mentor not found")
         return self.update_user(db, mentee_id, {"mentor_id": None})
 
     def update_user_email(self, db: Session, user_id: int, new_email: str) -> Optional[User]:
