@@ -1,20 +1,11 @@
 import pytest
-from typing import Generator
 from fastapi.testclient import TestClient
-from core.database import Base, engine, get_db
-from models.post import Post
 from models.user import User
-from services.user_service import UserService
 from schemas.post_schema import PostResponse
 from schemas.user_schema import UserCreatedResponse
-from tests.conftest import create_and_teardown_tables, client
-
-@pytest.fixture(scope="function", autouse=True)
-def setup_and_teardown_db() -> Generator[TestClient, None, None]:
-    yield from create_and_teardown_tables([User.metadata, Post.metadata])
 
 @pytest.fixture(scope="function")
-def test_users() -> list[User]:
+def test_users(client: TestClient) -> list[User]:
     user1_data = {
         "email":"alice@example.com",
         "first_name":"Alice",
@@ -35,7 +26,7 @@ def test_users() -> list[User]:
     return [user1, user2]
 
 
-def test_create_get_post(test_users):
+def test_create_get_post(client: TestClient,test_users: list[User]):
     user1 = test_users[0]
     post_data = {
         "title": "First Test Post",
@@ -54,7 +45,7 @@ def test_create_get_post(test_users):
     assert response.status_code == 200
     assert response.json()["title"] == "First Test Post"
 
-def test_get_recent_posts(test_users):
+def test_get_recent_posts(client: TestClient,test_users: list[User]):
     for i, user in enumerate(test_users, start=1):
         for category in ["Career", "Immigration", "Job search"]:
             post_response = client.post("/posts/", json={
@@ -70,7 +61,7 @@ def test_get_recent_posts(test_users):
     assert len(response.json()) >= 6
 
 
-def test_get_recent_posts_by_category(test_users):
+def test_get_recent_posts_by_category(client: TestClient,test_users: list[User]):
     user1 = test_users[0]
     client.post("/posts/", json={
         "title": "Science Post",
@@ -83,13 +74,13 @@ def test_get_recent_posts_by_category(test_users):
     assert all(post["category"] == "Science" for post in response.json())
 
 
-def test_get_non_existing_post():
+def test_get_non_existing_post(client: TestClient):
     response = client.get("/posts/999") 
     assert response.status_code == 404
     assert response.json()["detail"] == "Post not found"
 
 
-def test_update_post_success(test_users):
+def test_update_post_success(client: TestClient,test_users: list[User]):
     user1 = test_users[0]
     post_data = {
         "title": "Update Me",
@@ -109,7 +100,7 @@ def test_update_post_success(test_users):
     assert response.json()["title"] == "Updated Title"
 
 
-def test_update_post_unauthorized(test_users):
+def test_update_post_unauthorized(client: TestClient,test_users: list[User]):
     user1, user2 = test_users
     post = client.post("/posts/", json={
         "title": "Unauthorized Edit",
@@ -127,7 +118,7 @@ def test_update_post_unauthorized(test_users):
     assert "Not authorized" in response.json()["detail"]
 
 
-def test_delete_post_success(test_users):
+def test_delete_post_success(client: TestClient,test_users: list[User]):
     user1 = test_users[0]
     post = client.post("/posts/", json={
         "title": "Trash Me",
@@ -141,7 +132,7 @@ def test_delete_post_success(test_users):
     assert "successfully deleted" in response.json()["message"]
 
 
-def test_delete_post_unauthorized(test_users):
+def test_delete_post_unauthorized(client: TestClient,test_users: list[User]):
     user1, user2 = test_users
     post = client.post("/posts/", json={
         "title": "Do Not Delete",
