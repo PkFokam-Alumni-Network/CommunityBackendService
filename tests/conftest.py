@@ -8,7 +8,7 @@ from main import app
 import core.database as database
 
 TEST_DATABASE_URL = os.getenv(
-    "TEST_DATABASE_URL", "postgresql://user:password@postgres:5432/test_db"
+    "TEST_DATABASE_URL", "postgresql://user:password@localhost:5432/test_db"
 )
 
 
