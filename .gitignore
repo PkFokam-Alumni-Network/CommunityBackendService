@@ -167,4 +167,4 @@ uploads
 # Vscode
 .vscode/
 
-database.db
+.env.test

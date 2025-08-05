@@ -8,9 +8,11 @@ class Settings:
         self.ENV = os.getenv("ENV", "development")
 
         if self.ENV == "production":
-            self._load_production_secrets()
+            secrets = self._load_production_secrets()
         else:
-            self._load_dev_secrets()
+            secrets = self._load_dev_secrets()
+
+        self._set_common_attributes(secrets)
 
     def _load_production_secrets(self):
         secret_name = os.getenv("SECRETS_MANAGER_NAME", "creds")
@@ -18,8 +20,22 @@ class Settings:
 
         client = boto3.client("secretsmanager", region_name=region_name)
         secret_value = client.get_secret_value(SecretId=secret_name)
-        secrets = json.loads(secret_value["SecretString"])
+        return json.loads(secret_value["SecretString"])
 
+    def _load_dev_secrets(self):
+        return {
+            "SECRET_KEY": os.getenv("SECRET_KEY", "DEFAULT_KEY"),
+            "ACCESS_KEY": os.getenv("ACCESS_KEY", "DEFAULT_KEY"),
+            "BUCKET_NAME": os.getenv("BUCKET_NAME", "DEFAULT_BUCKET"),
+            "ADMIN_EMAIL": os.getenv("ADMIN_EMAIL"),
+            "SENDGRID_API_KEY": os.getenv("SENDGRID_API_KEY"),
+            "BASE_URL": os.getenv("BASE_URL"),
+            "DOCS_AUTH_USERNAME": os.getenv("DOCS_AUTH_USERNAME"),
+            "DOCS_AUTH_PASSWORD": os.getenv("DOCS_AUTH_PASSWORD"),
+            "DATABASE_URL": self._get_local_database_url(),
+        }
+
+    def _set_common_attributes(self, secrets: dict):
         self.SECRET_KEY = secrets.get("SECRET_KEY", "DEFAULT_KEY")
         self.ACCESS_KEY = secrets.get("ACCESS_KEY", "DEFAULT_KEY")
         self.BUCKET_NAME = secrets.get("BUCKET_NAME", "DEFAULT_BUCKET")
@@ -30,22 +46,21 @@ class Settings:
         self.DOCS_AUTH_USERNAME = secrets.get("DOCS_AUTH_USERNAME")
         self.DOCS_AUTH_PASSWORD = secrets.get("DOCS_AUTH_PASSWORD")
 
-    def _load_dev_secrets(self):
-        self.SECRET_KEY = os.getenv("SECRET_KEY", "DEFAULT_KEY")
-        self.ACCESS_KEY = os.getenv("ACCESS_KEY", "DEFAULT_KEY")
-        self.BUCKET_NAME = os.getenv("BUCKET_NAME", "DEFAULT_BUCKET")
-        self.ADMIN_EMAIL = os.getenv("ADMIN_EMAIL")
-        self.SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
-        self.BASE_URL = os.getenv("BASE_URL")
-        self.DATABASE_URL = os.getenv("DATABASE_URL")
-        self.DOCS_AUTH_USERNAME = os.getenv("DOCS_AUTH_USERNAME")
-        self.DOCS_AUTH_PASSWORD = os.getenv("DOCS_AUTH_PASSWORD")
+    def _get_local_database_url(self):
+        user = os.getenv("POSTGRES_USER", "postgres")
+        password = os.getenv("POSTGRES_PASSWORD", "postgres")
+        db = os.getenv("POSTGRES_DB", "postgres")
+        host = os.getenv("DB_HOST", "localhost")
+        port = os.getenv("DB_PORT", "5432")
+        return f"postgresql://{user}:{password}@{host}:{port}/{db}"
 
     @property
     def cors_origins(self):
         if self.ENV == "development":
             return ["*"]
-        return ["https://pkfalumni.com", "https://backoffice.pkfalumni.com"]
-
+        return [
+            "https://pkfalumni.com",
+            "https://backoffice.pkfalumni.com"
+        ]
 
 settings = Settings()
