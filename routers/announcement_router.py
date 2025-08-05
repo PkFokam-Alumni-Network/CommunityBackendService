@@ -9,6 +9,7 @@ from schemas.announcement_schema import (
 from services.announcement_service import AnnouncementService
 from models.announcement import Announcement
 from core.logging_config import LOGGER
+from services.email_service import EmailService
 
 router = APIRouter()
 
@@ -22,8 +23,11 @@ def create_announcement(
     announcement: AnnouncementCreate, session: Session = Depends(get_db)
 ) -> AnnouncementResponse:
     service = AnnouncementService()
+    email_service = EmailService()
     try:
         ann = service.create_announcement(session, announcement)
+
+        email_service.send_announcement_email(session, ann)
         return ann
     except ValueError as e:
         LOGGER.warning(f"Announcement creation failed: {str(e)}")
