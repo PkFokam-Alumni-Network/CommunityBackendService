@@ -2,11 +2,10 @@ from typing import Optional, Type
 from sqlalchemy.orm import Session
 from models.announcement import Announcement
 from schemas.announcement_schema import AnnouncementCreate, AnnouncementUpdate
-from utils.singleton_meta import SingletonMeta
 from utils.retry import retry_on_db_error
 
 
-class AnnouncementRepository(metaclass=SingletonMeta):
+class AnnouncementRepository():
     @retry_on_db_error()
     def add_announcement(
         self, db: Session, announcement: AnnouncementCreate

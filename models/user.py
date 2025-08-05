@@ -31,9 +31,8 @@ class User(Base):
     instagram_profile = Column(Text, nullable=True)
     role = Column(Enum(UserRole), default=UserRole.user, nullable=False)
 
-    mentor = relationship(
-        "User", remote_side=[id], backref="mentees", foreign_keys=[mentor_id]
-    )
-    user_events = relationship(
-        "UserEvent", back_populates="user", cascade="all, delete-orphan"
-    )
+    posts = relationship("Post", back_populates="author")
+    # comments = relationship("Comment", back_populates="author", cascade="all, delete-orphan")
+    mentor = relationship("User", remote_side=[id], backref="mentees", foreign_keys=[mentor_id])
+    user_events = relationship("UserEvent", back_populates="user", cascade="all, delete-orphan")
+    

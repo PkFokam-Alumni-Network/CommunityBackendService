@@ -6,7 +6,7 @@ from core.auth import get_current_username
 import core.database as database
 from sqlalchemy import text
 from core.database import get_db
-from routers import user_router, announcement_router, event_router
+from routers import user_router, announcement_router, event_router, post_router
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
@@ -35,6 +35,8 @@ app.add_middleware(
 app.include_router(user_router.router)
 app.include_router(announcement_router.router)
 app.include_router(event_router.router)
+app.include_router(post_router.router)
+# app.include_router(comment_router.router)
 
 
 @app.get("/")
