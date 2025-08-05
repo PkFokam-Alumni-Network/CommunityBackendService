@@ -5,7 +5,11 @@ from typing import Annotated
 from core.settings import settings
 
 security = HTTPBasic()
-def get_current_username(credentials: Annotated[HTTPBasicCredentials, Depends(security)]) -> str:
+
+
+def get_current_username(
+    credentials: Annotated[HTTPBasicCredentials, Depends(security)],
+) -> str:
     current_username_bytes = credentials.username.encode("utf8")
     correct_username_bytes = settings.DOCS_AUTH_USERNAME.encode("utf8")
     is_correct_username = secrets.compare_digest(

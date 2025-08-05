@@ -6,22 +6,25 @@ Base = declarative_base()
 engine = None
 SessionLocal = None
 
+
 @retry_on_db_error()
 def init_db(database_url: str):
     global engine, SessionLocal
     engine = create_engine(
         database_url,
         pool_pre_ping=True,
-        pool_recycle=900, # 15 minutes
+        pool_recycle=900,  # 15 minutes
         pool_timeout=30,
         pool_size=10,
         max_overflow=20,
-        connect_args= {}
+        connect_args={},
     )
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+
 def get_db():
     from core.database import SessionLocal  # ensure it's set
+
     db = SessionLocal()
     try:
         yield db

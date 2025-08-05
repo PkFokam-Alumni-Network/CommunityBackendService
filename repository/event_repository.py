@@ -4,6 +4,7 @@ from models.event import Event
 from utils.singleton_meta import SingletonMeta
 from utils.retry import retry_on_db_error
 
+
 class EventRepository(metaclass=SingletonMeta):
     @retry_on_db_error()
     def add_event(self, db: Session, event: Event) -> Event:
@@ -51,7 +52,9 @@ class EventRepository(metaclass=SingletonMeta):
             db.commit()
         except IntegrityError:
             db.rollback()
-            raise ValueError(f"Unable to delete event with id {event_id} due to integrity constraints.")
+            raise ValueError(
+                f"Unable to delete event with id {event_id} due to integrity constraints."
+            )
         except Exception as e:
             db.rollback()
             raise RuntimeError(f"An error occurred while deleting the event: {e}")

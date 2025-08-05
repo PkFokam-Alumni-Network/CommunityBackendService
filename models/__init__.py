@@ -7,3 +7,11 @@ from .post import Post
 # from .upvote import Upvote
 from .announcement import Announcement
 from core.database import Base
+
+__all__ = [
+    "Base",
+    "User",
+    "Event",
+    "UserEvent",
+    "Announcement",
+]

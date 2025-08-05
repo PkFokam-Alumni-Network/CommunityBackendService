@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, Text, Text, DateTime
+from sqlalchemy import Boolean, Column, Integer, Text, DateTime
 from sqlalchemy.orm import relationship
 from core.database import Base
+
 
 class Event(Base):
     __tablename__ = "events"
@@ -13,6 +14,8 @@ class Event(Base):
     description = Column(Text, nullable=True)
     image = Column(Text, nullable=True)
     categories = Column(Text)  # Stored as comma separated values
-    
-    user_events = relationship("UserEvent", back_populates="event", cascade="all, delete-orphan")
+    is_active = Column(Boolean, default=True, nullable=False)
 
+    user_events = relationship(
+        "UserEvent", back_populates="event", cascade="all, delete-orphan"
+    )

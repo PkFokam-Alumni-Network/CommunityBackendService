@@ -32,6 +32,7 @@ target_metadata = Base.metadata
 
 config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
 
+
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
 
@@ -72,9 +73,13 @@ def run_migrations_online() -> None:
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, 
+            connection=connection,
             target_metadata=target_metadata,
-            **({"transaction_per_migration": True} if connection.dialect.name == "sqlite" else {})
+            **(
+                {"transaction_per_migration": True}
+                if connection.dialect.name == "sqlite"
+                else {}
+            ),
         )
 
         with context.begin_transaction():
