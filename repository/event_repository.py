@@ -1,11 +1,10 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError, OperationalError
 from models.event import Event
-from utils.singleton_meta import SingletonMeta
 from utils.retry import retry_on_db_error
 
 
-class EventRepository(metaclass=SingletonMeta):
+class EventRepository():
     @retry_on_db_error()
     def add_event(self, db: Session, event: Event) -> Event:
         try:

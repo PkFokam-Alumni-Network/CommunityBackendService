@@ -2,11 +2,10 @@ from typing import Optional, List
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError, OperationalError
 from models.user import User
-from utils.singleton_meta import SingletonMeta
 from utils.retry import retry_on_db_error
 
 
-class UserRepository(metaclass=SingletonMeta):
+class UserRepository():
     @retry_on_db_error()
     def add_user(self, db: Session, user: User) -> User:
         try:

@@ -11,11 +11,10 @@ from schemas.event_schema import (
     EventUpdate,
     EventWithAttendees,
 )
-from utils.singleton_meta import SingletonMeta
 from datetime import datetime, timezone
 
 
-class EventService(metaclass=SingletonMeta):
+class EventService():
     def create_event(self, db: Session, event_data: EventCreate) -> Event:
         event_repository = EventRepository()
         event_data_dict = event_data.model_dump()

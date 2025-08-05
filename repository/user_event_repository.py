@@ -4,11 +4,10 @@ from sqlalchemy.exc import IntegrityError
 from models.user_event import UserEvent
 from models.user import User
 from models.event import Event
-from utils.singleton_meta import SingletonMeta
 from utils.retry import retry_on_db_error
 
 
-class UserEventRepository(metaclass=SingletonMeta):
+class UserEventRepository():
     @retry_on_db_error()
     def add_user_to_event(self, db: Session, user_email: String, event_id: int) -> None:
         try:

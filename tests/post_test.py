@@ -56,7 +56,6 @@ def test_get_recent_posts(client: TestClient,test_users: list[User]):
             assert post_response.status_code == 201
 
     response = client.get("/posts/recent")
-    print(response)
     assert response.status_code == 200
     assert len(response.json()) >= 6
 
