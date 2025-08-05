@@ -32,7 +32,7 @@ class Settings:
             "BASE_URL": os.getenv("BASE_URL"),
             "DOCS_AUTH_USERNAME": os.getenv("DOCS_AUTH_USERNAME"),
             "DOCS_AUTH_PASSWORD": os.getenv("DOCS_AUTH_PASSWORD"),
-            "DATABASE_URL": self._get_local_database_url(),
+            "DATABASE_URL": os.getenv("DATABASE_URL"),
         }
 
     def _set_common_attributes(self, secrets: dict):
@@ -46,13 +46,6 @@ class Settings:
         self.DOCS_AUTH_USERNAME = secrets.get("DOCS_AUTH_USERNAME")
         self.DOCS_AUTH_PASSWORD = secrets.get("DOCS_AUTH_PASSWORD")
 
-    def _get_local_database_url(self):
-        user = os.getenv("POSTGRES_USER", "postgres")
-        password = os.getenv("POSTGRES_PASSWORD", "postgres")
-        db = os.getenv("POSTGRES_DB", "postgres")
-        host = os.getenv("DB_HOST", "localhost")
-        port = os.getenv("DB_PORT", "5432")
-        return f"postgresql://{user}:{password}@{host}:{port}/{db}"
 
     @property
     def cors_origins(self):
