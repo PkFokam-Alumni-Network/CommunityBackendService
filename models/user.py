@@ -1,10 +1,6 @@
 import enum
-<<<<<<< HEAD
-from sqlalchemy import Boolean, Column, Enum, Text, Integer,ForeignKey, Text
+from sqlalchemy import Boolean, Column, Enum, Text, Integer,ForeignKey
 from sqlalchemy.dialects.postgresql import JSON
-=======
-from sqlalchemy import Boolean, Column, Enum, Text, Integer, ForeignKey
->>>>>>> a9d962a3c8ff3ea3accaa38304fb15518cddcd86
 from sqlalchemy.orm import relationship
 from core.database import Base
 
