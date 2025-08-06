@@ -23,11 +23,11 @@ def test_correct_login(client: TestClient) -> None:
     login_data = {"email": "login_test@example.com", "password": "testpassword"}
     response = client.post("/login/", json=login_data)
     assert response.status_code == 200
-    loginResponse: UserLoginResponse = UserLoginResponse.model_validate(response.json())
+    login_response: UserLoginResponse = UserLoginResponse.model_validate(response.json())
 
-    assert loginResponse.access_token is not None
-    assert loginResponse.token_type == "bearer"
-    access_token = loginResponse.access_token
+    assert login_response.access_token is not None
+    assert login_response.token_type == "bearer"
+    access_token = login_response.access_token
     payload = verify_jwt(access_token)
     assert payload is not None
     assert payload["user_id"] == user_data["email"]
@@ -323,3 +323,30 @@ def test_get_all_users_filters_by_name(client: TestClient) -> None:
     users = TypeAdapter(List[UserGetResponse]).validate_python(response.json())
     assert len(users) == 1
     assert users[0].first_name == "Ella"
+    
+def test_create_user_with_multiple_degrees(client: TestClient) -> None:
+    user_data = {
+        "email": "multi_degrees@example.com",
+        "first_name": "Multi",
+        "last_name": "DegreeUser",
+        "password": "securepassword",
+        "degrees": [
+            {
+                "degree_level": "BSc",
+                "major": "Computer Science",
+                "graduation_year": 2020,
+                "university": "KSU"
+            },
+            {
+                "degree_level": "MSc",
+                "major": "Data Science",
+                "graduation_year": 2022,
+                "university": "MIT"
+            }
+        ]
+    }
+    response = client.post("/users/", json=user_data)
+    assert response.status_code == 201
+    user = response.json()
+    assert len(user["degrees"]) == 2
+    assert user["degrees"][0]["degree_level"] == "BSc"

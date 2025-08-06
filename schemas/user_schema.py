@@ -1,9 +1,15 @@
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel, ConfigDict, EmailStr
 
 from models.user import User, UserRole
 
 
+class Degree(BaseModel):
+    degree_level: str
+    major: str
+    graduation_year: int
+    university: str
+    
 class UserCreate(BaseModel):
     email: EmailStr
     first_name: str
@@ -15,10 +21,8 @@ class UserCreate(BaseModel):
     image: Optional[str] = "https://www.w3schools.com/howto/img_avatar.png"
     bio: Optional[str] = None
 
-    graduation_year: Optional[int] = None
-    degree: Optional[str] = None
-    major: Optional[str] = None
-
+    degrees: Optional[List[Degree]] = None
+    
     current_occupation: Optional[str] = None
 
     linkedin_profile: Optional[str] = None
@@ -46,9 +50,7 @@ class UserGetResponse(BaseModel):
     phone: Optional[str]
     image: Optional[str]
     bio: Optional[str]
-    graduation_year: Optional[int]
-    degree: Optional[str]
-    major: Optional[str]
+    degrees: Optional[List[Degree]] = None
     current_occupation: Optional[str]
     linkedin_profile: Optional[str]
     instagram_profile: Optional[str]
@@ -91,9 +93,7 @@ class UserUpdate(BaseModel):
     phone: Optional[str] = None
     image: Optional[str] = None
     bio: Optional[str] = None
-    graduation_year: Optional[int] = None
-    degree: Optional[str] = None
-    major: Optional[str] = None
+    degrees: Optional[List[Degree]] = None
     current_occupation: Optional[str] = None
     linkedin_profile: Optional[str] = None
     instagram_profile: Optional[str] = None
@@ -144,9 +144,7 @@ class UserLoginResponse(UserCreate):
             phone=user.phone,
             image=user.image,
             bio=user.bio,
-            graduation_year=user.graduation_year,
-            degree=user.degree,
-            major=user.major,
+            degrees=user.degrees or [],
             current_occupation=user.current_occupation,
             linkedin_profile=user.linkedin_profile,
             instagram_profile=user.instagram_profile,
