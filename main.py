@@ -19,7 +19,8 @@ from datetime import datetime
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     database.init_db(settings.DATABASE_URL)
-    database.Base.metadata.create_all(bind=database.engine)
+    if settings.ENV == "development":
+        database.Base.metadata.create_all(bind=database.engine)
     yield
 
 

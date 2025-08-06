@@ -58,10 +58,8 @@ We use Pytest as our unit testing framework. Here are some commands to run tests
 
 # ALEMBIC MIGRATIONS
 
-- Make a copy of the database from S3 bucket
 - Make a change to the models
-- alembic revision -m "{Purpose of the migration}"
-- Log in to the docker container and run `alembic upgrade head`
+- alembic revision --autogenerate -m "{Purpose of the migration}"
 
 # DESIGN AND DATA MODEL
 
