@@ -22,7 +22,7 @@ The part of the community website hosting all the backend and the services
 
 # HOW TO RUN YOUR SERVER LOCALLY
 
-- `uvicorn main:app --reload`
+- `docker compose -f docker-compose.dev.yaml build`
 - `docker compose -f docker-compose.dev.yaml up`
 
 # HOW TO MAKE CODE CHANGES
@@ -55,11 +55,17 @@ We use Pytest as our unit testing framework. Here are some commands to run tests
 
 - Always use static typing when possible.
 - Always use named parameters instead of positional parameters when a function takes more than 1 argument
+- If a function has two many arguments, use dataclasses
+- Always make the migration and model PRs separate from your feature changes
 
 # ALEMBIC MIGRATIONS
 
+- Run your server locally
+  - `docker compose -f docker-compose.dev.yaml up`
+  - `docker compose -f docker-compose.dev.yaml build`
 - Make a change to the models
-- alembic revision --autogenerate -m "{Purpose of the migration}"
+- `alembic revision --autogenerate -m "Purpose of the migration"`
+- `alembic upgrade head`
 
 # DESIGN AND DATA MODEL
 
