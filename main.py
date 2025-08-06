@@ -24,6 +24,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None)
 
+LOGGER.info("Starting PACI Community Backend Service")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
@@ -31,6 +33,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+LOGGER.info(f"CORS origins set to: {settings.cors_origins}")
 app.include_router(user_router.router)
 app.include_router(announcement_router.router)
 app.include_router(event_router.router)
