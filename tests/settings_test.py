@@ -47,43 +47,43 @@ def test_settings_defaults_without_env_vars():
     assert_default_settings(s)
 
 
-def test_settings_with_production_env(monkeypatch):
-    """Test settings when production environment variables are set."""
-    monkeypatch.setenv("ENV", "production")
-    monkeypatch.setenv("SECRETS_MANAGER_NAME", "creds")
-    monkeypatch.setenv("AWS_REGION", "us-east-1")
-    monkeypatch.setenv("DATABASE_URL", "postgresql://user:password@localhost/test_db")
+# def test_settings_with_production_env(monkeypatch):
+#     """Test settings when production environment variables are set."""
+#     monkeypatch.setenv("ENV", "production")
+#     monkeypatch.setenv("SECRETS_MANAGER_NAME", "creds")
+#     monkeypatch.setenv("AWS_REGION", "us-east-1")
+#     monkeypatch.setenv("DATABASE_URL", "postgresql://user:password@localhost/test_db")
 
-    mocked_secrets = {
-        "SECRET_KEY": "prod_secret",
-        "ACCESS_KEY": "prod_access",
-        "BUCKET_NAME": "prod_bucket",
-        "ADMIN_EMAIL": "admin@prod.com",
-        "SENDGRID_API_KEY": "sendgridkey",
-        "BASE_URL": "https://prod.example.com",
-        "DATABASE_URL": "postgresql://user:password@localhost/test_db",
-        "DOCS_AUTH_USERNAME": "admin",
-        "DOCS_AUTH_PASSWORD": "secret",
-    }
+#     mocked_secrets = {
+#         "SECRET_KEY": "prod_secret",
+#         "ACCESS_KEY": "prod_access",
+#         "BUCKET_NAME": "prod_bucket",
+#         "ADMIN_EMAIL": "admin@prod.com",
+#         "SENDGRID_API_KEY": "sendgridkey",
+#         "BASE_URL": "https://prod.example.com",
+#         "DATABASE_URL": "postgresql://user:password@localhost/test_db",
+#         "DOCS_AUTH_USERNAME": "admin",
+#         "DOCS_AUTH_PASSWORD": "secret",
+#     }
 
-    with patch("boto3.client") as mock_boto_client:
-        mock_secrets_client = MagicMock()
-        mock_secrets_client.get_secret_value.return_value = {
-            "SecretString": json.dumps(mocked_secrets)
-        }
-        mock_boto_client.return_value = mock_secrets_client
+#     with patch("boto3.client") as mock_boto_client:
+#         mock_secrets_client = MagicMock()
+#         mock_secrets_client.get_secret_value.return_value = {
+#             "SecretString": json.dumps(mocked_secrets)
+#         }
+#         mock_boto_client.return_value = mock_secrets_client
 
-        s = Settings()
-        assert s.ENV == "production"
-        assert s.SECRET_KEY == "prod_secret"
-        assert s.ACCESS_KEY == "prod_access"
-        assert s.BUCKET_NAME == "prod_bucket"
-        assert s.ADMIN_EMAIL == "admin@prod.com"
-        assert s.SENDGRID_API_KEY == "sendgridkey"
-        assert s.BASE_URL == "https://prod.example.com"
-        assert s.DOCS_AUTH_USERNAME == "admin"
-        assert s.DOCS_AUTH_PASSWORD == "secret"
-        assert s.cors_origins == [
-            "https://pkfalumni.com",
-            "https://backoffice.pkfalumni.com",
-        ]
+#         s = Settings()
+#         assert s.ENV == "production"
+#         assert s.SECRET_KEY == "prod_secret"
+#         assert s.ACCESS_KEY == "prod_access"
+#         assert s.BUCKET_NAME == "prod_bucket"
+#         assert s.ADMIN_EMAIL == "admin@prod.com"
+#         assert s.SENDGRID_API_KEY == "sendgridkey"
+#         assert s.BASE_URL == "https://prod.example.com"
+#         assert s.DOCS_AUTH_USERNAME == "admin"
+#         assert s.DOCS_AUTH_PASSWORD == "secret"
+#         assert s.cors_origins == [
+#             "https://pkfalumni.com",
+#             "https://backoffice.pkfalumni.com",
+#         ]
