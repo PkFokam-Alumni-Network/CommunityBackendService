@@ -8,7 +8,8 @@ class Settings:
         self.ENV = os.getenv("ENV", "development")
 
         if self.ENV == "production":
-            secrets = self._load_production_secrets()
+            # secrets = self._load_production_secrets() will fix when Adlaelaelu fix secrets manager
+            secrets = self._load_dev_secrets()
         else:
             secrets = self._load_dev_secrets()
 
