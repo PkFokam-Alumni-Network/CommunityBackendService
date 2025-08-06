@@ -1,9 +1,6 @@
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
-try:
-    from database import Base
-except ImportError:
-    from ..database import Base
+from core.database import Base
 from datetime import datetime, timezone
 
 class Session(Base):

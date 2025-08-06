@@ -1,11 +1,9 @@
 from typing import List, Optional
 from sqlalchemy.orm import Session as DBSession
-from sqlalchemy.exc import IntegrityError
 from models.session import Session
-from utils.singleton_meta import SingletonMeta
 from datetime import datetime,timezone
 
-class SessionRepository(metaclass=SingletonMeta): 
+class SessionRepository(): 
     def __init__(self, db_session: DBSession):
         self.db: DBSession = db_session
 

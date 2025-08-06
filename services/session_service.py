@@ -2,12 +2,11 @@ from datetime import datetime, timedelta,timezone
 from typing import Optional
 from models.session import Session
 from sqlalchemy.orm import Session as DBSession
-from utils.singleton_meta import SingletonMeta
 from repository.session_repository import SessionRepository
 from utils.func_utils import detect_device_type
 
 
-class SessionService(metaclass=SingletonMeta):
+class SessionService():
     def __init__(self, db_session: DBSession):   
         self.repository = SessionRepository(db_session)
         
@@ -26,7 +25,7 @@ class SessionService(metaclass=SingletonMeta):
     
     def get_session_by_token(self, token: str) -> Optional[Session]:
         session = self.repository.get_session_by_token(token)
-        if session and session.expires_at > datetime.utcnow():  
+        if session and session.expires_at > datetime.now(timezone.utc).replace(tzinfo=None):  
             return session
         if session:
             self.repository.delete_session_by_token(token)
@@ -47,6 +46,3 @@ class SessionService(metaclass=SingletonMeta):
         return self.repository.cleanup_expired_sessions()
     def delete_session_by_token(self, token: str) -> bool:
         return self.repository.delete_session_by_token(token)
-        
-    def delete_all_user_sessions(self, user_id: int) -> int:
-        return self.repository.delete_all_user_sessions(user_id)

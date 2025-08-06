@@ -23,10 +23,7 @@ class UserService():
     def __init__(self):
         self.user_repository = UserRepository()
         
-    def login(self, db: Session, email: str, password: str,user_agent: str = None) -> user_schema.UserLoginResponse:
-    def login(
-        self, db: Session, email: str, password: str
-    ) -> user_schema.UserLoginResponse:
+    def login(self, db: Session, email: str, password: str, user_agent: str = None) -> user_schema.UserLoginResponse:
         if not email or not password:
             raise ValueError("Email and password are required.")
         user = self.user_repository.get_user_by_email(db, email)
