@@ -17,11 +17,9 @@ from utils.func_utils import (
 )
 from utils.image_utils import validate_image
 from services.session_service import SessionService
-from utils.singleton_meta import SingletonMeta
 
 
-
-class UserService(metaclass=SingletonMeta):
+class UserService():
     def __init__(self):
         self.user_repository = UserRepository()
         

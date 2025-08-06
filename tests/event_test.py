@@ -5,7 +5,6 @@ from pydantic import TypeAdapter
 from typing import List
 from datetime import datetime, timedelta, timezone
 
-
 def test_create_event(client: TestClient) -> None:
     future_time = datetime.now(timezone.utc) + timedelta(days=7)
     event_data = {

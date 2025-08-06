@@ -12,7 +12,7 @@ from utils.func_utils import get_password_hash
 import core.database as database
 
 TEST_DATABASE_URL = os.getenv(
-    "TEST_DATABASE_URL", "postgresql://user:password@postgres:5432/test_db"
+    "TEST_DATABASE_URL", "postgresql://user:password@localhost:5432/test_db"
 )
 
 @pytest.fixture(scope="session")
