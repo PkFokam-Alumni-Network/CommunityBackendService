@@ -2,6 +2,12 @@
 
 The part of the community website hosting all the backend and the services
 
+# PRE-REQUISITES
+
+- Python version 3.12
+- Docker desktop
+- Postman
+
 # HOW TO GET STARTED
 
 - Clone the repo with: `git clone https://github.com/PkFokam-Alumni-Network/CommunityBackendService.git`
@@ -17,6 +23,7 @@ The part of the community website hosting all the backend and the services
 # HOW TO RUN YOUR SERVER LOCALLY
 
 - `uvicorn main:app --reload`
+- `docker compose -f docker-compose.dev.yaml up`
 
 # HOW TO MAKE CODE CHANGES
 
@@ -28,7 +35,17 @@ The part of the community website hosting all the backend and the services
 
 # TESTING
 
-- [Postman Collections](https://solar-shadow-655969.postman.co/workspace/Team-Workspace~b5dc0fe3-7281-4a8b-8693-293940ef7aff/collection/29422822-1d267a27-51a3-4860-893e-ed410410f187?action=share&creator=29422822)
+## Unit Tests
+
+We use Pytest as our unit testing framework. Here are some commands to run tests (we assume you are in the root folder of the project):
+
+- run all tests: `pytest`
+- run all tests of a particular file (e.g: announcement_test.py): `pytest .\tests\announcement_test.py`
+- run a specific test from a file(e.g test_get_non_existing_announcement): `pytest .\tests\announcement_test.py::test_get_non_existing_announcement`
+
+## Integration Tests
+
+- If you make changes to anything involving the API (a request input, a response, new headers, new auth), you should have a test with Postman to evaluate if your change works as expected at the HTTP level. Use Postman to make the relevant API calls and see if you get the expected response.
 
 # HELPFUL RESOURCES
 

@@ -15,7 +15,7 @@ class UserCreate(BaseModel):
     first_name: str
     last_name: str
     password: str
-    
+
     address: Optional[str] = None
     phone: Optional[str] = None
     image: Optional[str] = "https://www.w3schools.com/howto/img_avatar.png"
@@ -30,14 +30,16 @@ class UserCreate(BaseModel):
 
     role: Optional[str] = "user"
     is_active: Optional[bool] = True
-    
+
+
 class UserCreatedResponse(BaseModel):
     id: int
     email: str
     first_name: str
     last_name: str
-    
+
     model_config = ConfigDict(from_attributes=True)
+
 
 class UserGetResponse(BaseModel):
     id: int
@@ -53,15 +55,18 @@ class UserGetResponse(BaseModel):
     linkedin_profile: Optional[str]
     instagram_profile: Optional[str]
 
+
 class Attendee(BaseModel):
     image: Optional[str]
     first_name: str
     last_name: str
-    
+
     model_config = ConfigDict(from_attributes=True)
+
 
 class UserGetResponseWithId(UserGetResponse):
     id: int
+
 
 class UserGetResponseInternal(UserGetResponse):
     role: UserRole = UserRole.user
@@ -69,14 +74,17 @@ class UserGetResponseInternal(UserGetResponse):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class UserDeletedResponse(BaseModel):
     message: str
+
 
 class UserUpdate(BaseModel):
     first_name: Optional[str] = None
@@ -92,25 +100,32 @@ class UserUpdate(BaseModel):
     role: Optional[str] = None
     is_active: Optional[bool] = None
 
+
 class ProfilePictureUpdate(BaseModel):
     base64_image: str
 
+
 class EmailUpdate(BaseModel):
     new_email: EmailStr
+
 
 class PasswordUpdate(BaseModel):
     old_password: str
     new_password: str
 
+
 class PasswordReset(BaseModel):
     new_password: str
     token: str
 
+
 class PasswordResetRequest(BaseModel):
     email: EmailStr
 
+
 class PasswordResetRequestResponse(BaseModel):
     message: str
+
 
 class UserLoginResponse(UserCreate):
     id: int
@@ -118,9 +133,9 @@ class UserLoginResponse(UserCreate):
     token_type: str = "bearer"
 
     @staticmethod
-    def create_user_login_response(user:User, access_token:str):
+    def create_user_login_response(user: User, access_token: str):
         return UserLoginResponse(
-            id = user.id,
+            id=user.id,
             email=user.email,
             first_name=user.first_name,
             last_name=user.last_name,
@@ -135,6 +150,5 @@ class UserLoginResponse(UserCreate):
             instagram_profile=user.instagram_profile,
             role=user.role,
             is_active=user.is_active,
-            access_token=access_token
+            access_token=access_token,
         )
-        

@@ -2,13 +2,14 @@ from typing import Optional, Type
 from sqlalchemy.orm import Session
 from models.announcement import Announcement
 from schemas.announcement_schema import AnnouncementCreate, AnnouncementUpdate
-from utils.singleton_meta import SingletonMeta
 from utils.retry import retry_on_db_error
 
 
-class AnnouncementRepository(metaclass=SingletonMeta):
+class AnnouncementRepository():
     @retry_on_db_error()
-    def add_announcement(self, db: Session, announcement: AnnouncementCreate) -> Announcement:
+    def add_announcement(
+        self, db: Session, announcement: AnnouncementCreate
+    ) -> Announcement:
         db_announcement = Announcement(**announcement.model_dump())
         db.add(db_announcement)
         db.commit()
@@ -20,11 +21,15 @@ class AnnouncementRepository(metaclass=SingletonMeta):
         return db.query(Announcement).all()
 
     @retry_on_db_error()
-    def get_announcement_by_id(self, db: Session, announcement_id: int) -> Optional[Announcement]:
+    def get_announcement_by_id(
+        self, db: Session, announcement_id: int
+    ) -> Optional[Announcement]:
         return db.query(Announcement).filter(Announcement.id == announcement_id).first()
 
     @retry_on_db_error()
-    def update_announcement(self, db: Session, announcement_id: int, announcement: AnnouncementUpdate) -> Optional[Announcement]:
+    def update_announcement(
+        self, db: Session, announcement_id: int, announcement: AnnouncementUpdate
+    ) -> Optional[Announcement]:
         db_announcement = self.get_announcement_by_id(db, announcement_id)
         if db_announcement:
             for key, value in announcement.model_dump().items():
@@ -34,7 +39,9 @@ class AnnouncementRepository(metaclass=SingletonMeta):
         return db_announcement
 
     @retry_on_db_error()
-    def delete_announcement(self, db: Session, announcement_id: int) -> Optional[Announcement]:
+    def delete_announcement(
+        self, db: Session, announcement_id: int
+    ) -> Optional[Announcement]:
         db_announcement = self.get_announcement_by_id(db, announcement_id)
         if db_announcement:
             db.delete(db_announcement)
@@ -42,5 +49,7 @@ class AnnouncementRepository(metaclass=SingletonMeta):
         return db_announcement
 
     @retry_on_db_error()
-    def get_announcement_by_title(self, db: Session, title: str) -> Optional[Announcement]:
+    def get_announcement_by_title(
+        self, db: Session, title: str
+    ) -> Optional[Announcement]:
         return db.query(Announcement).filter(Announcement.title == title).first()
