@@ -192,7 +192,7 @@ def reset_password(body: user_schema.PasswordReset,
             LOGGER.error(f"SERVER ERROR in reset_password: {str(e)}")
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
         
-@router.put("/users/{user_id}/unassign-mentor/", status_code=status.HTTP_200_OK, response_model=user_schema.UserUpdate)
+@router.put("/users/{user_id}/unassign-mentor/", status_code=status.HTTP_200_OK, response_model=user_schema.UserUpdateMentor)
 def unassign_mentor(user_id: int, session: Session = Depends(get_db)):
     service = UserService()
     try:
@@ -205,7 +205,7 @@ def unassign_mentor(user_id: int, session: Session = Depends(get_db)):
         LOGGER.error(f"SERVER ERROR in unassign_mentor for user {user_id}: {str(e)}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
 
-@router.put("/users/{mentor_id}/assign_mentor/{mentee_id}", status_code=status.HTTP_200_OK, response_model=user_schema.UserUpdate)
+@router.put("/users/{mentor_id}/assign-mentor/{mentee_id}", status_code=status.HTTP_200_OK, response_model=user_schema.UserUpdateMentor)
 def assign_mentor(mentor_id: int, mentee_id: int, session: Session = Depends(get_db)):
     service = UserService()
     try:

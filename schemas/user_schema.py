@@ -51,6 +51,23 @@ class UserGetResponse(BaseModel):
     linkedin_profile: Optional[str]
     instagram_profile: Optional[str]
 
+class UserUpdateMentor(BaseModel):
+    id: int
+    email: str
+    first_name: str
+    last_name: str
+    address: Optional[str]
+    phone: Optional[str]
+    image: Optional[str]
+    bio: Optional[str]
+    graduation_year: Optional[int]
+    degree: Optional[str]
+    major: Optional[str]
+    current_occupation: Optional[str]
+    linkedin_profile: Optional[str]
+    instagram_profile: Optional[str]
+    mentor_id: Optional[int]
+
 class Attendee(BaseModel):
     image: Optional[str]
     first_name: str
