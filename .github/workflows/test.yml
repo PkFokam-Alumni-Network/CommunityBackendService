@@ -1,0 +1,57 @@
+name: Test
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  pytest:
+    name: 🧪 Run Pytest
+    runs-on: ubuntu-latest
+
+    container:
+      image: python:3.11-slim
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          apt-get update
+          apt-get install -y gcc libpq-dev build-essential lsb-release
+
+      - name: Install dependencies
+        run: |
+          pip install pytest psycopg2-binary
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Run tests
+        env:
+          DATABASE_URL: postgresql://user:password@postgres:5432/test_db
+          TEST_DATABASE_URL: postgresql://user:password@postgres:5432/test_db
+        run: pytest

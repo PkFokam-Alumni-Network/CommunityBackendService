@@ -166,5 +166,6 @@ uploads
 
 # Vscode
 .vscode/
+.DS_Store
 
-database.db
+.env.test
