@@ -5,12 +5,12 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from fastapi.testclient import TestClient
 from main import app
+from datetime import datetime, timezone, timedelta
 import core.database as database
 
 TEST_DATABASE_URL = os.getenv(
     "TEST_DATABASE_URL", "postgresql://user:password@localhost:5432/test_db"
 )
-
 
 @pytest.fixture(scope="session")
 def db_url() -> str:
@@ -54,3 +54,14 @@ def client(db_session: Session) -> Generator[TestClient, None, None]:
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()
+
+@pytest.fixture
+def test_session_data():
+    """Sample session data for testing"""
+    return {
+        "token": "test_jwt_token_123",
+        "device_type": "desktop",
+        "expires_at": datetime.now(timezone.utc) + timedelta(hours=24)
+    }
+
+

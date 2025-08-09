@@ -1,5 +1,6 @@
 # Import all models here to ensure they're loaded and available for SQLAlchemy otherwise the relationship might map in disorder
 from .user import User
+from .session import Session
 from .event import Event
 from .user_event import UserEvent
 from .post import Post
@@ -14,4 +15,6 @@ __all__ = [
     "Event",
     "UserEvent",
     "Announcement",
+    "Post",
+    "Session",
 ]

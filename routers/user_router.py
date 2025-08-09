@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query, status, Depends, HTTPException
+from fastapi import APIRouter, Query, status, Depends, HTTPException,Request
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from core.database import get_db
@@ -8,29 +8,20 @@ from core.logging_config import LOGGER
 
 router = APIRouter()
 
-
-@router.post(
-    "/login/",
-    status_code=status.HTTP_200_OK,
-    response_model=user_schema.UserLoginResponse,
-)
-def login(
-    user: user_schema.UserLogin, session: Session = Depends(get_db)
-) -> user_schema.UserLoginResponse:
+@router.post("/login/", status_code=status.HTTP_200_OK, response_model=user_schema.UserLoginResponse)
+def login(user: user_schema.UserLogin, request: Request, session: Session = Depends(get_db)) -> user_schema.UserLoginResponse:
     service = UserService()
-    masked_email = user.email[:3] + "****"
+    masked_email = user.email[:3] + '****'
     try:
-        response = service.login(session, user.email.lower(), user.password)
+        user_agent = request.headers.get("user-agent", "unknown")
+        response = service.login(session, user.email.lower(), user.password, user_agent)
         return response
     except ValueError as e:
         LOGGER.warning(f"Login failed for {masked_email}: {str(e)}")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
     except Exception as e:
         LOGGER.error(f"SERVER ERROR in login for {masked_email}: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal server error",
-        )
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
 
 
 @router.post(
