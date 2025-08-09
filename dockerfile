@@ -21,7 +21,12 @@ EXPOSE 9000
 # Copy the start script
 COPY start.sh /start.sh
 
-RUN chmod +x /start.sh
+RUN apt-get update && apt-get install -y dos2unix && \
+    dos2unix /start.sh && \
+    chmod +x /start.sh && \
+    apt-get remove -y dos2unix && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 
 # Run the startup script
