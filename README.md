@@ -19,6 +19,7 @@ The part of the community website hosting all the backend and the services
   - MacOS: `source venv/bin/activate`
 - Install the latest dependencies
   - pip install -r requirements.txt
+- Setup your .env file (reach out in paci-website discord channel for a sample) or copy from [here](https://github.com/orgs/PkFokam-Alumni-Network/discussions/3)
 
 # HOW TO RUN YOUR SERVER LOCALLY
 
@@ -60,12 +61,16 @@ We use Pytest as our unit testing framework. Here are some commands to run tests
 
 # ALEMBIC MIGRATIONS
 
-- Run your server locally
-  - `docker compose -f docker-compose.dev.yaml up`
-  - `docker compose -f docker-compose.dev.yaml build`
-- Make a change to the models
-- `alembic revision --autogenerate -m "Purpose of the migration"`
-- `alembic upgrade head`
+1. Run your server locally
+
+- `docker compose -f docker-compose.dev.yaml up`
+- `docker compose -f docker-compose.dev.yaml build`
+
+2. Make a change to the models
+3. Change this line `config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)` to `config.set_main_option("sqlalchemy.url", "postgresql://user:password@localhost:5432/test_db")`
+4. Generate the migration file with `alembic revision --autogenerate -m "Purpose of the migration"`
+5. Apply the migration with `alembic upgrade head`
+6. Revert 3.
 
 # DESIGN AND DATA MODEL
 
