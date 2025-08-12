@@ -36,3 +36,5 @@ class User(Base):
     mentor = relationship("User", remote_side=[id], backref="mentees", foreign_keys=[mentor_id])
     user_events = relationship("UserEvent", back_populates="user", cascade="all, delete-orphan")
     
+    resumes = relationship("Resume", back_populates="user", cascade="all, delete-orphan")
+    reviews = relationship("ResumeReview", back_populates="reviewer", cascade="all, delete-orphan")
