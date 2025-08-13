@@ -306,30 +306,45 @@ def request_password_reset(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
         LOGGER.error(f"SERVER ERROR in request_password_reset for {masked}: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal server error",
-        )
-
-
-@router.put(
-    "/password-reset",
-    status_code=status.HTTP_200_OK,
-    response_model=user_schema.UserUpdate,
-)
-def reset_password(
-    body: user_schema.PasswordReset, session: Session = Depends(get_db)
-) -> user_schema.UserUpdate:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
+    
+@router.put("/password-reset", status_code=status.HTTP_200_OK, response_model=user_schema.UserUpdate)
+def reset_password(body: user_schema.PasswordReset,
+                   session: Session = Depends(get_db)) -> user_schema.UserUpdate:
+        service = UserService()
+        try:
+            updated_user = service.reset_password(session, body.new_password, body.token)
+            return updated_user
+        except ValueError as e:
+            LOGGER.error(f"Password reset failed: {str(e)}")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        except Exception as e:
+            LOGGER.error(f"SERVER ERROR in reset_password: {str(e)}")
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
+        
+@router.put("/users/{user_id}/unassign-mentor/", status_code=status.HTTP_200_OK, response_model=user_schema.UserUpdateMentor)
+def unassign_mentor(user_id: int, session: Session = Depends(get_db)):
     service = UserService()
     try:
-        updated_user = service.reset_password(session, body.new_password, body.token)
-        return updated_user
+        updated_mentee = service.unassign_mentor(session, user_id)
+        return updated_mentee
     except ValueError as e:
-        LOGGER.error(f"Password reset failed: {str(e)}")
+        LOGGER.error(f"User mentor unassignment failed for {user_id}: {str(e)}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
-        LOGGER.error(f"SERVER ERROR in reset_password: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal server error",
-        )
+        LOGGER.error(f"SERVER ERROR in unassign_mentor for user {user_id}: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
+
+@router.put("/users/{mentor_id}/assign-mentor/{mentee_id}", status_code=status.HTTP_200_OK, response_model=user_schema.UserUpdateMentor)
+def assign_mentor(mentor_id: int, mentee_id: int, session: Session = Depends(get_db)):
+    service = UserService()
+    try:
+        updated_mentee = service.assign_mentor(session, mentee_id, mentor_id)
+        return updated_mentee
+    except ValueError as e:
+        LOGGER.error(f"User mentor assignment failed for {mentee_id}: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        LOGGER.error(f"SERVER ERROR in unassign_mentor for user {mentee_id}: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
+
