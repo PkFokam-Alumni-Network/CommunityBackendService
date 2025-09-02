@@ -6,10 +6,7 @@ from models.resume import ResumeStatus
 
 
 class ResumeCreate(BaseModel):
-    file_name: str
-    
-    model_config = ConfigDict(from_attributes=True)
-
+    pass
 
 class ResumeResponse(BaseModel):
     id: int

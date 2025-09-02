@@ -74,7 +74,6 @@ class ResumeReviewRepository:
         review = self.get_resume_review_by_id(db, review_id)
         if not review:
             raise ValueError("Resume review not found.")
-
         try:
             db.delete(review)
             db.commit()
