@@ -50,7 +50,7 @@ class Settings:
 
     @property
     def cors_origins(self):
-        if self.ENV == "development":
+        if self.ENV != "production":
             return ["*"]
         return [
             "https://pkfalumni.com",
