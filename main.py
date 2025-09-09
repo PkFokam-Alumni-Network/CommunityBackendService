@@ -19,8 +19,6 @@ from datetime import datetime
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     database.init_db(settings.DATABASE_URL)
-    LOGGER.info("Database initialized")
-    LOGGER.info(f"CORS: {settings.cors_origins}")
     yield
 
 

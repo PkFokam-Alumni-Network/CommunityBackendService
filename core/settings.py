@@ -54,7 +54,8 @@ class Settings:
             return ["*"]
         return [
             "https://pkfalumni.com",
-            "https://backoffice.pkfalumni.com"
+            "https://backoffice.pkfalumni.com",
+            "https://staging.pkfalumni.com",
         ]
 
 settings = Settings()
