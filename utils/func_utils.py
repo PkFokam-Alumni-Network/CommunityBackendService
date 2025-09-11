@@ -53,7 +53,6 @@ def verify_jwt(token: str) -> Any | None:
         raise ValueError("Invalid token")
     
 def validate_resume_file(file_data: bytes, file_name: str, max_size: int = 10 * 1024 * 1024) -> str:
-    
     if not file_data:
         raise ValueError("Uploaded file is empty.")
     
@@ -70,12 +69,9 @@ def validate_resume_file(file_data: bytes, file_name: str, max_size: int = 10 * 
     if not file_data.startswith(b'%PDF-'):
         raise ValueError("File does not appear to be a valid PDF format.")
     
-
     if b'%%EOF' not in file_data[-1024:]: 
         raise ValueError("File appears to be corrupted or incomplete PDF.")
     
-    return "pdf"
-
 def upload_file_to_s3(file_data: bytes, object_key: str) -> str:
     
     try:
