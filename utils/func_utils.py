@@ -81,7 +81,7 @@ def upload_image_to_s3(base64_image: str, object_key: str) -> str:
         LOGGER.info(
             f"File uploaded to S3 bucket '{settings.BUCKET_NAME}' with key '{object_key}'."
         )
-        return f"https://{settings.BUCKET_NAME}.s3.us-east-2.amazonaws.com/{object_key}"
+        return f"https://{settings.BUCKET_NAME}.s3.us-east-1.amazonaws.com/{object_key}"
     except Exception as e:
         LOGGER.error(f"Error uploading file to key {object_key}: {e}")
         raise ValueError("Error uploading file to S3 bucket")
