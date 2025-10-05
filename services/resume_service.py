@@ -7,6 +7,7 @@ from repository.resume_review_repository import ResumeReviewRepository
 from repository.user_repository import UserRepository
 from utils.func_utils import upload_file_to_s3, validate_resume_file
 from datetime import datetime
+from models.user import UserRole
 import uuid
 import os
 
@@ -73,7 +74,7 @@ class ResumeService:
             return resume
         
         requesting_user = self.user_repository.get_user_by_id(db, requesting_user_id)
-        if requesting_user and requesting_user.role.value == "admin":
+        if requesting_user and requesting_user.role == UserRole.admin:
             return resume
         
         raise ValueError("You are not authorized to view this resume.")
@@ -83,7 +84,7 @@ class ResumeService:
             raise ValueError("Reviewer ID is required.")
         
         reviewer = self.user_repository.get_user_by_id(db, reviewer_id)
-        if not reviewer or reviewer.role.value != "admin":
+        if not reviewer or reviewer.role != UserRole.admin:
             raise ValueError("You are not authorized to review resumes.")
         
         return self.resume_repository.get_resumes_by_status(db, ResumeStatus.pending, limit, page)
@@ -93,7 +94,7 @@ class ResumeService:
             raise ValueError("Resume ID, reviewer ID, and comments are required.")
         
         reviewer = self.user_repository.get_user_by_id(db, reviewer_id)
-        if not reviewer or reviewer.role.value != "admin":
+        if not reviewer or reviewer.role != UserRole.admin:
             raise ValueError("You are not authorized to review resumes.")
         
         resume = self.resume_repository.get_resume_by_id(db, resume_id)
@@ -124,7 +125,7 @@ class ResumeService:
             raise ValueError("Resume ID, new status, and requesting user ID are required.")
         
         requesting_user = self.user_repository.get_user_by_id(db, requesting_user_id)
-        if not requesting_user or requesting_user.role.value != "admin":
+        if not requesting_user or requesting_user.role != UserRole.admin:
             raise ValueError("You are not authorized to update resume status.")
         
         return self.resume_repository.update_resume_status(db, resume_id, new_status)
@@ -161,7 +162,7 @@ class ResumeService:
         if not requesting_user:
             raise ValueError("Requesting user not found.")
         
-        if resume.user_id != requesting_user_id and requesting_user.role.value != "admin":
+        if resume.user_id != requesting_user_id and requesting_user.role != UserRole.admin:
             raise ValueError("You are not authorized to delete this resume.")
         
         if resume.status == ResumeStatus.in_review:
