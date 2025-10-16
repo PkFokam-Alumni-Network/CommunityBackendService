@@ -80,7 +80,7 @@ def test_get_comments_by_post(client: TestClient, test_users: list, test_post: P
     client.post("/comments/", json={"content": "Second comment"}, params={"post_id": test_post.id, "user_id": user2.id})
     client.post("/comments/", json={"content": "Third comment"}, params={"post_id": test_post.id, "user_id": user1.id})
     
-    response = client.get(f"/comments/post/{test_post.id}")
+    response = client.get(f"/post/{test_post.id}/comments")
     assert response.status_code == 200
     comments = response.json()
     assert len(comments) == 3

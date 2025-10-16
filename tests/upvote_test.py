@@ -54,7 +54,7 @@ def test_upvote_post_success(client: TestClient, test_users: list, test_post: Po
     user1 = test_users[0]
     
     response = client.post(
-        f"/upvotes/post/{test_post.id}",
+        f"/post/{test_post.id}/upvote",
         params={"user_id": user1.id}
     )
     
@@ -70,10 +70,10 @@ def test_upvote_post_duplicate(client: TestClient, test_users: list, test_post: 
     user1 = test_users[0]
     
     # First upvote
-    client.post(f"/upvotes/post/{test_post.id}", params={"user_id": user1.id})
+    client.post(f"/post/{test_post.id}/upvote", params={"user_id": user1.id})
     
     # Second upvote (should fail)
-    response = client.post(f"/upvotes/post/{test_post.id}", params={"user_id": user1.id})
+    response = client.post(f"/post/{test_post.id}/upvote", params={"user_id": user1.id})
     
     assert response.status_code == 400
     assert "already upvoted" in response.json()["detail"]
@@ -83,10 +83,10 @@ def test_remove_upvote_from_post_success(client: TestClient, test_users: list, t
     user1 = test_users[0]
     
     # First upvote the post
-    client.post(f"/upvotes/post/{test_post.id}", params={"user_id": user1.id})
+    client.post(f"/post/{test_post.id}/upvote", params={"user_id": user1.id})
     
     # Remove upvote
-    response = client.delete(f"/upvotes/post/{test_post.id}", params={"user_id": user1.id})
+    response = client.delete(f"/post/{test_post.id}/upvote", params={"user_id": user1.id})
     
     assert response.status_code == 200
     assert response.json()["message"] == "Upvote removed successfully"
@@ -96,7 +96,7 @@ def test_remove_upvote_from_post_not_found(client: TestClient, test_users: list,
     user1 = test_users[0]
     
     # Try to remove upvote that doesn't exist
-    response = client.delete(f"/upvotes/post/{test_post.id}", params={"user_id": user1.id})
+    response = client.delete(f"/post/{test_post.id}/upvote", params={"user_id": user1.id})
     
     assert response.status_code == 404
     assert "Upvote not found" in response.json()["detail"]
@@ -106,7 +106,7 @@ def test_upvote_comment_success(client: TestClient, test_users: list, test_comme
     user2 = test_users[1]
     
     response = client.post(
-        f"/upvotes/comment/{test_comment.id}",
+        f"/comment/{test_comment.id}/upvote",
         params={"user_id": user2.id}
     )
     
@@ -122,10 +122,10 @@ def test_upvote_comment_duplicate(client: TestClient, test_users: list, test_com
     user1 = test_users[0]
     
     # First upvote
-    client.post(f"/upvotes/comment/{test_comment.id}", params={"user_id": user1.id})
+    client.post(f"/comment/{test_comment.id}/upvote", params={"user_id": user1.id})
     
     # Second upvote (should fail)
-    response = client.post(f"/upvotes/comment/{test_comment.id}", params={"user_id": user1.id})
+    response = client.post(f"/comment/{test_comment.id}/upvote", params={"user_id": user1.id})
     
     assert response.status_code == 400
     assert "already upvoted" in response.json()["detail"]
@@ -135,10 +135,10 @@ def test_remove_upvote_from_comment_success(client: TestClient, test_users: list
     user1 = test_users[0]
     
     # First upvote the comment
-    client.post(f"/upvotes/comment/{test_comment.id}", params={"user_id": user1.id})
+    client.post(f"/comment/{test_comment.id}/upvote", params={"user_id": user1.id})
     
     # Remove upvote
-    response = client.delete(f"/upvotes/comment/{test_comment.id}", params={"user_id": user1.id})
+    response = client.delete(f"/comment/{test_comment.id}/upvote", params={"user_id": user1.id})
     
     assert response.status_code == 200
     assert response.json()["message"] == "Upvote removed successfully"
@@ -148,7 +148,7 @@ def test_remove_upvote_from_comment_not_found(client: TestClient, test_users: li
     user2 = test_users[1]
     
     # Try to remove upvote that doesn't exist
-    response = client.delete(f"/upvotes/comment/{test_comment.id}", params={"user_id": user2.id})
+    response = client.delete(f"/comment/{test_comment.id}/upvote", params={"user_id": user2.id})
     
     assert response.status_code == 404
     assert "Upvote not found" in response.json()["detail"]
@@ -158,8 +158,8 @@ def test_multiple_users_upvote_same_post(client: TestClient, test_users: list, t
     user1, user2 = test_users
     
     # Both users upvote the same post
-    response1 = client.post(f"/upvotes/post/{test_post.id}", params={"user_id": user1.id})
-    response2 = client.post(f"/upvotes/post/{test_post.id}", params={"user_id": user2.id})
+    response1 = client.post(f"/post/{test_post.id}/upvote", params={"user_id": user1.id})
+    response2 = client.post(f"/post/{test_post.id}/upvote", params={"user_id": user2.id})
     
     assert response1.status_code == 201
     assert response2.status_code == 201
@@ -182,8 +182,8 @@ def test_user_can_upvote_multiple_posts(client: TestClient, test_users: list):
     }, params={"user_id": user1.id}).json()
     
     # User upvotes both posts
-    response1 = client.post(f"/upvotes/post/{post1['id']}", params={"user_id": user1.id})
-    response2 = client.post(f"/upvotes/post/{post2['id']}", params={"user_id": user1.id})
+    response1 = client.post(f"/post/{post1['id']}/upvote", params={"user_id": user1.id})
+    response2 = client.post(f"/post/{post2['id']}/upvote", params={"user_id": user1.id})
     
     assert response1.status_code == 201
     assert response2.status_code == 201
@@ -200,11 +200,11 @@ def test_comment_includes_upvote_count(client: TestClient, test_users: list, tes
     ).json()
     
     # Two users upvote the comment
-    client.post(f"/upvotes/comment/{comment['id']}", params={"user_id": user1.id})
-    client.post(f"/upvotes/comment/{comment['id']}", params={"user_id": user2.id})
+    client.post(f"/comment/{comment['id']}/upvote", params={"user_id": user1.id})
+    client.post(f"/comment/{comment['id']}/upvote", params={"user_id": user2.id})
     
     # Get comments for the post
-    response = client.get(f"/comments/post/{test_post.id}")
+    response = client.get(f"/post/{test_post.id}/comments")
     comments = response.json()
     
     assert response.status_code == 200
