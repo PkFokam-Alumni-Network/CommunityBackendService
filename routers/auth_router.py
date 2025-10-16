@@ -5,9 +5,9 @@ from schemas import user_schema
 from services.user_service import UserService
 from core.logging_config import LOGGER
 
-auth_router = APIRouter(prefix="/auth", tags=["Authentication"])
+router = APIRouter(tags=["Authentication"])
 
-@auth_router.post(
+@router.post(
     "/login",
     status_code=status.HTTP_200_OK,
     response_model=user_schema.UserLoginResponse,
@@ -31,7 +31,7 @@ def login(
         )
 
 
-@auth_router.post(
+@router.post(
     "/password-reset",
     status_code=status.HTTP_200_OK,
     response_model=user_schema.PasswordResetRequestResponse,
@@ -57,7 +57,7 @@ def request_password_reset(
         )
 
 
-@auth_router.put(
+@router.put(
     "/password-reset",
     status_code=status.HTTP_200_OK,
     response_model=user_schema.UserUpdate,
