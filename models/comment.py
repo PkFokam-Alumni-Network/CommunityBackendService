@@ -1,19 +1,18 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, Text, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 from core.database import Base
 
-class Post(Base):
-    __tablename__ = "posts"
+class Comment(Base):
+    __tablename__ = "comments"
 
     id = Column(Integer, primary_key=True, index=True)
+    post_id = Column(Integer, ForeignKey('posts.id', ondelete="CASCADE"), nullable=False)
     author_id = Column(Integer, ForeignKey('users.id', ondelete="CASCADE"), nullable=False)
-    title = Column(String(255), nullable=False)
     content = Column(Text, nullable=False)
-    category = Column(String(100))
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
-    author = relationship("User", back_populates="posts")
-    comments = relationship("Comment", back_populates="post", cascade="all, delete-orphan")
-    upvotes = relationship("Upvote", back_populates="post", cascade="all, delete-orphan")
+    post = relationship("Post", back_populates="comments")
+    author = relationship("User", back_populates="comments")
+    upvotes = relationship("Upvote", back_populates="comment", cascade="all, delete-orphan")
