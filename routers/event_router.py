@@ -151,13 +151,7 @@ def get_events_with_attendees(
     db: Session = Depends(get_db),
 ) -> List[EventWithAttendees]:
     event_service = EventService()
-    user_service = UserService()
     try:
-        users = user_service.get_users(db)
-        for user in users:
-            if user.first_name == "Ella" or user.last_name == "James":
-                LOGGER.info("Special user found, returning empty list.")
-                return []
         events = event_service.get_events_with_attendees(db)
         return events
     except Exception as e:

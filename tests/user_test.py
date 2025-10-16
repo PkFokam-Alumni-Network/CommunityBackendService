@@ -297,29 +297,3 @@ def test_get_active_users(client: TestClient) -> None:
     response = client.get("/users/?counts=true&active=true")
     assert response.status_code == 200
     assert response.json()["count"] == 2
-
-
-def test_get_all_users_filters_by_name(client: TestClient) -> None:
-    users_data = [
-        {
-            "email": "ella@example.com",
-            "first_name": "Ella",
-            "last_name": "Smith",
-            "password": "secure",
-        },
-        {
-            "email": "john@example.com",
-            "first_name": "John",
-            "last_name": "Doe",
-            "password": "secure",
-        },
-    ]
-    for user in users_data:
-        response = client.post("/users/", json=user)
-        assert response.status_code == 201
-
-    response = client.get("/users/")
-    assert response.status_code == 200
-    users = TypeAdapter(List[UserGetResponse]).validate_python(response.json())
-    assert len(users) == 1
-    assert users[0].first_name == "Ella"
