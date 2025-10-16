@@ -4,7 +4,6 @@ from typing import Optional
 from models.user import User
 from repository.user_repository import UserRepository
 from repository.session_repository import SessionRepository
-from passlib.context import CryptContext
 from schemas import user_schema
 from utils.func_utils import (
     check_password,
@@ -13,8 +12,6 @@ from utils.func_utils import (
     verify_jwt,
     get_password_hash,
 )
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 
 class AuthService:
     def __init__(self):
@@ -22,7 +19,7 @@ class AuthService:
         self.session_repo = SessionRepository()
 
     def verify_password(self, plain_password, hashed_password):
-        return pwd_context.verify(plain_password, hashed_password)
+        return check_password(plain_password, hashed_password)
 
     def login(
         self, db: Session, email: str, password: str

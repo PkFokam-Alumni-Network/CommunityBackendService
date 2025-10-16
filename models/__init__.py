@@ -6,8 +6,8 @@ from .post import Post
 from .resume import Resume
 from .resume_review import ResumeReview
 from .session import Session
-# from .comment import Comment
-# from .upvote import Upvote
+from .comment import Comment
+from .upvote import Upvote
 from .announcement import Announcement
 from core.database import Base
 
@@ -19,5 +19,8 @@ __all__ = [
     "Announcement",
     "Resume",
     "ResumeReview",
-    "Session"
+    "Session",
+    "Comment",
+    "Post",
+    "Upvote"
 ]
