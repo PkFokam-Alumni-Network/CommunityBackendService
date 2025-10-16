@@ -38,7 +38,7 @@ class AuthService:
                 user, access_token=token
             )
         )
-        self.session_repo.create_session(db, user.id)
+        self.session_repo.create_session(db, user.id, token)
         return user_login_response
 
     def logout(self, db: Session, token: str):
@@ -55,7 +55,7 @@ class AuthService:
             token = create_jwt(email)
             reset_password_email(email, token, user_name)
         except Exception as e:
-            LOGGER.error("Error sending reset password email. ", e)
+            LOGGER.error("Error sending reset password email. %s", e)
             raise e
 
     def reset_password(
@@ -72,5 +72,5 @@ class AuthService:
             user.password = get_password_hash(new_password)
             return self.user_repo.update_user(db, user)
         except Exception as e:
-            LOGGER.error("Error resetting password. ", e)
+            LOGGER.error("Error resetting password. %s", e)
             raise e

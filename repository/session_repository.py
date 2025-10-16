@@ -13,8 +13,7 @@ SESSION_DURATION_HOURS = 24 * 7
 
 class SessionRepository:
     @retry_on_db_error()
-    def create_session(self, db: Session, user_id: int) -> SessionModel:
-        token = secrets.token_urlsafe(32)
+    def create_session(self, db: Session, user_id: int, token: str) -> SessionModel:
         expires_at = datetime.now(timezone.utc) + timedelta(hours=SESSION_DURATION_HOURS)
 
         new_session = SessionModel(
