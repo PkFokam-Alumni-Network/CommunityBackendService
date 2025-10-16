@@ -59,6 +59,30 @@ We use Pytest as our unit testing framework. Here are some commands to run tests
 - If a function has two many arguments, use dataclasses
 - Always make the migration and model PRs separate from your feature changes
 
+# PROTECTING API ENDPOINTS
+
+- Use the `Depends(get_current_user)` to get the current user. Example:
+
+```python
+@router.post(
+    "/route/",
+    status_code=status.HTTP_201_CREATED,
+    response_model=response,
+)
+def create_foo(
+    foo: FooCreate,
+    session: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),  # ✅ require login
+) -> response:
+    service = FooService()
+    try:
+        foo = service.create_foo(session, foo)
+        return foo
+    except Exception as e:
+        LOGGER.error(f"SERVER ERROR in create_foo: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+```
+
 # ALEMBIC MIGRATIONS
 
 1. Run your server locally

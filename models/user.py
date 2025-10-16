@@ -38,3 +38,6 @@ class User(Base):
     
     resumes = relationship("Resume", back_populates="user", cascade="all, delete-orphan")
     reviews = relationship("ResumeReview", back_populates="reviewer", cascade="all, delete-orphan")
+
+    sessions = relationship("Session", back_populates="user", cascade="all, delete-orphan")
+
