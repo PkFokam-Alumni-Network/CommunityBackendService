@@ -8,7 +8,7 @@ from core.database import get_db
 from repository.session_repository import SessionRepository
 from repository.user_repository import UserRepository
 from datetime import datetime, timezone
-from models.user import UserRole
+from models.user import UserRole, User
 
 security = HTTPBasic()
 
@@ -34,7 +34,7 @@ def get_current_username(
         )
     return credentials.username
 
-def get_current_user(request: Request, db: Session = Depends(get_db)):
+def get_current_user(request: Request, db: Session = Depends(get_db)) -> User: 
     session_token = request.cookies.get("session_token")
     if not session_token:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
@@ -54,7 +54,7 @@ def get_current_user(request: Request, db: Session = Depends(get_db)):
 
     return user
 
-def admin_required(current_user=Depends(get_current_user)):
+def admin_required(current_user: User = Depends(get_current_user)) -> User:
     if current_user.role != UserRole.admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

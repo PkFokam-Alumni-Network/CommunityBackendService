@@ -85,11 +85,7 @@ def create_foo(
 
 # ALEMBIC MIGRATIONS
 
-1. Run your server locally
-
-- `docker compose -f docker-compose.dev.yaml up`
-- `docker compose -f docker-compose.dev.yaml build`
-
+1. Run your server locally with `docker compose -f docker-compose.dev.yaml up`
 2. Make a change to the models
 3. Change this line `config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)` to `config.set_main_option("sqlalchemy.url", "postgresql://user:password@localhost:5432/test_db")`
 4. Generate the migration file with `alembic revision --autogenerate -m "Purpose of the migration"`
