@@ -3,7 +3,9 @@ from sqlalchemy.orm import Session
 from core.database import get_db
 from schemas import user_schema
 from services.auth_service import AuthService
+from services.user_service import UserService
 from core.logging_config import LOGGER
+from utils.func_utils import decode_jwt
 
 router = APIRouter(tags=["Authentication"])
 WEEK = 86400 * 7
@@ -49,43 +51,23 @@ def logout(response: Response, db: Session = Depends(get_db), session_token: str
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @router.post(
-    "/password-reset",
-    status_code=status.HTTP_200_OK,
-    response_model=user_schema.PasswordResetRequestResponse,
-)
-def request_password_reset(
-    body: user_schema.PasswordResetRequest, session: Session = Depends(get_db)
-) -> user_schema.PasswordResetRequestResponse:
-    service = AuthService()
-    masked = f"{body.email[:3]}****"
-    try:
-        service.request_password_reset(session, body.email)
-        return user_schema.PasswordResetRequestResponse(
-            message=f"Your reset link has been sent to your email starting with {masked}"
-        )
-    except ValueError as e:
-        LOGGER.error(f"Password reset request failed for {masked}: {str(e)}")
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-    except Exception as e:
-        LOGGER.error(f"SERVER ERROR in request_password_reset for {masked}: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal server error",
-        )
-
-
-@router.put(
-    "/password-reset",
+    "/auth/password-reset",
     status_code=status.HTTP_200_OK,
     response_model=user_schema.UserUpdate,
 )
 def reset_password(
     body: user_schema.PasswordReset, session: Session = Depends(get_db)
 ) -> user_schema.UserUpdate:
-    service = AuthService()
+    service = UserService()
     try:
-        updated_user = service.reset_password(session, body.new_password, body.token)
-        return updated_user
+        decoded:dict = decode_jwt(body.token)
+        email = decoded.get("user_id")
+        if not email:
+            raise ValueError("Invalid token")
+        user = service.get_user_by_email(session, email)
+        if not user:
+            raise ValueError("User not found")
+        return service.reset_password(session, user.id, body.new_password)
     except ValueError as e:
         LOGGER.error(f"Password reset failed: {str(e)}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

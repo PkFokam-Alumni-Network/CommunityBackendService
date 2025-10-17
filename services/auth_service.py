@@ -1,16 +1,11 @@
 from sqlalchemy.orm import Session
 from core.logging_config import LOGGER
-from typing import Optional
-from models.user import User
 from repository.user_repository import UserRepository
 from repository.session_repository import SessionRepository
 from schemas import user_schema
 from utils.func_utils import (
     check_password,
     create_jwt,
-    reset_password_email,
-    verify_jwt,
-    get_password_hash,
 )
 
 class AuthService:
@@ -36,38 +31,8 @@ class AuthService:
             )
         )
         self.session_repo.create_session(db, user.id, token)
+        LOGGER.info(f"User {user.email} logged in successfully.")
         return user_login_response
 
     def logout(self, db: Session, token: str):
         self.session_repo.deactivate_session(db, token)
-
-    def request_password_reset(self, db: Session, email: str) -> Optional[User]:
-        if not email:
-            raise ValueError("Email is required.")
-        user = self.user_repo.get_user_by_email(db, email)
-        user_name = user.first_name if user else None
-        if not user:
-            raise ValueError("User not found")
-        try:
-            token = create_jwt(email)
-            reset_password_email(email, token, user_name)
-        except Exception as e:
-            LOGGER.error("Error sending reset password email. %s", e)
-            raise e
-
-    def reset_password(
-        self, db: Session, new_password: str, token: str
-    ) -> Optional[User]:
-        if not new_password or not token:
-            raise ValueError("New password and token are required.")
-        try:
-            decoded_token = verify_jwt(token)
-            email = decoded_token["user_id"]
-            user = self.user_repo.get_user_by_email(db, email)
-            if not user:
-                raise ValueError("User not found")
-            user.password = get_password_hash(new_password)
-            return self.user_repo.update_user(db, user)
-        except Exception as e:
-            LOGGER.error("Error resetting password. %s", e)
-            raise e
