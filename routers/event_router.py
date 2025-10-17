@@ -12,10 +12,9 @@ from schemas.event_schema import (
 from schemas.user_schema import UserGetResponse
 from services.event_service import EventService
 from core.database import get_db
-from services.user_service import UserService
 from core.logging_config import LOGGER
 
-router = APIRouter()
+router = APIRouter(tags=["Events"])
 
 
 @router.post(
