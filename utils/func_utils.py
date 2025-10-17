@@ -1,4 +1,3 @@
-import boto3
 import hashlib
 import bcrypt
 import jwt
@@ -7,14 +6,10 @@ from typing import Any
 from core.logging_config import LOGGER
 from utils.image_utils import crop_image_to_circle, decode_base64_image
 from core.settings import settings
+from clients.s3_client import S3Client
 
 
-s3_client = boto3.client(
-    "s3",
-    aws_access_key_id=settings.ACCESS_KEY,
-    aws_secret_access_key=settings.SECRET_KEY,
-)
-
+s3_client = S3Client()
 
 def get_password_hash(password: str) -> str:
     salt = bcrypt.gensalt()
@@ -55,11 +50,10 @@ def upload_image_to_s3(base64_image: str, object_key: str) -> str:
     image = decode_base64_image(base64_image)
     image = crop_image_to_circle(image)
     try:
-        s3_client.put_object(
-            Bucket=settings.BUCKET_NAME,
-            Body=image,
-            ContentType="image/jpeg",
-            Key=object_key,
+        s3_client.upload_file(
+            file_bytes=image,
+            object_key=object_key,
+            content_type="image/jpeg",
         )
         LOGGER.info(
             f"File uploaded to S3 bucket '{settings.BUCKET_NAME}' with key '{object_key}'."
