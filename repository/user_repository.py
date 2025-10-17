@@ -66,6 +66,18 @@ class UserRepository():
         except Exception as e:
             db.rollback()
             raise RuntimeError(f"An error occurred while deleting the user: {e}")
+    
+    @retry_on_db_error()
+    def get_users_by_ids(self, db: Session, user_ids: List[int]) -> List[User]:
+        if not user_ids:
+            return []
+        return db.query(User).filter(User.id.in_(user_ids)).all()
+
+    @retry_on_db_error()
+    def get_users_by_emails(self, db: Session, emails: List[str]) -> List[User]:
+        if not emails:
+            return []
+        return db.query(User).filter(User.email.in_(emails)).all()
 
     @retry_on_db_error()
     def get_all_mentees(self, db: Session, mentor_id: int) -> List[User]:

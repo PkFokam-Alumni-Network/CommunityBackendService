@@ -129,5 +129,29 @@ class UserService():
             raise ValueError("Your old password does not match our records.")
         user.password = get_password_hash(new_password)
         return self.user_repository.update_user(db, user)
+    
+    def reset_password(self, db: Session, user_id: int, new_password: str) -> Optional[User]:
+        if not user_id:
+            raise ValueError("User ID is required.")
+        if not new_password:
+            raise ValueError("New password is required.")
+        user = self.user_repository.get_user_by_id(db, user_id)
+        if not user:
+            raise ValueError("User not found")
+        user.password = get_password_hash(new_password)
+        return self.user_repository.update_user(db, user)
+    
+    def get_users_by_ids(self, db: Session, user_ids: List[int]) -> List[User]:
+        if not user_ids:
+            raise ValueError("User IDs list cannot be empty.")
+        return self.user_repository.get_users_by_ids(db, user_ids)
+
+    def get_users_by_emails(self, db: Session, emails: List[str]) -> List[User]:
+        if not emails:
+            raise ValueError("Emails list cannot be empty.")
+        return self.user_repository.get_users_by_emails(db, emails)
+    
+    def get_user_by_email(self, db: Session, email: str) -> Optional[User]:
+        return self.user_repository.get_user_by_email(db, email)
 
 
