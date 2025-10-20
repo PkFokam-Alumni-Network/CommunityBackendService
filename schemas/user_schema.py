@@ -52,7 +52,7 @@ class UserGetResponse(BaseModel):
     current_occupation: Optional[str]
     linkedin_profile: Optional[str]
     instagram_profile: Optional[str]
-
+    mentor_id: Optional[int]
 
 class Attendee(BaseModel):
     image: Optional[str]
