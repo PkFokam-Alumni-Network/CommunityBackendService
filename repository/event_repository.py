@@ -28,7 +28,7 @@ class EventRepository():
 
     @retry_on_db_error()
     def get_events(self, db: Session) -> list[Event]:
-        return db.query(Event).all()
+        return db.query(Event).all().sort(key=lambda x: x.start_time)
 
     @retry_on_db_error()
     def update_event(self, db: Session, event: Event) -> Event:

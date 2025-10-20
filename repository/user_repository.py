@@ -35,7 +35,7 @@ class UserRepository():
     def get_users(self, db: Session, active) -> List[User]:
         if active:
             return db.query(User).filter(User.is_active).all()
-        return db.query(User).all()
+        return db.query(User).all().sort(key=lambda x: x.id)
 
     @retry_on_db_error()
     def update_user(self, db: Session, user: User) -> Optional[User]:
@@ -71,7 +71,7 @@ class UserRepository():
     def get_users_by_ids(self, db: Session, user_ids: List[int]) -> List[User]:
         if not user_ids:
             return []
-        return db.query(User).filter(User.id.in_(user_ids)).all()
+        return db.query(User).filter(User.id.in_(user_ids)).all().sort(key=lambda x: user_ids.index(x.id))
 
     @retry_on_db_error()
     def get_users_by_emails(self, db: Session, emails: List[str]) -> List[User]:
