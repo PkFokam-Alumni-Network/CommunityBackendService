@@ -100,6 +100,7 @@ class UserUpdate(BaseModel):
     instagram_profile: Optional[str] = None
     role: Optional[str] = None
     is_active: Optional[bool] = None
+    mentor_id: Optional[int] = None
 
 
 class ProfilePictureUpdate(BaseModel):
