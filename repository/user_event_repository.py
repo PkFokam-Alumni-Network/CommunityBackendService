@@ -53,7 +53,7 @@ class UserEventRepository():
     @retry_on_db_error()
     def get_users_for_event(self, db: Session, event_id: int) -> list[User]:
         return (
-            db.query(User).join(UserEvent).filter(UserEvent.event_id == event_id).all().sort(key=lambda x: x.id)
+            db.query(User).join(UserEvent).filter(UserEvent.event_id == event_id).order_by(User.id).all()
         )
 
     @retry_on_db_error()
@@ -62,7 +62,7 @@ class UserEventRepository():
         if not user:
             raise ValueError(f"User with email {user_email} does not exist.")
         return (
-            db.query(Event).join(UserEvent).filter(UserEvent.user_id == user.id).all().sort(key=lambda x: x.start_time)
+            db.query(Event).join(UserEvent).filter(UserEvent.user_id == user.id).order_by(Event.start_time).all()
         )
 
     @retry_on_db_error()

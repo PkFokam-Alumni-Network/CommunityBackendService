@@ -33,9 +33,10 @@ class UserRepository():
 
     @retry_on_db_error()
     def get_users(self, db: Session, active) -> List[User]:
+        query = db.query(User)
         if active:
-            return db.query(User).filter(User.is_active).all()
-        return db.query(User).all().sort(key=lambda x: x.id)
+            query = query.filter(User.is_active)
+        return query.order_by(User.id).all()
 
     @retry_on_db_error()
     def update_user(self, db: Session, user: User) -> Optional[User]:
@@ -71,13 +72,13 @@ class UserRepository():
     def get_users_by_ids(self, db: Session, user_ids: List[int]) -> List[User]:
         if not user_ids:
             return []
-        return db.query(User).filter(User.id.in_(user_ids)).all().sort(key=lambda x: user_ids.index(x.id))
+        return db.query(User).filter(User.id.in_(user_ids)).order_by(User.id).all()
 
     @retry_on_db_error()
     def get_users_by_emails(self, db: Session, emails: List[str]) -> List[User]:
         if not emails:
             return []
-        return db.query(User).filter(User.email.in_(emails)).all()
+        return db.query(User).filter(User.email.in_(emails)).order_by(User.id).all()
 
     @retry_on_db_error()
     def get_all_mentees(self, db: Session, mentor_id: int) -> List[User]:

@@ -18,7 +18,7 @@ class AnnouncementRepository():
 
     @retry_on_db_error()
     def get_announcements(self, db: Session) -> list[Type[Announcement]]:
-        return db.query(Announcement).all()
+        return db.query(Announcement).order_by(Announcement.announcement_date.desc()).all()
 
     @retry_on_db_error()
     def get_announcement_by_id(
