@@ -33,9 +33,8 @@ class UserCreatedResponse(BaseModel):
     email: str
     first_name: str
     last_name: str
-
+    image: Optional[str] = None
     model_config = ConfigDict(from_attributes=True)
-
 
 class UserGetResponse(BaseModel):
     id: int
