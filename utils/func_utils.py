@@ -1,23 +1,15 @@
-import boto3
 import hashlib
-import os
 import bcrypt
 import jwt
 import datetime
 from typing import Any
 from core.logging_config import LOGGER
 from utils.image_utils import crop_image_to_circle, decode_base64_image
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail, Email
 from core.settings import settings
+from clients.s3_client import S3Client
 
 
-s3_client = boto3.client(
-    "s3",
-    aws_access_key_id=settings.ACCESS_KEY,
-    aws_secret_access_key=settings.SECRET_KEY,
-)
-
+s3_client = S3Client()
 
 def get_password_hash(password: str) -> str:
     salt = bcrypt.gensalt()
@@ -42,8 +34,7 @@ def create_jwt(user_email: str) -> str:
     token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
     return token
 
-
-def verify_jwt(token: str) -> Any | None:
+def decode_jwt(token: str) -> Any | None:
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
         return payload
@@ -51,6 +42,9 @@ def verify_jwt(token: str) -> Any | None:
         raise ValueError("Token has expired")
     except jwt.InvalidTokenError:
         raise ValueError("Invalid token")
+
+def verify_jwt(token: str) -> Any | None:
+    return decode_jwt(token)
     
 def validate_resume_file(file_data: bytes, file_name: str, max_size: int = 10 * 1024 * 1024) -> str:
     if not file_data:
@@ -92,11 +86,10 @@ def upload_image_to_s3(base64_image: str, object_key: str) -> str:
     image = decode_base64_image(base64_image)
     image = crop_image_to_circle(image)
     try:
-        s3_client.put_object(
-            Bucket=settings.BUCKET_NAME,
-            Body=image,
-            ContentType="image/jpeg",
-            Key=object_key,
+        s3_client.upload_file(
+            file_bytes=image,
+            object_key=object_key,
+            content_type="image/jpeg",
         )
         LOGGER.info(
             f"File uploaded to S3 bucket '{settings.BUCKET_NAME}' with key '{object_key}'."
@@ -105,33 +98,3 @@ def upload_image_to_s3(base64_image: str, object_key: str) -> str:
     except Exception as e:
         LOGGER.error(f"Error uploading file to key {object_key}: {e}")
         raise ValueError("Error uploading file to S3 bucket")
-
-
-def reset_password_email(email: str, token: str, name: str):
-    link = f"{settings.BASE_URL}/password-reset?token={token}"
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    template_path = os.path.join(base_dir, "templates", "password_reset_email.html")
-    template_path = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-        "templates",
-        "password_reset.html",
-    )
-    with open(template_path, "r", encoding="utf-8") as f:
-        html_content = f.read()
-    html_content = html_content.replace("{{name}}", name)
-    html_content = html_content.replace("{link}", link)
-
-    message = Mail(
-        from_email=Email(settings.ADMIN_EMAIL, name="PACI SUPPORT"),
-        to_emails=email,
-        subject="Password Reset",
-        html_content=html_content,
-    )
-    sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
-    try:
-        response = sg.send(message)
-        LOGGER.info(f"Password reset link sent to {email}.")
-        return response.status_code
-    except Exception as e:
-        LOGGER.error(f"Error sending password reset email to {email}: {e}")
-        raise ValueError("Error sending password reset email")

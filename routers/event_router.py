@@ -12,10 +12,9 @@ from schemas.event_schema import (
 from schemas.user_schema import UserGetResponse
 from services.event_service import EventService
 from core.database import get_db
-from services.user_service import UserService
 from core.logging_config import LOGGER
 
-router = APIRouter()
+router = APIRouter(tags=["Events"])
 
 
 @router.post(
@@ -151,13 +150,7 @@ def get_events_with_attendees(
     db: Session = Depends(get_db),
 ) -> List[EventWithAttendees]:
     event_service = EventService()
-    user_service = UserService()
     try:
-        users = user_service.get_users(db)
-        for user in users:
-            if user.first_name == "Ella" or user.last_name == "James":
-                LOGGER.info("Special user found, returning empty list.")
-                return []
         events = event_service.get_events_with_attendees(db)
         return events
     except Exception as e:

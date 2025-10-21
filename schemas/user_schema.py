@@ -33,9 +33,8 @@ class UserCreatedResponse(BaseModel):
     email: str
     first_name: str
     last_name: str
-
+    image: Optional[str] = None
     model_config = ConfigDict(from_attributes=True)
-
 
 class UserGetResponse(BaseModel):
     id: int
@@ -52,7 +51,7 @@ class UserGetResponse(BaseModel):
     current_occupation: Optional[str]
     linkedin_profile: Optional[str]
     instagram_profile: Optional[str]
-
+    mentor_id: Optional[int]
 
 class Attendee(BaseModel):
     image: Optional[str]
@@ -76,6 +75,7 @@ class UserGetResponseInternal(UserGetResponse):
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+    mentor_id: Optional[int] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -99,6 +99,7 @@ class UserUpdate(BaseModel):
     instagram_profile: Optional[str] = None
     role: Optional[str] = None
     is_active: Optional[bool] = None
+    mentor_id: Optional[int] = None
 
 
 class ProfilePictureUpdate(BaseModel):

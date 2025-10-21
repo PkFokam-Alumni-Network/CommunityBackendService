@@ -10,7 +10,7 @@ from services.announcement_service import AnnouncementService
 from models.announcement import Announcement
 from core.logging_config import LOGGER
 
-router = APIRouter()
+router = APIRouter(tags=["Announcements"])
 
 
 @router.post(

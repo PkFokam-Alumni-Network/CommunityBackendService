@@ -9,6 +9,8 @@ services:
     environment:
       - ENV=development
       - DATABASE_URL=${DATABASE_URL}
+      - BREVO_API_KEY=${BREVO_API_KEY}
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
     depends_on:
       postgres:
         condition: service_healthy
