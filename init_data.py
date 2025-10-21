@@ -261,7 +261,7 @@ def _generate_event_details(
 
 
 def create_sample_events(
-    session: Session, count: int = 3, force: bool = False
+    session: Session, count: int = 10, force: bool = False
 ) -> List[Event]:
     existing_count = session.query(Event).count()
     if existing_count > 0 and not force:
