@@ -36,3 +36,4 @@ class AuthService:
 
     def logout(self, db: Session, token: str):
         self.session_repo.deactivate_session(db, token)
+        LOGGER.info(f"User logged out successfully")

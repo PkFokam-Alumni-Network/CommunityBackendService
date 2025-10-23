@@ -62,4 +62,7 @@ class PostRepository():
         except Exception as e:
             self.db.rollback()
             raise RuntimeError(f"Failed to delete post: {e}")
+    
+    def get_user_posts(self, user_id: int) -> List[Post]:
+        return self.db.query(Post).filter(Post.author_id == user_id).all()
 
