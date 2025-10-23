@@ -1,5 +1,6 @@
 import enum
 from sqlalchemy import Boolean, Column, Enum, Text, Integer, ForeignKey
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from core.database import Base
 
@@ -22,8 +23,9 @@ class User(Base):
     image = Column(Text, nullable=True)
     bio = Column(Text)
     graduation_year = Column(Integer)
-    degree = Column(Text)
-    major = Column(Text)
+    
+    degrees = Column(JSONB, nullable=True, default=list)
+    
     current_occupation = Column(Text)
     mentor_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     is_active = Column(Boolean, default=True)
@@ -41,4 +43,3 @@ class User(Base):
     reviews = relationship("ResumeReview", back_populates="reviewer", cascade="all, delete-orphan")
 
     sessions = relationship("Session", back_populates="user", cascade="all, delete-orphan")
-
