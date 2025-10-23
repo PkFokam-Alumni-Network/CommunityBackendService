@@ -43,7 +43,7 @@ def get_all_users(
         users = service.get_users(session, active=active)
         if counts:
             return {"count": len(users)}
-        return users
+        return [user_schema.UserGetResponseInternal.from_user(user) for user in users]
     except Exception as e:
         LOGGER.error(f"SERVER ERROR in get_all_users: {str(e)}")
         raise HTTPException(
@@ -66,7 +66,7 @@ def get_user_by_id(
         if user is None:
             LOGGER.error(f"User not found: {user_id}")
             raise HTTPException(status_code=404, detail="User not found")
-        return user
+        return user_schema.UserGetResponse.from_user(user)
     except HTTPException as http_exc:
         if http_exc.status_code == 404:
             raise http_exc
@@ -118,7 +118,7 @@ def update_user(
             user_id=user_id,
             updated_data=user_data.model_dump(exclude_unset=True),
         )
-        return updated_user
+        return user_schema.UserGetResponse.from_user(updated_user)
     except ValueError as e:
         LOGGER.error(f"User update failed for {user_id}: {str(e)}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
@@ -143,7 +143,7 @@ def update_user_email(
             session, user_id=user_id, new_email=body.new_email
         )
         LOGGER.info(f"User email updated: user_id={user_id}")
-        return updated_user
+        return user_schema.UserGetResponse.from_user(updated_user)
     except ValueError as e:
         LOGGER.error(f"User email update failed for user_id={user_id}: {str(e)}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
@@ -174,7 +174,7 @@ def update_user_password(
             user_id=user_id,
         )
         LOGGER.info(f"User password updated: {user_id}")
-        return updated_user
+        return user_schema.UserGetResponse.from_user(updated_user)
     except ValueError as e:
         LOGGER.error(f"User password update failed for {user_id}: {str(e)}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
@@ -245,7 +245,7 @@ def get_all_users_internal(session: Session = Depends(get_db)):
     service = UserService()
     try:
         users = service.get_users(session)
-        return users
+        return [user_schema.UserGetResponseInternal.from_user(user) for user in users]
     except Exception as e:
         LOGGER.error(f"SERVER ERROR in get_all_users_internal: {str(e)}")
         raise HTTPException(

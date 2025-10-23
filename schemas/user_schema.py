@@ -1,7 +1,21 @@
-from typing import Optional
-from pydantic import BaseModel, ConfigDict, EmailStr
+from typing import Optional, List
+from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
 
 from models.user import User, UserRole
+
+
+class DegreeInfo(BaseModel):
+    degree: str
+    major: str
+    graduation_year: Optional[int] = None
+    university: Optional[str] = None
+
+    @field_validator('degree', 'major', mode="before")
+    @classmethod
+    def validate_not_empty(cls, v: str) -> str:
+        if v and not v.strip():
+            raise ValueError(f'Field {v} cannot be empty or whitespace' )
+        return v.strip() if v else v
 
 
 class UserCreate(BaseModel):
@@ -15,9 +29,9 @@ class UserCreate(BaseModel):
     image: Optional[str] = "https://www.w3schools.com/howto/img_avatar.png"
     bio: Optional[str] = None
 
+    degrees: Optional[List[DegreeInfo]] = None
+    
     graduation_year: Optional[int] = None
-    degree: Optional[str] = None
-    major: Optional[str] = None
 
     current_occupation: Optional[str] = None
 
@@ -26,7 +40,6 @@ class UserCreate(BaseModel):
 
     role: Optional[str] = "user"
     is_active: Optional[bool] = True
-
 
 class UserCreatedResponse(BaseModel):
     id: int
@@ -45,13 +58,40 @@ class UserGetResponse(BaseModel):
     phone: Optional[str]
     image: Optional[str]
     bio: Optional[str]
-    graduation_year: Optional[int]
-    degree: Optional[str]
-    major: Optional[str]
+    
+    degrees: Optional[List[DegreeInfo]] = None
+    
+    graduation_year: Optional[int] = None
+    
     current_occupation: Optional[str]
     linkedin_profile: Optional[str]
     instagram_profile: Optional[str]
     mentor_id: Optional[int]
+
+    model_config = ConfigDict(from_attributes=True)
+
+    @classmethod
+    def from_user(cls, user: User) -> "UserGetResponse":
+        """Custom factory method to handle degrees conversion and backward compatibility"""
+        degrees_list = user.degrees if user.degrees else []
+        
+        return cls(
+            id=user.id,
+            email=user.email,
+            first_name=user.first_name,
+            last_name=user.last_name,
+            address=user.address,
+            phone=user.phone,
+            image=user.image,
+            bio=user.bio,
+            degrees=[DegreeInfo(**deg) for deg in degrees_list] if degrees_list else None,
+            graduation_year=user.graduation_year,
+            current_occupation=user.current_occupation,
+            linkedin_profile=user.linkedin_profile,
+            instagram_profile=user.instagram_profile,
+            mentor_id=user.mentor_id
+        )
+
 
 class Attendee(BaseModel):
     image: Optional[str]
@@ -70,6 +110,30 @@ class UserGetResponseInternal(UserGetResponse):
     is_active: bool = True
 
     model_config = ConfigDict(from_attributes=True)
+
+    @classmethod
+    def from_user(cls, user: User) -> "UserGetResponseInternal":
+        """Custom factory method with internal fields"""
+        degrees_list = user.degrees if user.degrees else []
+        
+        return cls(
+            id=user.id,
+            email=user.email,
+            first_name=user.first_name,
+            last_name=user.last_name,
+            address=user.address,
+            phone=user.phone,
+            image=user.image,
+            bio=user.bio,
+            degrees=[DegreeInfo(**deg) for deg in degrees_list] if degrees_list else None,
+            graduation_year=user.graduation_year,
+            current_occupation=user.current_occupation,
+            linkedin_profile=user.linkedin_profile,
+            instagram_profile=user.instagram_profile,
+            mentor_id=user.mentor_id,
+            role=user.role,
+            is_active=user.is_active
+        )
 
 
 class UserLogin(BaseModel):
@@ -91,9 +155,11 @@ class UserUpdate(BaseModel):
     phone: Optional[str] = None
     image: Optional[str] = None
     bio: Optional[str] = None
+    
+    degrees: Optional[List[DegreeInfo]] = None
+    
     graduation_year: Optional[int] = None
-    degree: Optional[str] = None
-    major: Optional[str] = None
+    
     current_occupation: Optional[str] = None
     linkedin_profile: Optional[str] = None
     instagram_profile: Optional[str] = None
@@ -101,10 +167,8 @@ class UserUpdate(BaseModel):
     is_active: Optional[bool] = None
     mentor_id: Optional[int] = None
 
-
 class ProfilePictureUpdate(BaseModel):
     base64_image: str
-
 
 class EmailUpdate(BaseModel):
     new_email: EmailStr
@@ -135,6 +199,8 @@ class UserLoginResponse(UserCreate):
 
     @staticmethod
     def create_user_login_response(user: User, access_token: str):
+        degrees_list = user.degrees if user.degrees else []
+        
         return UserLoginResponse(
             id=user.id,
             email=user.email,
@@ -145,9 +211,8 @@ class UserLoginResponse(UserCreate):
             phone=user.phone,
             image=user.image,
             bio=user.bio,
+            degrees=[DegreeInfo(**deg) for deg in degrees_list] if degrees_list else None,
             graduation_year=user.graduation_year,
-            degree=user.degree,
-            major=user.major,
             current_occupation=user.current_occupation,
             linkedin_profile=user.linkedin_profile,
             instagram_profile=user.instagram_profile,
