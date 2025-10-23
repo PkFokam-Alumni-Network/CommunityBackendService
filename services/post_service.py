@@ -53,3 +53,6 @@ class PostService:
         if post.author_id != user_id:
             raise PermissionError("Not authorized")
         self.post_repository.delete_post(post_id)
+    
+    def get_user_posts(self, user_id: int) -> List[Post]:
+        return self.post_repository.get_user_posts(user_id)
