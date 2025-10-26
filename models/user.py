@@ -1,5 +1,6 @@
 import enum
 from sqlalchemy import Boolean, Column, Enum, Text, Integer, ForeignKey
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from core.database import Base
 
@@ -21,9 +22,10 @@ class User(Base):
     phone = Column(Text)
     image = Column(Text, nullable=True)
     bio = Column(Text)
-    graduation_year = Column(Integer)
-    degree = Column(Text)
-    major = Column(Text)
+    graduation_year = Column(Integer) # the graduating class of the user. Like Class of 2024 bc your 1st grad year is 2024
+
+    degrees = Column(JSONB, nullable=True, default=list)
+
     current_occupation = Column(Text)
     mentor_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     is_active = Column(Boolean, default=True)
