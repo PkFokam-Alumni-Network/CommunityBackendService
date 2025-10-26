@@ -59,6 +59,14 @@ MAJORS = [
     "Electrical Engineering and Technology",
 ]
 
+UNIVERSITIES = [
+    "Massachusetts Institute of Technology",
+    "Kennesaw State University",
+    "Georgia Southern University",
+    "Georgia State University",
+    "Georgia Institute of Technology",
+]
+
 OCCUPATIONS = ["Software Engineer", "Mechanical Engineer", "Electrical Engineer"]
 
 EVENT_CATEGORIES = [
@@ -152,9 +160,9 @@ def _create_admin_user(session: Session, users: list) -> None:
     else:
         users.append(admin_user)
 
-
+# Fix this to use the new degrees format
 def create_sample_users(
-    session: Session, count: int = 3, force: bool = False
+    session: Session, count: int = 7, force: bool = False
 ) -> List[User]:
     existing_count = session.query(User).count()
     if existing_count > 0 and not force:
@@ -169,10 +177,21 @@ def create_sample_users(
         last_name = fake.last_name()
         email = f"{first_name.lower()}.{last_name.lower()}{random.randint(1, 999)}@pkfalumni.com"
 
+        # Generate a degree entry
+        degree_name = random.choice([d["degree"] for d in DEGREES])
+        major_name = random.choice(MAJORS)
         graduation_year = random.randint(2010, 2023)
-        degree = random.choice(DEGREES)
-        major = random.choice(MAJORS)
-        occupation = _select_occupation(major)
+        university = random.choice(UNIVERSITIES)  # You can define a list of universities
+        occupation = _select_occupation(major_name)
+
+        degrees = [
+            {
+                "degree": degree_name,
+                "major": major_name,
+                "graduation_year": graduation_year,
+                "university": university,
+            }
+        ]
 
         user = User(
             email=email,
@@ -182,11 +201,9 @@ def create_sample_users(
             address=fake.address().replace("\n", ", "),
             phone=fake.phone_number(),
             image=random.choice(PROFILE_IMAGES),
-            bio=f"I graduated from PkFokam Institute with a {degree} in {major}. Currently working as a {occupation}. "
+            bio=f"I graduated from {university} with a {degree_name} in {major_name}. Currently working as a {occupation}. "
             + fake.paragraph(nb_sentences=2),
-            graduation_year=graduation_year,
-            degree=degree,
-            major=major,
+            degrees=degrees,  # Updated to new format
             current_occupation=occupation,
             linkedin_profile=f"https://linkedin.com/in/{first_name.lower()}-{last_name.lower()}",
             instagram_profile=f"https://instagram.com/{first_name.lower()}{last_name.lower()}"

@@ -55,6 +55,15 @@ class UserService():
         user = self.user_repository.get_user_by_id(db, user_id)
         if not user:
             raise ValueError("User not found.")
+
+        if "degrees" in updated_data:
+            degrees = updated_data["degrees"]
+            if degrees:
+                user.degrees = [deg.model_dump() if hasattr(deg, 'model_dump') else deg for deg in degrees]
+            else:
+                user.degrees = []
+            updated_data.pop("degrees")
+        
         for key, value in updated_data.items():
             if hasattr(user, key):
                 setattr(user, key, value)
@@ -94,13 +103,6 @@ class UserService():
 
     def get_mentees(self, db: Session, user_id: int) -> List[type[User]]:
         return self.user_repository.get_all_mentees(db, user_id)
-
-    # TODO: Uncomment and implement this method when the mentor assignment feature with id is implemented
-    def unassign_mentor(self, db: Session, mentee_email: str):
-        mentee = self.user_repository.get_user_by_email(db, mentee_email)
-        if not mentee.mentor_id:
-            return
-        return self.update_user(db, mentee_email, {"mentor_email": None})
 
     def update_user_email(
         self, db: Session, user_id: int, new_email: str
