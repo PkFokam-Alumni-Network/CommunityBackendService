@@ -140,8 +140,14 @@ def _create_admin_user(session: Session, users: list) -> None:
             image=random.choice(PROFILE_IMAGES),
             bio="Administrator account for the PkFokam Alumni Network.",
             graduation_year=random.randint(2010, 2020),
-            degree="MSc",
-            major="Computer Science",
+            degrees=[
+                {
+                    "degree": "MSc",
+                    "major": "Computer Science",
+                    "graduation_year": random.randint(2010, 2020),
+                    "university": "Georgia Tech",
+                }
+            ],
             current_occupation="System Administrator",
             linkedin_profile="https://linkedin.com/in/admin-pkfalumni",
             instagram_profile="https://instagram.com/admin.pkfalumni",
