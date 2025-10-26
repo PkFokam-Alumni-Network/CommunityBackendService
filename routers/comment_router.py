@@ -21,7 +21,6 @@ def create_comment(
     comment_service = CommentService(session=session)
     comment = comment_service.add_comment(post_id, comment_data, current_user.id)
     response = CommentResponse.model_validate(comment)
-    response.upvote_count = 0
     LOGGER.info(f"Comment created: {comment}")
     return response
 
@@ -43,7 +42,6 @@ def get_comment(
     if not comment:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Comment not found")
     response = CommentResponse.model_validate(comment)
-    response.upvote_count = 0
     LOGGER.info(f"Comment retrieved: {comment}")
     return response
 
@@ -58,7 +56,6 @@ def update_comment(
     try:
         comment = comment_service.update_comment(comment_id, current_user.id, comment_data)
         response = CommentResponse.model_validate(comment)
-        response.upvote_count = 0
         LOGGER.info(f"Comment updated: {comment}")
         return response
     except ValueError as e:

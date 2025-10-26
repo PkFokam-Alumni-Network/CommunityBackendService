@@ -3,6 +3,8 @@ from fastapi.testclient import TestClient
 from schemas.post_schema import PostResponse
 from schemas.user_schema import UserCreatedResponse
 from schemas.comment_schema import CommentResponse
+import base64
+from models.enums import AttachmentType
 
 @pytest.fixture(scope="function")
 def test_users(client: TestClient) -> list[tuple[UserCreatedResponse, str]]:
@@ -189,3 +191,128 @@ def test_delete_comment_unauthorized(client: TestClient, test_users: list[tuple[
     )
     assert response.status_code == 401
     assert "Not authorized" in response.json()["detail"]
+
+def test_create_comment_with_image_attachment(
+    client,
+    test_users,
+    test_post,
+    mocker
+):
+    """Ensure comments with image attachments are uploaded properly."""
+    _, token1 = test_users[0]
+
+    mocker.patch("services.comment_service.validate_image", return_value=True)
+    mocker.patch("services.comment_service.upload_image_to_s3", return_value="https://fake-s3-bucket.com/comments/test.png")
+
+    fake_base64 = base64.b64encode(b"fake image bytes").decode("utf-8")
+    fake_image_data = f"data:image/png;base64,{fake_base64}"
+
+    comment_data = {
+        "content": "Here is an image",
+        "attachment": fake_image_data,
+        "attachment_type": AttachmentType.IMAGE
+    }
+
+    response = client.post(
+        "/comments/",
+        json=comment_data,
+        params={"post_id": test_post.id},
+        cookies={"session_token": token1}
+    )
+
+    assert response.status_code == 201
+    comment = CommentResponse.model_validate(response.json())
+    assert comment.attachment_type == AttachmentType.IMAGE
+    assert comment.attachment_url == "https://fake-s3-bucket.com/comments/test.png"
+
+
+def test_create_comment_with_link_attachment(
+    client,
+    test_users,
+    test_post
+):
+    """Allow Giphy or external links as non-image attachments."""
+    _, token1 = test_users[0]
+
+    comment_data = {
+        "content": "Look at this GIF!",
+        "attachment": "https://giphy.com/some-cool-gif",
+        "attachment_type": AttachmentType.GIPHY
+    }
+
+    response = client.post(
+        "/comments/",
+        json=comment_data,
+        params={"post_id": test_post.id},
+        cookies={"session_token": token1}
+    )
+
+    assert response.status_code == 201
+    comment = CommentResponse.model_validate(response.json())
+    assert comment.attachment_type == AttachmentType.GIPHY
+    assert comment.attachment_url == "https://giphy.com/some-cool-gif"
+
+
+def test_create_comment_missing_attachment_error(
+    client,
+    test_users,
+    test_post
+):
+    """Attachment type provided but missing actual attachment -> validation error."""
+    _, token1 = test_users[0]
+
+    comment_data = {
+        "content": "Missing attachment data",
+        "attachment_type": AttachmentType.IMAGE
+    }
+
+    response = client.post(
+        "/comments/",
+        json=comment_data,
+        params={"post_id": test_post.id},
+        cookies={"session_token": token1}
+    )
+
+    assert response.status_code == 422  # Pydantic validation error
+    assert "attachment is required" in response.text
+
+def test_update_comment_with_new_attachment(
+    client,
+    test_users,
+    test_post,
+    mocker
+):
+    """Update comment to add or replace an attachment."""
+    _, token1 = test_users[0]
+
+    # Create original comment
+    created = client.post(
+        "/comments/",
+        json={"content": "Initial comment"},
+        params={"post_id": test_post.id},
+        cookies={"session_token": token1}
+    )
+    comment_id = created.json()["id"]
+
+    mocker.patch("services.comment_service.validate_image", return_value=True)
+    mocker.patch("services.comment_service.upload_image_to_s3", return_value="https://fake-s3-bucket.com/comments/updated.png")
+
+    fake_base64 = base64.b64encode(b"new fake image").decode("utf-8")
+
+    update_data = {
+        "content": "Updated comment with attachment",
+        "attachment": fake_base64,
+        "attachment_type": AttachmentType.IMAGE
+    }
+
+    response = client.put(
+        f"/comments/{comment_id}",
+        json=update_data,
+        cookies={"session_token": token1}
+    )
+
+    assert response.status_code == 200
+    comment = CommentResponse.model_validate(response.json())
+    assert comment.content == "Updated comment with attachment"
+    assert comment.attachment_type == AttachmentType.IMAGE
+    assert comment.attachment_url == "https://fake-s3-bucket.com/comments/updated.png"

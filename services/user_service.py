@@ -9,7 +9,7 @@ from repository.user_repository import UserRepository
 from utils.func_utils import (
     check_password,
     get_password_hash,
-    upload_image_to_s3,
+    upload_profile_picture_to_s3,
 )
 from utils.image_utils import validate_image
 
@@ -82,7 +82,7 @@ class UserService():
             time = datetime.now().strftime("%Y-%m-%d")
             username, _ = email.split("@")
             file_name = f"profile-pictures/{time}/{username}.png"
-            path = upload_image_to_s3(image, file_name)
+            path = upload_profile_picture_to_s3(image, file_name)
             user.image = path
             self.user_repository.update_user(db, user)
             return path
