@@ -48,6 +48,22 @@ def verify_jwt(token: str) -> Any | None:
 
 def upload_image_to_s3(base64_image: str, object_key: str) -> str:
     image = decode_base64_image(base64_image)
+    try:
+        s3_client.upload_file(
+            file_bytes=image,
+            object_key=object_key,
+            content_type="image/jpeg",
+        )
+        LOGGER.info(
+            f"File uploaded to S3 bucket '{settings.BUCKET_NAME}' with key '{object_key}'."
+        )
+        return f"https://{settings.BUCKET_NAME}.s3.us-east-1.amazonaws.com/{object_key}"
+    except Exception as e:
+        LOGGER.error(f"Error uploading file to key {object_key}: {e}")
+        raise ValueError("Error uploading file to S3 bucket")
+
+def upload_profile_picture_to_s3(base64_image: str, object_key: str) -> str:
+    image = decode_base64_image(base64_image)
     image = crop_image_to_circle(image)
     try:
         s3_client.upload_file(
