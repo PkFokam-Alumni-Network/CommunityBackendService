@@ -460,7 +460,7 @@ def main():
         )
 
         if args.users:
-            count = min(args.users, 3)
+            count = min(args.users, 7)
             users = create_sample_users(session, count, args.force)
             LOGGER.info(f"Successfully created/found {len(users)} users")
 
@@ -478,7 +478,7 @@ def main():
 
         elif args.all:
             LOGGER.info("Creating all types of sample data...")
-            user_count = min(args.users, 3) if args.users else 3
+            user_count = min(args.users, 7) if args.users else 7
             event_count = min(args.events, 3) if args.events else 3
             announcement_count = min(args.announcements, 3) if args.announcements else 3
 

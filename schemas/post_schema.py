@@ -3,6 +3,12 @@ from datetime import datetime
 from typing import Optional
 from models.enums import AttachmentType
 
+
+class Author(BaseModel):
+    id: int
+    first_name: str
+    last_name: str
+    image: Optional[str] = None
 class PostCreate(BaseModel):
     title: str
     content: str
@@ -33,7 +39,8 @@ class PostResponse(BaseModel):
     author_id: int
     created_at: datetime
     updated_at: datetime
-
+    upvote_count: Optional[int] = 0
+    author: Author
     model_config = ConfigDict(from_attributes=True)
 
 class PostDeletedResponse(BaseModel):

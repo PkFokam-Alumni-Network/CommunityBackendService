@@ -4,15 +4,18 @@ from sqlalchemy.orm import Session
 
 from models.comment import Comment
 from repository.comment_repository import CommentRepository
+from repository.user_repository import UserRepository
 from schemas.comment_schema import CommentCreate, CommentUpdate, CommentResponse
 from models.enums import AttachmentType
 from utils.image_utils import validate_image
 from utils.func_utils import upload_image_to_s3
 from core.logging_config import LOGGER
 
+
 class CommentService:
     def __init__(self, session: Session):
         self.comment_repository = CommentRepository(session=session)
+        self.user_repository = UserRepository(session=session)
 
     def add_comment(self, post_id: int, comment_data: CommentCreate, user_id: int) -> Comment:
         url = None
@@ -29,20 +32,27 @@ class CommentService:
         )
         return self.comment_repository.create_comment(comment)
 
-    def get_comment_by_id(self, comment_id: int) -> Optional[Comment]:
-        return self.comment_repository.get_comment_by_id(comment_id)
+    def get_comment_by_id(self, comment_id: int) -> Optional[CommentResponse]:
+        comment = self.comment_repository.get_comment_by_id(comment_id)
+        if not comment:
+            return None
+        user = self.user_repository.get_user_by_id(comment.author_id)
+        if not user:
+            return None
+        
+        return CommentResponse.model_validate(comment, user=user)
 
     def get_comments_by_post_id(self, post_id: int) -> List[CommentResponse]:
         comment_tuples = self.comment_repository.get_comments_by_post_id_with_upvote_count(post_id)
         
         result = []
         for comment, upvote_count in comment_tuples:
-            comment_response = CommentResponse.model_validate(comment)
+            comment_response = CommentResponse.model_validate(comment, user=self.user_repository.get_user_by_id(comment.author_id))
             comment_response.upvote_count = upvote_count
             result.append(comment_response)
         return result
 
-    def update_comment(self, comment_id: int, user_id: int, updated_data: CommentUpdate) -> Comment:
+    def update_comment(self, comment_id: int, user_id: int, updated_data: CommentUpdate) -> CommentResponse:
         db_comment = self.comment_repository.get_comment_by_id(comment_id)
         if not db_comment:
             raise ValueError("Comment not found.")
@@ -61,7 +71,8 @@ class CommentService:
                 setattr(db_comment, key, value)
         
         db_comment.attachment_url = updated_data.attachment
-        return self.comment_repository.update_comment(db_comment)
+        updated_comment = self.comment_repository.update_comment(db_comment)
+        return CommentResponse.model_validate(updated_comment, user=self.user_repository.get_user_by_id(updated_comment.author_id))
 
     def delete_comment(self, comment_id: int, user_id: int) -> None:
         comment = self.comment_repository.get_comment_by_id(comment_id)

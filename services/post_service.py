@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from models.post import Post
 from repository.post_repository import PostRepository
 from repository.user_repository import UserRepository
-from schemas.post_schema import PostCreate, PostUpdate
+from schemas.post_schema import PostCreate, PostUpdate, PostResponse
 from models.enums import AttachmentType
 from utils.image_utils import validate_image
 from utils.func_utils import upload_image_to_s3
@@ -16,7 +16,7 @@ class PostService:
         self.post_repository = PostRepository(session=session)
         self.user_repository = UserRepository()
 
-    def add_post(self, post_data: PostCreate, user_id: int) -> Post:
+    def add_post(self, post_data: PostCreate, user_id: int) -> PostResponse:
         post = Post(
             title=post_data.title,
             content=post_data.content,
@@ -31,12 +31,9 @@ class PostService:
         elif post_data.attachment_type == AttachmentType.GIPHY:
             post.attachment_url = post_data.attachment
         self.post_repository.update_post(post)
-        return post
+        return PostResponse.model_validate(post, user=self.user_repository.get_user_by_id(post.author_id))
 
-    def is_post_exists(self, post_id: int) -> bool:
-        return self.post_repository.get_post_by_id(post_id) is not None
-
-    def update_post(self, post_id: int, user_id: int, updated_data: PostUpdate) -> Post:
+    def update_post(self, post_id: int, user_id: int, updated_data: PostUpdate) -> PostResponse:
         db_post = self.post_repository.get_post_by_id(post_id)
         if not db_post:
             raise ValueError("Post not found.")
@@ -53,16 +50,22 @@ class PostService:
             if hasattr(db_post, key):
                 setattr(db_post, key, value)
         db_post.attachment_url = updated_data.attachment
-        return self.post_repository.update_post(db_post)
+        updated_post = self.post_repository.update_post(db_post)
+        return PostResponse.model_validate(updated_post, user=self.user_repository.get_user_by_id(updated_post.author_id))
 
-    def get_post_by_id(self, post_id: int) -> Optional[Post]:
-        return self.post_repository.get_post_by_id(post_id)
+    def get_post_by_id(self, post_id: int) -> Optional[PostResponse]:
+        post = self.post_repository.get_post_by_id(post_id)
+        if not post:
+            return None
+        return PostResponse.model_validate(post, user=self.user_repository.get_user_by_id(post.author_id))
 
-    def get_recent_posts(self, limit: int = 10, page: int = 1) -> List[Post]:
-        return self.post_repository.get_recent_posts(limit=limit, page=page)
+    def get_recent_posts(self, limit: int = 10, page: int = 1) -> List[PostResponse]:
+        posts = self.post_repository.get_recent_posts(limit=limit, page=page)
+        return [PostResponse.model_validate(post, user=self.user_repository.get_user_by_id(post.author_id)) for post in posts]
 
-    def get_recent_posts_by_category(self, category: str, limit: int = 10, page: int = 1) -> List[Post]:
-        return self.post_repository.get_post_by_category(category, limit=limit, page=page)
+    def get_recent_posts_by_category(self, category: str, limit: int = 10, page: int = 1) -> List[PostResponse]:
+        posts = self.post_repository.get_post_by_category(category, limit=limit, page=page)
+        return [PostResponse.model_validate(post, user=self.user_repository.get_user_by_id(post.author_id)) for post in posts]
 
     def delete_post(self, post_id: int, user_id: int) -> None:
         post = self.post_repository.get_post_by_id(post_id)
@@ -72,8 +75,9 @@ class PostService:
             raise PermissionError("Not authorized")
         self.post_repository.delete_post(post_id)
     
-    def get_user_posts(self, user_id: int) -> List[Post]:
-        return self.post_repository.get_user_posts(user_id)
+    def get_user_posts(self, user_id: int) -> List[PostResponse]:
+        posts = self.post_repository.get_user_posts(user_id)
+        return [PostResponse.model_validate(post, user=self.user_repository.get_user_by_id(post.author_id)) for post in posts]
 
     def save_post_attachment(self, attachment: str, post_id: int) -> str:
         try:

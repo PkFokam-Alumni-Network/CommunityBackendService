@@ -3,6 +3,11 @@ from datetime import datetime
 from typing import Optional
 from models.enums import AttachmentType
 
+class Author(BaseModel):
+    id: int
+    first_name: str
+    last_name: str
+    image: Optional[str] = None
 class CommentCreate(BaseModel):
     content: str
     attachment: Optional[str] = None # can be base64 image or a giphy link
@@ -29,7 +34,7 @@ class CommentResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     upvote_count: Optional[int] = 0
-
+    author: Author
     model_config = ConfigDict(from_attributes=True)
 
 class CommentDeletedResponse(BaseModel):
