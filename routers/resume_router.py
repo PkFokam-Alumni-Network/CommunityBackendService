@@ -65,29 +65,33 @@ def upload_resume(
         )
 
 
-@router.get("/me", status_code=status.HTTP_200_OK, response_model=List[ResumeResponse])
-def get_my_resumes(
+# IMPORTANT: Specific routes must come BEFORE parameterized routes
+@router.get("/can-upload", status_code=status.HTTP_200_OK)
+def can_upload_resume(
     user_id: int = Query(..., description="ID of the user"),
     db: Session = Depends(get_db)
-) -> List[ResumeResponse]:
-    """Get all resumes for the current user."""
+):
+    """Check if a user can upload a new resume."""
     resume_service = ResumeService()
     
     try:
-        resumes = resume_service.get_user_resumes(db, user_id)
-        return resumes
-    except ValueError as e:
-        LOGGER.warning(f"Get user resumes failed for user_id={user_id}: {str(e)}")
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        can_upload = resume_service.can_user_upload_resume(db, user_id)
+        
+        return {
+            "can_upload": can_upload,
+            "message": "User can upload a new resume." if can_upload else 
+                      "User already has a resume pending or in review."
+        }
+        
     except Exception as e:
-        LOGGER.error(f"SERVER ERROR in get_my_resumes for user_id={user_id}: {str(e)}")
+        LOGGER.error(f"SERVER ERROR in can_upload_resume for user_id={user_id}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"
         )
 
 
-@router.get("/", status_code=status.HTTP_200_OK, response_model=ResumesForReviewListResponse)
+@router.get("/for-review", status_code=status.HTTP_200_OK, response_model=ResumesForReviewListResponse)
 def get_resumes_for_review(
     reviewer_id: int = Query(..., description="ID of the reviewer"),
     status_filter: ResumeStatus = Query(ResumeStatus.pending, alias="status", description="Status of resumes to retrieve"),
@@ -132,6 +136,29 @@ def get_resumes_for_review(
         )
 
 
+@router.get("/me", status_code=status.HTTP_200_OK, response_model=List[ResumeResponse])
+def get_my_resumes(
+    user_id: int = Query(..., description="ID of the user"),
+    db: Session = Depends(get_db)
+) -> List[ResumeResponse]:
+    """Get all resumes for the current user."""
+    resume_service = ResumeService()
+    
+    try:
+        resumes = resume_service.get_user_resumes(db, user_id)
+        return resumes
+    except ValueError as e:
+        LOGGER.warning(f"Get user resumes failed for user_id={user_id}: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        LOGGER.error(f"SERVER ERROR in get_my_resumes for user_id={user_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error"
+        )
+
+
+# Parameterized routes come AFTER specific routes
 @router.get("/{resume_id}", status_code=status.HTTP_200_OK, response_model=ResumeWithReviews)
 def get_resume_by_id(
     resume_id: int,
@@ -230,7 +257,7 @@ def update_resume_status(
             file_name=updated_resume.file_name,
             file_path=updated_resume.file_path,
             status=updated_resume.status,
-            uploaded_at=updated_resume.uploaded_at,
+            uploaded_at=updated_resume.updated_at,
             updated_at=updated_resume.updated_at
         )
         
@@ -278,29 +305,3 @@ def delete_resume(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"
         )
-
-
-@router.get("/can-upload", status_code=status.HTTP_200_OK)
-def can_upload_resume(
-    user_id: int = Query(..., description="ID of the user"),
-    db: Session = Depends(get_db)
-):
-    """Check if a user can upload a new resume."""
-    resume_service = ResumeService()
-    
-    try:
-        can_upload = resume_service.can_user_upload_resume(db, user_id)
-        
-        return {
-            "can_upload": can_upload,
-            "message": "User can upload a new resume." if can_upload else 
-                      "User already has a resume pending or in review."
-        }
-        
-    except Exception as e:
-        LOGGER.error(f"SERVER ERROR in can_upload_resume for user_id={user_id}: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal server error"
-        )
-    

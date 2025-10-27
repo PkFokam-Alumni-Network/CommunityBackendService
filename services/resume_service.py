@@ -19,27 +19,46 @@ class ResumeService:
         self.user_repository = UserRepository()
 
     def upload_resume(self, db: Session, user_id: int, file_data: bytes, file_name: str) -> Resume:
+        """Upload a new resume for a user."""
+        
         if not user_id or not file_data or not file_name:
             raise ValueError("User ID, file data, and file name are required.")
 
+        # Get user info
         user = self.user_repository.get_user_by_id(db, user_id)
         if not user:
             raise ValueError("User not found.")
 
+        # Validate file
         validate_resume_file(file_data, file_name)
 
+        # Check one-resume rule
         existing_resume = self.resume_repository.get_user_resume_by_status(
             db, user_id, [ResumeStatus.pending, ResumeStatus.in_review]
         )
         if existing_resume:
             raise ValueError("You can only have one resume with a status of 'Pending' or 'In Review' at a time.")
-
+        
         try:
+            # Create user-friendly folder name
+            first_name = user.first_name.lower().replace(" ", "_") if user.first_name else "user"
+            last_name = user.last_name.lower().replace(" ", "_") if user.last_name else ""
+            
+            # Build folder name
+            if last_name:
+                user_folder = f"{user_id}_{first_name}_{last_name}"
+            else:
+                user_folder = f"{user_id}_{first_name}"
+            
+            # Generate S3 key
             file_extension = os.path.splitext(file_name)[1]
-            unique_filename = f"resumes/{user_id}/{uuid.uuid4()}{file_extension}"
+            unique_filename = f"{uuid.uuid4()}{file_extension}"
+            object_key = f"resumes/{user_folder}/{unique_filename}"
             
-            s3_path = upload_file_to_s3(file_data, unique_filename)
+            # Upload to S3
+            s3_path = upload_file_to_s3(file_data, object_key)
             
+            # Create resume object
             resume = Resume(
                 user_id=user_id,
                 file_name=file_name,
