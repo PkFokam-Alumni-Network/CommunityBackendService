@@ -17,7 +17,7 @@ class PostService:
         self.user_repository = UserRepository()
 
     def _create_author(self, user_id: int, db: Session) -> Author:
-        user = self.user_repository.get_user_by_id(user_id, db)
+        user = self.user_repository.get_user_by_id(db=db, user_id=user_id)
         return Author(
             first_name=user.first_name,
             last_name=user.last_name,
@@ -32,7 +32,7 @@ class PostService:
             return []
         
         author_ids = [post.author_id for post in posts]
-        authors = self.user_repository.get_users_by_ids(db, author_ids)
+        authors = self.user_repository.get_users_by_ids(db=db, user_ids=author_ids)
         authors_dict: Dict[int, Author] = {
             author.id: Author(
                 first_name=author.first_name,
@@ -85,7 +85,7 @@ class PostService:
         return self._create_post_response(post, author)
 
     def update_post(self, post_id: int, user_id: int, updated_data: PostUpdate, db: Session) -> PostResponse:
-        db_post = self.post_repository.get_post_by_id(post_id, db)
+        db_post = self.post_repository.get_post_by_id(post_id, db=db)
         self._verify_post_ownership(db_post, user_id)
         
         attachment_url = updated_data.attachment
@@ -106,7 +106,7 @@ class PostService:
         return self._create_post_response(updated_post, author)
 
     def get_post_by_id(self, post_id: int, db: Session) -> Optional[PostResponse]:
-        post = self.post_repository.get_post_by_id(post_id, db)
+        post = self.post_repository.get_post_by_id(post_id, db=db)
         if not post:
             return None
         

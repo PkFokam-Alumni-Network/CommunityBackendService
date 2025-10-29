@@ -17,7 +17,7 @@ class CommentService:
         self.user_repository = UserRepository()
 
     def _create_author(self, user_id: int, db: Session) -> Author:
-        user = self.user_repository.get_user_by_id(user_id, db)
+        user = self.user_repository.get_user_by_id(user_id=user_id, db=db)
         return Author(
             first_name=user.first_name,
             last_name=user.last_name,
