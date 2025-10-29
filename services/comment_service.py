@@ -12,7 +12,7 @@ from core.logging_config import LOGGER
 from repository.user_repository import UserRepository
 
 class CommentService:
-    def __init__(self, session: Session):
+    def __init__(self):
         self.comment_repository = CommentRepository()
         self.user_repository = UserRepository()
 
