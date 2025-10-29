@@ -10,6 +10,7 @@ from core.auth import get_current_user
 from models import User
 
 router = APIRouter( tags=["Comments"])
+comment_service = CommentService()
 
 @router.post("/comments/", status_code=status.HTTP_201_CREATED, response_model=CommentResponse)
 def create_comment(
@@ -18,8 +19,7 @@ def create_comment(
     session: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> CommentResponse:
-    comment_service = CommentService(session=session)
-    comment = comment_service.add_comment(post_id, comment_data, current_user.id)
+    comment = comment_service.add_comment(db = session, post_id = post_id, comment_data = comment_data, user_id = current_user.id)
     response = CommentResponse.model_validate(comment)
     LOGGER.info(f"Comment created: {comment}")
     return response
@@ -29,16 +29,14 @@ def get_comments_by_post(
     post_id: int,
     session: Session = Depends(get_db)
 ) -> List[CommentResponse]:
-    comment_service = CommentService(session=session)
-    return comment_service.get_comments_by_post_id(post_id)
+    return comment_service.get_comments_by_post_id(db = session, post_id = post_id)
 
 @router.get("/comments/{comment_id}", status_code=status.HTTP_200_OK, response_model=CommentResponse)
 def get_comment(
     comment_id: int,
     session: Session = Depends(get_db)
 ) -> CommentResponse:
-    comment_service = CommentService(session=session)
-    comment = comment_service.get_comment_by_id(comment_id)
+    comment = comment_service.get_comment_by_id(db = session, comment_id = comment_id)
     if not comment:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Comment not found")
     response = CommentResponse.model_validate(comment)
@@ -52,15 +50,16 @@ def update_comment(
     session: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> CommentResponse:
-    comment_service = CommentService(session=session)
     try:
-        comment = comment_service.update_comment(comment_id, current_user.id, comment_data)
+        comment = comment_service.update_comment(db = session, comment_id = comment_id, user_id = current_user.id, comment_data = comment_data)
         response = CommentResponse.model_validate(comment)
         LOGGER.info(f"Comment updated: {comment}")
         return response
     except ValueError as e:
+        LOGGER.error(f"Comment not found: {comment_id}")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except PermissionError as e:
+        LOGGER.error(f"Not authorized to update comment: {comment_id}")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
 
 @router.delete("/comments/{comment_id}", status_code=status.HTTP_200_OK, response_model=CommentDeletedResponse)
@@ -69,12 +68,13 @@ def delete_comment(
     session: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> CommentDeletedResponse:
-    comment_service = CommentService(session=session)
     try:
-        comment_service.delete_comment(comment_id, current_user.id)
+        comment_service.delete_comment(db = session, comment_id = comment_id, user_id = current_user.id)
         LOGGER.info(f"Comment deleted: {comment_id}")
         return CommentDeletedResponse(message=f"Comment with ID {comment_id} was successfully deleted")
     except ValueError as e:
+        LOGGER.error(f"Comment not found: {comment_id}")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except PermissionError as e:
+        LOGGER.error(f"Not authorized to delete comment: {comment_id}")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))

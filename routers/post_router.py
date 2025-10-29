@@ -5,8 +5,10 @@ from typing import List, Optional
 from schemas.post_schema import PostCreate, PostUpdate, PostResponse, PostDeletedResponse
 from services.post_service import PostService
 from core.database import get_db
+from core.logging_config import LOGGER
 from core.auth import get_current_user
 from models.user import User
+
 
 router = APIRouter(prefix="/posts", tags=["Posts"])
 post_service = PostService()
@@ -25,6 +27,7 @@ def get_recent_posts(category: Optional[str] = Query(None, description="Filter b
 def get_post(post_id: int, session: Session = Depends(get_db)) -> PostResponse:
     post = post_service.get_post_by_id(post_id=post_id, db=session)
     if not post:
+        LOGGER.error(f"Post not found: {post_id}")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
     return post
 
@@ -33,8 +36,10 @@ def update_post(post_id: int, post_data: PostUpdate, session: Session = Depends(
     try:
         return post_service.update_post(post_id=post_id, user_id=current_user.id, updated_data=post_data, db=session)
     except ValueError as e:
+        LOGGER.error(f"Post not found: {post_id}")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except PermissionError as e:
+        LOGGER.error(f"Not authorized to update post: {post_id}")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
 
 @router.delete("/{post_id}", status_code=status.HTTP_200_OK, response_model=PostDeletedResponse)
@@ -43,8 +48,10 @@ def delete_post(post_id: int, session: Session = Depends(get_db), current_user: 
         post_service.delete_post(post_id=post_id, user_id=current_user.id, db=session)
         return PostDeletedResponse(message=f"Post with ID {post_id} was successfully deleted")
     except ValueError as e:
+        LOGGER.error(f"Post not found: {post_id}")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except PermissionError as e:
+        LOGGER.error(f"Not authorized to delete post: {post_id}")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
 
 @router.get("/{user_id}", status_code=status.HTTP_200_OK, response_model=List[PostResponse])
