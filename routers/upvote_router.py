@@ -9,6 +9,7 @@ from core.auth import get_current_user
 from models import User
 
 router = APIRouter(tags=["Upvotes"])
+upvote_service = UpvoteService()
 
 @router.post("/post/{post_id}/upvote", status_code=status.HTTP_201_CREATED, response_model=UpvoteCreatedResponse)
 def upvote_post(
@@ -16,9 +17,8 @@ def upvote_post(
     session: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> UpvoteCreatedResponse:
-    upvote_service = UpvoteService(session=session)
     try:
-        upvote = upvote_service.upvote_post(post_id, current_user.id)
+        upvote = upvote_service.upvote_post(post_id=post_id, user_id=current_user.id, db=session)
         LOGGER.info(f"Post upvoted: {upvote}")
         return UpvoteCreatedResponse(
             message="Post upvoted successfully",
@@ -33,9 +33,8 @@ def remove_upvote_from_post(
     session: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> UpvoteDeletedResponse:
-    upvote_service = UpvoteService(session=session)
     try:
-        upvote_service.remove_upvote_from_post(post_id, current_user.id)
+        upvote_service.remove_upvote_from_post(post_id=post_id, user_id=current_user.id, db=session)
         LOGGER.info(f"Upvote removed from post: {post_id}")
         return UpvoteDeletedResponse(message="Upvote removed successfully")
     except ValueError as e:
@@ -47,9 +46,8 @@ def upvote_comment(
     session: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> UpvoteCreatedResponse:
-    upvote_service = UpvoteService(session=session)
     try:
-        upvote = upvote_service.upvote_comment(comment_id, current_user.id)
+        upvote = upvote_service.upvote_comment(comment_id=comment_id, user_id=current_user.id, db=session)
         LOGGER.info(f"Comment upvoted: {upvote}")
         return UpvoteCreatedResponse(
             message="Comment upvoted successfully",
@@ -64,9 +62,8 @@ def remove_upvote_from_comment(
     session: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> UpvoteDeletedResponse:
-    upvote_service = UpvoteService(session=session)
     try:
-        upvote_service.remove_upvote_from_comment(comment_id, current_user.id)
+        upvote_service.remove_upvote_from_comment(comment_id=comment_id, user_id=current_user.id, db=session)
         LOGGER.info(f"Upvote removed from comment: {comment_id}")
         return UpvoteDeletedResponse(message="Upvote removed successfully")
     except ValueError as e:
