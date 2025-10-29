@@ -54,6 +54,6 @@ def delete_post(post_id: int, session: Session = Depends(get_db), current_user: 
         LOGGER.error(f"Not authorized to delete post: {post_id}")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
 
-@router.get("/{user_id}", status_code=status.HTTP_200_OK, response_model=List[PostResponse])
+@router.get("/user/{user_id}", status_code=status.HTTP_200_OK, response_model=List[PostResponse])
 def get_user_posts(user_id: int, session: Session = Depends(get_db)) -> List[PostResponse]:
     return post_service.get_user_posts(user_id=user_id, db=session)
