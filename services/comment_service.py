@@ -70,7 +70,7 @@ class CommentService:
         return self._create_comment_response(comment, author)
 
     def get_comments_by_post_id(self, db: Session, post_id: int) -> List[CommentResponse]:
-        comment_tuples = self.comment_repository.get_comments_by_post_id_with_upvote_count(post_id)
+        comment_tuples = self.comment_repository.get_comments_by_post_id_with_upvote_count(db=db, post_id=post_id)
         
         result = []
         for comment, upvote_count in comment_tuples:
