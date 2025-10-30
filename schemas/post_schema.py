@@ -3,6 +3,11 @@ from datetime import datetime
 from typing import Optional
 from models.enums import AttachmentType
 
+class Author(BaseModel):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    avatar_url: Optional[str] = None
+
 class PostCreate(BaseModel):
     title: str
     content: str
@@ -30,7 +35,7 @@ class PostResponse(BaseModel):
     category: str
     attachment_url: Optional[str] = None
     attachment_type: Optional[AttachmentType] = None
-    author_id: int
+    author: Author
     created_at: datetime
     updated_at: datetime
 

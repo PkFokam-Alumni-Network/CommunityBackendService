@@ -73,7 +73,7 @@ def test_create_comment(client: TestClient, test_users: list[tuple[UserCreatedRe
     comment = CommentResponse.model_validate(response.json())
     assert comment.content == "This is my first comment"
     assert comment.post_id == test_post.id
-    assert comment.author_id == user1.id
+    assert comment.author.first_name == user1.first_name
 
 
 def test_get_comment(client: TestClient, test_users: list[tuple[UserCreatedResponse, str]], test_post: PostResponse):

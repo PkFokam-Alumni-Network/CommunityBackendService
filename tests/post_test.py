@@ -65,7 +65,7 @@ def test_create_get_post(client: TestClient, test_users: list[tuple[User, str]])
     new_post: PostResponse = PostResponse.model_validate(response.json())
     assert new_post.title == "First Test Post"
     assert new_post.content == "This is a test"
-    assert new_post.author_id == user1.id
+    assert new_post.author.first_name == user1.first_name
 
     response = client.get(f"/posts/{new_post.id}")
     assert response.status_code == 200
