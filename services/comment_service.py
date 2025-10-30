@@ -96,7 +96,7 @@ class CommentService:
                 setattr(db_comment, key, value)
         
         db_comment.attachment_url = attachment_url
-        updated_comment = self.comment_repository.update_comment(db_comment, db)
+        updated_comment = self.comment_repository.update_comment(db=db, updated_comment=db_comment)
         
         author = self._create_author(updated_comment.author_id, db)
         return self._create_comment_response(updated_comment, author)
