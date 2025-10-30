@@ -25,7 +25,7 @@ class CommentService:
         )
 
     def _create_comment_response(self, comment: Comment, author: Author, upvote_count: Optional[int] = 0) -> CommentResponse:
-        comment_response = CommentResponse.model_validate(comment).model_copy(update={"author": author})
+        comment_response = CommentResponse.model_validate(comment, from_attributes=True).model_copy(update={"author": author})
         comment_response.upvote_count = upvote_count
         return comment_response
 

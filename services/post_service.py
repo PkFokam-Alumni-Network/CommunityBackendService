@@ -25,7 +25,7 @@ class PostService:
         )
 
     def _create_post_response(self, post: Post, author: Author) -> PostResponse:
-        return PostResponse.model_validate(post).model_copy(update={"author": author})
+        return PostResponse.model_validate(post, from_attributes=True).model_copy(update={"author": author})
 
     def _create_post_responses(self, posts: List[Post], db: Session) -> List[PostResponse]:
         if not posts:
@@ -43,7 +43,7 @@ class PostService:
         }
         
         return [
-            PostResponse.model_validate(post).model_copy(
+            PostResponse.model_validate(post, from_attributes=True).model_copy(
                 update={"author": authors_dict[post.author_id]}
             )
             for post in posts
