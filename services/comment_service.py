@@ -50,7 +50,6 @@ class CommentService:
         )
         
         comment = Comment(
-            db=db,
             post_id=post_id,
             content=comment_data.content,
             author_id=user_id,
