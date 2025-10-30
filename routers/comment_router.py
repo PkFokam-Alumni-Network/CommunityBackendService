@@ -51,7 +51,7 @@ def update_comment(
     current_user: User = Depends(get_current_user),
 ) -> CommentResponse:
     try:
-        comment = comment_service.update_comment(db = session, comment_id = comment_id, user_id = current_user.id, comment_data = comment_data)
+        comment = comment_service.update_comment(db = session, comment_id = comment_id, user_id = current_user.id, updated_data=comment_data)
         response = CommentResponse.model_validate(comment)
         LOGGER.info(f"Comment updated: {comment}")
         return response
