@@ -32,7 +32,7 @@ class PostResponse(BaseModel):
     id: int
     title: str
     content: str
-    category: str
+    category: Optional[str] = None
     attachment_url: Optional[str] = None
     attachment_type: Optional[AttachmentType] = None
     author: Author
