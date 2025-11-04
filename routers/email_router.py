@@ -65,15 +65,16 @@ def send_email(
 @router.post("/reset-password")
 def request_password_reset(
     payload: ResetPasswordRequest,
-    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
 ):
     if not payload.email:
         raise HTTPException(status_code=400, detail="Email is required.")
     email_service = EmailService()
     try:
-        background_tasks.add_task(email_service.request_password_reset, db, payload.email)
+        email_service.request_password_reset(db, payload.email)
         return {"message": "Password reset email sent successfully."}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         LOGGER.error(f"Error sending password reset email: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
