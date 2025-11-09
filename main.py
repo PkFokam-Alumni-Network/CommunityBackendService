@@ -48,6 +48,8 @@ app.include_router(comment_router.router)
 app.include_router(upvote_router.router)
 app.include_router(email_router.router)
 
+# app.include_router(comment_router.router)
+
 
 @app.get("/")
 async def read_root():
