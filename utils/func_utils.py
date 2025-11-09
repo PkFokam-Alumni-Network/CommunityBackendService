@@ -67,17 +67,22 @@ def validate_resume_file(file_data: bytes, file_name: str, max_size: int = 10 * 
         raise ValueError("File appears to be corrupted or incomplete PDF.")
     
 def upload_file_to_s3(file_data: bytes, object_key: str) -> str:
-    
+    """
+    Upload a file to S3 using the S3Client class.
+    """
     try:
-        s3_client.put_object(
-            Bucket=settings.BUCKET_NAME,
-            Body=file_data,
-            Key=object_key,
+        from clients.s3_client import S3Client
+        
+        s3 = S3Client()
+        url = s3.upload_file(
+            file_bytes=file_data,
+            object_key=object_key,
+            content_type="application/pdf"  # For resume PDFs
         )
-        LOGGER.info(
-            f"File uploaded to S3 bucket '{settings.BUCKET_NAME}' with key '{object_key}'."
-        )
-        return f"https://{settings.BUCKET_NAME}.s3.us-east-2.amazonaws.com/{object_key}"
+        
+        LOGGER.info(f"File uploaded to S3 bucket with key '{object_key}'.")
+        return url
+        
     except Exception as e:
         LOGGER.error(f"Error uploading file to key {object_key}: {e}")
         raise ValueError("Error uploading file to S3 bucket")

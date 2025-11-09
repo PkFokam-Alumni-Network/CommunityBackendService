@@ -8,7 +8,7 @@ from sqlalchemy import text
 from core.database import get_db
 from routers import (
     user_router, announcement_router, event_router, post_router, auth_router,
-    comment_router, upvote_router, email_router
+    comment_router, upvote_router, email_router, resume_router
 )
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
@@ -47,6 +47,8 @@ app.include_router(auth_router.router)
 app.include_router(comment_router.router)
 app.include_router(upvote_router.router)
 app.include_router(email_router.router)
+app.include_router(resume_router.router)
+# app.include_router(comment_router.router)
 
 # app.include_router(comment_router.router)
 
