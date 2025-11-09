@@ -1,6 +1,5 @@
 from fastapi.testclient import TestClient
 from schemas.user_schema import (
-    UserCreatedResponse,
     UserLoginResponse,
     UserGetResponse,
     UserGetResponseInternal,
@@ -23,11 +22,11 @@ def test_correct_login(client: TestClient) -> None:
     login_data = {"email": "login_test@example.com", "password": "testpassword"}
     response = client.post("/login/", json=login_data)
     assert response.status_code == 200
-    loginResponse: UserLoginResponse = UserLoginResponse.model_validate(response.json())
+    login_response: UserLoginResponse = UserLoginResponse.model_validate(response.json())
 
-    assert loginResponse.access_token is not None
-    assert loginResponse.token_type == "bearer"
-    access_token = loginResponse.access_token
+    assert login_response.access_token is not None
+    assert login_response.token_type == "bearer"
+    access_token = login_response.access_token
     payload = verify_jwt(access_token)
     assert payload is not None
     assert payload["user_id"] == user_data["email"]
@@ -83,32 +82,46 @@ def test_get_all_users(client: TestClient) -> None:
         assert users[i].last_name == user["last_name"]
 
 
-def test_create_get_user(client: TestClient) -> None:
-    response = client.post(
-        "/users/",
-        json={
-            "email": "test_email@example.com",
-            "first_name": "Test",
-            "last_name": "User",
-            "role": "user",
-            "graduation_year": 2023,
-            "degree": "B.Sc.",
-            "major": "Computer Science",
-            "phone": "1234567890",
-            "password": "securepassword",
-            "current_occupation": "Engineer",
-            "image": "test_image_url",
-            "linkedin_profile": "https://linkedin.com/in/test",
-        },
-    )
+def test_create_user_with_multiple_degrees(client: TestClient) -> None:
+    """Test creating a user with multiple degrees using new format"""
+    user_data = {
+        "email": "multi_degree@example.com",
+        "first_name": "Multi",
+        "last_name": "Degree",
+        "password": "securepassword",
+        "degrees": [
+            {
+                "degree": "BSc Computer Science",
+                "major": "Computer Science",
+                "graduation_year": 2020,
+                "university": "Georgia Tech"
+            },
+            {
+                "degree": "MSc Data Science",
+                "major": "Data Science",
+                "graduation_year": 2022,
+                "university": "MIT"
+            }
+        ]
+    }
+    response = client.post("/users/", json=user_data)
     assert response.status_code == 201
-    user: UserCreatedResponse = UserCreatedResponse.model_validate(response.json())
-    assert user.email == "test_email@example.com"
-
-    response = client.get(f"/users/{user.id}")
+    
+    user = response.json()
+    response = client.get(f"/users/{user['id']}")
     assert response.status_code == 200
-    user_response: UserGetResponse = UserGetResponse.model_validate(response.json())
-    assert user_response.email == "test_email@example.com"
+    
+    user_response = UserGetResponse.model_validate(response.json())
+    assert user_response.degrees is not None
+    assert len(user_response.degrees) == 2
+    assert user_response.degrees[0].degree == "BSc Computer Science"
+    assert user_response.degrees[0].major == "Computer Science"
+    assert user_response.degrees[0].graduation_year == 2020
+    assert user_response.degrees[0].university == "Georgia Tech"
+    assert user_response.degrees[1].degree == "MSc Data Science"
+    assert user_response.degrees[1].major == "Data Science"
+    assert user_response.degrees[1].graduation_year == 2022
+    assert user_response.degrees[1].university == "MIT"
 
 
 def test_get_non_existing_user(client: TestClient) -> None:
@@ -148,31 +161,6 @@ def test_delete_existing_user(client: TestClient) -> None:
     response = client.delete(f"/users/{user['id']}")
     assert response.status_code == 404
     assert response.json()["detail"] == "User does not exist."
-
-
-# TODO: Uncomment and implement this test when the mentor assignment feature with id is implemented
-# def test_assign_mentor(client: TestClient) -> None:
-#     mentor_response = client.post("/users/", json={
-#         "first_name": "Mentor",
-#         "last_name": "User",
-#         "password": "securepassword",
-#     })
-#     assert mentor_response.status_code == 201
-#     mentee_response = client.post("/users/", json={
-#         "email": "mentee@example.com",
-#         "first_name": "Mentee",
-#         "last_name": "User",
-#         "password": "securepassword",
-#     })
-#     assert mentee_response.status_code == 201
-#     mentee: UserGetResponse = UserGetResponse.model_validate(mentee_response.json())
-#     user_id = mentee.id
-
-#     response = client.put(f"/users/{user_id}", json={"mentor_email": mentor_email})
-#     assert response.status_code == 200
-#     updated = client.get(f"/users/{user_id}").json()
-#     assert updated["mentor_email"] == mentor_email
-
 
 def test_update_user(client: TestClient) -> None:
     user_data = {
@@ -231,9 +219,9 @@ def test_update_user_password(client: TestClient) -> None:
     login_data = {"email": user["email"], "password": "newsecurepassword"}
     response = client.post("/login/", json=login_data)
     assert response.status_code == 200
-    loginResponse: UserLoginResponse = UserLoginResponse.model_validate(response.json())
-    assert loginResponse.access_token is not None
-    assert loginResponse.token_type == "bearer"
+    login_response: UserLoginResponse = UserLoginResponse.model_validate(response.json())
+    assert login_response.access_token is not None
+    assert login_response.token_type == "bearer"
 
 
 def test_get_user_count(client: TestClient) -> None:
@@ -297,3 +285,88 @@ def test_get_active_users(client: TestClient) -> None:
     response = client.get("/users/?counts=true&active=true")
     assert response.status_code == 200
     assert response.json()["count"] == 2
+
+def test_update_user_degrees(client: TestClient) -> None:
+    user_data = {
+        "email": "update_degrees@example.com",
+        "first_name": "Update",
+        "last_name": "Degrees",
+        "password": "securepassword",
+        "degrees": [
+            {
+                "degree": "BSc Physics",
+                "major": "Physics",
+                "graduation_year": 2019,
+                "university": "Stanford"
+            }
+        ]
+    }
+    response = client.post("/users/", json=user_data)
+    assert response.status_code == 201
+    user = response.json()
+    
+    update_data = {
+        "degrees": [
+            {
+                "degree": "BSc Physics",
+                "major": "Physics",
+                "graduation_year": 2019,
+                "university": "Stanford"
+            },
+            {
+                "degree": "PhD Physics",
+                "major": "Quantum Physics",
+                "graduation_year": 2024,
+                "university": "Caltech"
+            }
+        ]
+    }
+    response = client.put(f"/users/{user['id']}", json=update_data)
+    assert response.status_code == 200
+    
+    updated_user = UserGetResponse.model_validate(response.json())
+    assert len(updated_user.degrees) == 2
+    assert updated_user.degrees[1].degree == "PhD Physics"
+
+def test_create_user_without_degrees(client: TestClient) -> None:
+    user_data = {
+        "email": "no_degree@example.com",
+        "first_name": "No",
+        "last_name": "Degree",
+        "password": "securepassword"
+    }
+    response = client.post("/users/", json=user_data)
+    assert response.status_code == 201
+    
+    user = response.json()
+    response = client.get(f"/users/{user['id']}")
+    assert response.status_code == 200
+    
+    user_response = UserGetResponse.model_validate(response.json())
+    assert user_response.degrees is None or len(user_response.degrees) == 0
+
+def test_clear_user_degrees(client: TestClient) -> None:
+    user_data = {
+        "email": "clear_degrees@example.com",
+        "first_name": "Clear",
+        "last_name": "Degrees",
+        "password": "securepassword",
+        "degrees": [
+            {
+                "degree": "BSc Mathematics",
+                "major": "Mathematics",
+                "graduation_year": 2020,
+                "university": "Oxford"
+            }
+        ]
+    }
+    response = client.post("/users/", json=user_data)
+    assert response.status_code == 201
+    user = response.json()
+    
+    update_data = {"degrees": []}
+    response = client.put(f"/users/{user['id']}", json=update_data)
+    assert response.status_code == 200
+    
+    updated_user = UserGetResponse.model_validate(response.json())
+    assert updated_user.degrees is None or len(updated_user.degrees) == 0

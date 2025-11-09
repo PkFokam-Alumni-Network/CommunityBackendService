@@ -1,8 +1,21 @@
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel, ConfigDict, EmailStr
-
+from pydantic import field_validator
 from models.user import User, UserRole
 
+class DegreeInfo(BaseModel):
+    """Schema for individual degree information"""
+    degree: str
+    major: str
+    graduation_year: Optional[int] = None
+    university: Optional[str] = None
+
+    @field_validator('degree', 'major')
+    @classmethod
+    def validate_not_empty(cls, v: str) -> str:
+        if v and not v.strip():
+            raise ValueError('Field cannot be empty or whitespace')
+        return v.strip() if v else v
 
 class UserCreate(BaseModel):
     email: EmailStr
@@ -14,10 +27,9 @@ class UserCreate(BaseModel):
     phone: Optional[str] = None
     image: Optional[str] = "https://www.w3schools.com/howto/img_avatar.png"
     bio: Optional[str] = None
-
     graduation_year: Optional[int] = None
-    degree: Optional[str] = None
-    major: Optional[str] = None
+
+    degrees: Optional[List[DegreeInfo]] = None
 
     current_occupation: Optional[str] = None
 
@@ -46,8 +58,7 @@ class UserGetResponse(BaseModel):
     image: Optional[str]
     bio: Optional[str]
     graduation_year: Optional[int]
-    degree: Optional[str]
-    major: Optional[str]
+    degrees: Optional[List[DegreeInfo]]
     current_occupation: Optional[str]
     linkedin_profile: Optional[str]
     instagram_profile: Optional[str]
@@ -92,8 +103,7 @@ class UserUpdate(BaseModel):
     image: Optional[str] = None
     bio: Optional[str] = None
     graduation_year: Optional[int] = None
-    degree: Optional[str] = None
-    major: Optional[str] = None
+    degrees: Optional[List[DegreeInfo]] = None
     current_occupation: Optional[str] = None
     linkedin_profile: Optional[str] = None
     instagram_profile: Optional[str] = None
@@ -135,6 +145,7 @@ class UserLoginResponse(UserCreate):
 
     @staticmethod
     def create_user_login_response(user: User, access_token: str):
+        degrees_list = user.degrees or []
         return UserLoginResponse(
             id=user.id,
             email=user.email,
@@ -146,8 +157,7 @@ class UserLoginResponse(UserCreate):
             image=user.image,
             bio=user.bio,
             graduation_year=user.graduation_year,
-            degree=user.degree,
-            major=user.major,
+            degrees=[DegreeInfo(**deg) for deg in degrees_list] if degrees_list else None,
             current_occupation=user.current_occupation,
             linkedin_profile=user.linkedin_profile,
             instagram_profile=user.instagram_profile,

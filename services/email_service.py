@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 import os
 from brevo_python import ApiClient, Configuration, SendSmtpEmail
 from brevo_python.api.transactional_emails_api import TransactionalEmailsApi
@@ -20,7 +20,7 @@ class EmailService:
     def send_email(
         self,
         subject: str,
-        html_content: str,
+        html_content: Optional[str],
         sender_name: str,
         sender_email: str,
         recipients: List[str],

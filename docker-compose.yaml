@@ -9,6 +9,15 @@ services:
     environment:
       - ENV=production
       - DATABASE_URL=${DATABASE_URL}
+      - LOG_DIR=/app/logs
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./logs:/app/logs
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/health"]
       interval: 30s
