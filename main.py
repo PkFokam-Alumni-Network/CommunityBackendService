@@ -16,6 +16,7 @@ from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
 from core.logging_config import LOGGER
 from core.settings import settings
 from datetime import datetime
+from middleware.logging_middleware import LoggingMiddleware
 
 
 # TODO: Init logging and use config/settings.py for env variables
@@ -25,7 +26,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     yield
 
 
-app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None)
+app = FastAPI(title="PACI Community Backend", version="1.0.0", 
+description="PACI Community Backend API", lifespan=lifespan, docs_url=None, redoc_url=None)
+
+app.add_middleware(LoggingMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
@@ -44,6 +48,8 @@ app.include_router(comment_router.router)
 app.include_router(upvote_router.router)
 app.include_router(email_router.router)
 app.include_router(resume_router.router)
+# app.include_router(comment_router.router)
+
 # app.include_router(comment_router.router)
 
 
