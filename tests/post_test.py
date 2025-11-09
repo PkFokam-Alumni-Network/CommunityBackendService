@@ -387,3 +387,77 @@ def test_update_post_with_new_attachment(client, test_users, mocker):
     assert post.title == "Updated Post with Image"
     assert post.attachment_type == AttachmentType.IMAGE
     assert post.attachment_url == "https://fake-s3-bucket.com/posts/updated.png"
+
+def test_post_response_includes_like_comment_counts(client: TestClient, test_users, test_post):
+    _, token1 = test_users[0]
+
+    resp = client.get(f"/posts/{test_post.id}", cookies={"session_token": token1})
+    assert resp.status_code == 200
+    data = resp.json()
+
+    for key in ("likes_count", "comments_count", "liked_by_user"):
+        assert key in data
+
+    assert data["likes_count"] == 0
+    assert data["comments_count"] == 0
+    assert data["liked_by_user"] is False
+
+
+def test_upvote_post_increments_like_count_and_sets_flag(client: TestClient, test_users, test_post):
+    _, token1 = test_users[0]
+
+    resp = client.post(f"/post/{test_post.id}/upvote", cookies={"session_token": token1})
+    assert resp.status_code == 201
+
+    upvote_data = resp.json()
+    assert "likes_count" in upvote_data
+    assert upvote_data["likes_count"] == 1
+
+    post_resp = client.get(f"/posts/{test_post.id}", cookies={"session_token": token1})
+    post_data = post_resp.json()
+    assert post_data["likes_count"] == 1
+    assert post_data["liked_by_user"] is True
+
+
+def test_remove_upvote_decrements_like_count(client: TestClient, test_users, test_post):
+    _, token1 = test_users[0]
+
+    client.post(f"/post/{test_post.id}/upvote", cookies={"session_token": token1})
+
+    resp = client.delete(f"/post/{test_post.id}/upvote", cookies={"session_token": token1})
+    assert resp.status_code == 200
+
+    data = resp.json()
+    assert "likes_count" in data
+    assert data["likes_count"] == 0
+
+    post_resp = client.get(f"/posts/{test_post.id}", cookies={"session_token": token1})
+    assert post_resp.json()["liked_by_user"] is False
+
+
+def test_multiple_users_upvote_counts_accumulate(client: TestClient, test_users, test_post):
+    (_, token1), (_, token2) = test_users
+
+    client.post(f"/post/{test_post.id}/upvote", cookies={"session_token": token1})
+    client.post(f"/post/{test_post.id}/upvote", cookies={"session_token": token2})
+
+    post_resp = client.get(f"/posts/{test_post.id}", cookies={"session_token": token1})
+    post_data = post_resp.json()
+    assert post_data["likes_count"] == 2
+    assert post_data["liked_by_user"] is True
+
+
+def test_comments_count_increments(client: TestClient, test_users, test_post):
+    _, token1 = test_users[0]
+
+    comment_data = {"content": "Nice post!"}
+    resp = client.post(
+        "/comments/",
+        json=comment_data,
+        params={"post_id": test_post.id},
+        cookies={"session_token": token1},
+    )
+    assert resp.status_code == 201
+
+    post_resp = client.get(f"/posts/{test_post.id}", cookies={"session_token": token1})
+    assert post_resp.json()["comments_count"] == 1

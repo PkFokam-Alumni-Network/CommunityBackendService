@@ -24,8 +24,8 @@ def get_recent_posts(category: Optional[str] = Query(None, description="Filter b
     return post_service.get_recent_posts(db=session, limit=limit, page=page)
 
 @router.get("/{post_id}", status_code=status.HTTP_200_OK, response_model=PostResponse)
-def get_post(post_id: int, session: Session = Depends(get_db)) -> PostResponse:
-    post = post_service.get_post_by_id(post_id=post_id, db=session)
+def get_post(post_id: int, session: Session = Depends(get_db), current_user: User = Depends(get_current_user)) -> PostResponse:
+    post = post_service.get_post_by_id(post_id=post_id, user_id=current_user.id, db=session)
     if not post:
         LOGGER.error(f"Post not found: {post_id}")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")

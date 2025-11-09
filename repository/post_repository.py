@@ -1,6 +1,8 @@
 from typing import Optional, List
 from sqlalchemy.orm import Session
 from models.post import Post
+from models.upvote import Upvote
+from models.comment import Comment
 from utils.retry import retry_on_db_error
 class PostRepository():
 
@@ -71,4 +73,20 @@ class PostRepository():
     @retry_on_db_error()
     def get_user_posts(self, user_id: int, db: Session) -> List[Post]:
         return db.query(Post).filter(Post.author_id == user_id).all()
-
+    
+    @retry_on_db_error()
+    def count_post_likes(self, post_id: int, db: Session) -> int:
+        return db.query(Upvote).filter(Upvote.post_id == post_id).count()
+    
+    @retry_on_db_error()
+    def count_post_comments(self, post_id: int, db: Session) -> int:
+        return db.query(Comment).filter(Comment.post_id == post_id).count()
+    
+    @retry_on_db_error()
+    def user_has_liked_post(self, db: Session, post_id: int, user_id: int) -> bool:
+        return (
+            db.query(Upvote)
+            .filter(Upvote.post_id == post_id, Upvote.user_id == user_id)
+            .first()
+            is not None
+        )
