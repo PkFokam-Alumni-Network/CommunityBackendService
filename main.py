@@ -17,7 +17,7 @@ from core.logging_config import LOGGER
 from core.settings import settings
 from datetime import datetime
 from middleware.logging_middleware import LoggingMiddleware
-
+from middleware.journey_middleware import JourneyTrackingMiddleware
 
 # TODO: Init logging and use config/settings.py for env variables
 @asynccontextmanager
@@ -37,6 +37,10 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+)
+
+app.add_middleware(
+    JourneyTrackingMiddleware,
 )
 
 app.include_router(user_router.router)

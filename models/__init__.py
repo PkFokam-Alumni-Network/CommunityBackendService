@@ -9,6 +9,7 @@ from .session import Session
 from .comment import Comment
 from .upvote import Upvote
 from .announcement import Announcement
+from .user_journey import UserJourney
 from core.database import Base
 
 __all__ = [
@@ -22,5 +23,6 @@ __all__ = [
     "Session",
     "Comment",
     "Post",
-    "Upvote"
+    "Upvote",
+    "UserJourney"
 ]
