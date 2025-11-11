@@ -109,18 +109,22 @@ class PostService:
         db_post = self.post_repository.get_post_by_id(post_id, db=db)
         self._verify_post_ownership(db_post, user_id)
         
-        attachment_url = updated_data.attachment
-        if updated_data.attachment_type == AttachmentType.IMAGE:
-            attachment_url = self.save_post_attachment(
-                attachment=updated_data.attachment, 
-                post_id=db_post.id
-            )
+        # Only process attachment if it's explicitly provided in the update
+        if updated_data.attachment is not None and updated_data.attachment_type is not None:
+            attachment_url = updated_data.attachment
+            if updated_data.attachment_type == AttachmentType.IMAGE:
+                attachment_url = self.save_post_attachment(
+                    attachment=updated_data.attachment, 
+                    post_id=db_post.id
+                )
+            db_post.attachment_url = attachment_url
+            db_post.attachment_type = updated_data.attachment_type
         
+        # Update other fields
         for key, value in updated_data.model_dump(exclude_unset=True).items():
-            if key != "attachment" and hasattr(db_post, key):
+            if key not in ["attachment", "attachment_url", "attachment_type"] and hasattr(db_post, key):
                 setattr(db_post, key, value)
         
-        db_post.attachment_url = attachment_url
         updated_post = self.post_repository.update_post(db_post, db)
         
         author = self._create_author(user_id, db)
