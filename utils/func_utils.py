@@ -45,6 +45,47 @@ def decode_jwt(token: str) -> Any | None:
 
 def verify_jwt(token: str) -> Any | None:
     return decode_jwt(token)
+    
+def validate_resume_file(file_data: bytes, file_name: str, max_size: int = 10 * 1024 * 1024) -> str:
+    if not file_data:
+        raise ValueError("Uploaded file is empty.")
+    
+    if not file_name:
+        raise ValueError("File name is required.")
+    
+    if len(file_data) > max_size:
+        max_mb = max_size / (1024 * 1024)
+        raise ValueError(f"File size exceeds {max_mb}MB limit.")
+    
+    if not file_name.lower().endswith('.pdf'):
+        raise ValueError("Only PDF files are allowed for resume uploads.")
+    
+    if not file_data.startswith(b'%PDF-'):
+        raise ValueError("File does not appear to be a valid PDF format.")
+    
+    if b'%%EOF' not in file_data[-1024:]: 
+        raise ValueError("File appears to be corrupted or incomplete PDF.")
+    
+def upload_file_to_s3(file_data: bytes, object_key: str) -> str:
+    """
+    Upload a file to S3 using the S3Client class.
+    """
+    try:
+        from clients.s3_client import S3Client
+        
+        s3 = S3Client()
+        url = s3.upload_file(
+            file_bytes=file_data,
+            object_key=object_key,
+            content_type="application/pdf"  # For resume PDFs
+        )
+        
+        LOGGER.info(f"File uploaded to S3 bucket with key '{object_key}'.")
+        return url
+        
+    except Exception as e:
+        LOGGER.error(f"Error uploading file to key {object_key}: {e}")
+        raise ValueError("Error uploading file to S3 bucket")
 
 def upload_image_to_s3(base64_image: str, object_key: str) -> str:
     image = decode_base64_image(base64_image)
