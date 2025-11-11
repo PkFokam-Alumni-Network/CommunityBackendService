@@ -51,7 +51,7 @@ class Settings:
     @property
     def cors_origins(self):
         if self.ENV != "production":
-            return ["http://localhost:5173", "http://127.0.0.1:5173"]
+            return ["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3001", "http://127.0.0.1:3001"]
         return [
             "https://pkfalumni.com",
             "https://backoffice.pkfalumni.com",
