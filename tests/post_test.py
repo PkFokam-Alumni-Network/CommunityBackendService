@@ -388,6 +388,15 @@ def test_update_post_with_new_attachment(client, test_users, mocker):
     assert post.attachment_type == AttachmentType.IMAGE
     assert post.attachment_url == "https://fake-s3-bucket.com/posts/updated.png"
 
+@pytest.fixture(scope="function")
+def test_post(client: TestClient, test_users: list[tuple[UserCreatedResponse, str]]) -> PostResponse:
+    """Create a single post for like testing."""
+    _, token1 = test_users[0]
+    post_data = {"title": "Like Test", "content": "Testing likes", "category": "General"}
+    resp = client.post("/posts/", json=post_data, cookies={"session_token": token1})
+    assert resp.status_code == 201
+    return PostResponse.model_validate(resp.json())
+
 def test_post_response_includes_like_comment_counts(client: TestClient, test_users, test_post):
     _, token1 = test_users[0]
 

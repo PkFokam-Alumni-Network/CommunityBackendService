@@ -25,11 +25,11 @@ class PostService:
         )
 
     def _create_post_response(self, post: Post, author: Author, user_id: Optional[int], db: Session) -> PostResponse:
-        likes_count = self.post_repository.count_post_likes(db, post.id)
-        comments_count = self.post_repository.count_post_comments(db, post.id)
+        likes_count = self.post_repository.count_post_likes(db=db, post_id=post.id)
+        comments_count = self.post_repository.count_post_comments(db=db, post_id=post.id)
         liked_by_user = False
         if user_id:
-            liked_by_user = self.post_repository.user_has_liked_post(db, post.id, user_id)
+            liked_by_user = self.post_repository.user_has_liked_post(db=db, post_id=post.id, user_id=user_id)
 
         return PostResponse.model_validate(post, from_attributes=True).model_copy(
             update={
@@ -54,20 +54,19 @@ class PostService:
             )
             for author in authors
         }
-        post_ids = [post.id for post in posts]
-        upvote_counts = self.post_repository.count_post_likes(post_ids, db)
-        comment_counts = self.post_repository.count_post_comments(post_ids, db)
+        upvote_counts = {post.id: self.post_repository.count_post_likes(db=db, post_id=post.id) for post in posts}
+        comment_counts = {post.id: self.post_repository.count_post_comments(db=db, post_id=post.id) for post in posts}
         liked_by_user = False
         if user_id:
-            liked_by_user = self.post_repository.user_has_liked_post(db, post_ids, user_id)
+            liked_by_user = {post.id: self.post_repository.user_has_liked_post(db=db, post_id=post.id, user_id=user_id) for post in posts}
 
         return [
             PostResponse.model_validate(post, from_attributes=True).model_copy(
                 update={
                     "author": authors_dict[post.author_id],
-                    "upvote_count": upvote_counts.get(post.id, 0),
-                    "comment_count": comment_counts.get(post.id, 0),
-                    "liked_by_user": liked_by_user.get(post.id, False)
+                    "upvote_count": upvote_counts[post.id],
+                    "comment_count": comment_counts[post.id],
+                    "liked_by_user": liked_by_user[post.id]
                 }
             )
             for post in posts
