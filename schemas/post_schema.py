@@ -38,6 +38,9 @@ class PostResponse(BaseModel):
     author: Author
     created_at: datetime
     updated_at: datetime
+    upvotes_count: Optional[int] = None
+    comments_count: Optional[int] = None
+    liked_by_user: bool = False # default if unauthenticated
 
     model_config = ConfigDict(from_attributes=True)
 

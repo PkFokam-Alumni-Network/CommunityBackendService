@@ -18,11 +18,12 @@ def upvote_post(
     current_user: User = Depends(get_current_user),
 ) -> UpvoteCreatedResponse:
     try:
-        upvote = upvote_service.upvote_post(post_id=post_id, user_id=current_user.id, db=session)
-        LOGGER.info(f"Post upvoted: {upvote}")
+        upvote_obj, upvotes_count = upvote_service.upvote_post(post_id=post_id, user_id=current_user.id, db=session)
+        LOGGER.info(f"Post upvoted: {upvote_obj}, total likes: {upvotes_count}")
         return UpvoteCreatedResponse(
             message="Post upvoted successfully",
-            upvote=UpvoteResponse.model_validate(upvote)
+            upvote=UpvoteResponse.model_validate(upvote_obj),
+            upvotes_count=upvotes_count
         )
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
@@ -34,9 +35,12 @@ def remove_upvote_from_post(
     current_user: User = Depends(get_current_user),
 ) -> UpvoteDeletedResponse:
     try:
-        upvote_service.remove_upvote_from_post(post_id=post_id, user_id=current_user.id, db=session)
-        LOGGER.info(f"Upvote removed from post: {post_id}")
-        return UpvoteDeletedResponse(message="Upvote removed successfully")
+        upvotes_count = upvote_service.remove_upvote_from_post(post_id=post_id, user_id=current_user.id, db=session)
+        LOGGER.info(f"Upvote removed from post: {post_id}, total likes: {upvotes_count}")
+        return UpvoteDeletedResponse(
+            message="Upvote removed successfully",
+            upvotes_count=upvotes_count
+        )
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
