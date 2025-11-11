@@ -14,8 +14,8 @@ class UpvoteService:
 
         upvote = Upvote(user_id=user_id, post_id=post_id)
         created_upvote = self.upvote_repository.create_upvote(db=db, upvote=upvote)
-        likes_count = self.get_post_upvote_count(post_id, db)
-        return created_upvote, likes_count
+        upvotes_count = self.get_post_upvote_count(post_id, db)
+        return created_upvote, upvotes_count
 
     def upvote_comment(self, comment_id: int, user_id: int, db: Session) -> Upvote:
         existing_upvote = self.upvote_repository.get_upvote_by_user_and_comment(db=db, user_id=user_id, comment_id=comment_id)

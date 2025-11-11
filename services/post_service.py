@@ -34,7 +34,7 @@ class PostService:
         return PostResponse.model_validate(post, from_attributes=True).model_copy(
             update={
                 "author": author,
-                "likes_count": likes_count,
+                "upvotes_count": likes_count,
                 "comments_count": comments_count,
                 "liked_by_user": liked_by_user
             }
@@ -56,7 +56,6 @@ class PostService:
         }
         upvote_counts = {post.id: self.post_repository.count_post_likes(db=db, post_id=post.id) for post in posts}
         comment_counts = {post.id: self.post_repository.count_post_comments(db=db, post_id=post.id) for post in posts}
-        liked_by_user = False
         if user_id:
             liked_by_user = {post.id: self.post_repository.user_has_liked_post(db=db, post_id=post.id, user_id=user_id) for post in posts}
 
@@ -64,9 +63,9 @@ class PostService:
             PostResponse.model_validate(post, from_attributes=True).model_copy(
                 update={
                     "author": authors_dict[post.author_id],
-                    "upvote_count": upvote_counts[post.id],
-                    "comment_count": comment_counts[post.id],
-                    "liked_by_user": liked_by_user[post.id]
+                    "upvotes_count": upvote_counts[post.id],
+                    "comments_count": comment_counts[post.id],
+                    "liked_by_user": liked_by_user[post.id] if user_id else False
                 }
             )
             for post in posts

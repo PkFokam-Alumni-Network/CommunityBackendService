@@ -14,8 +14,8 @@ class UpvoteResponse(BaseModel):
 class UpvoteCreatedResponse(BaseModel):
     message: str
     upvote: UpvoteResponse
-    likes_count: int
+    upvotes_count: int
 
 class UpvoteDeletedResponse(BaseModel):
     message: str
-    likes_count: int
+    upvotes_count: int

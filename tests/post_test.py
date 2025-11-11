@@ -394,37 +394,38 @@ def test_post(client: TestClient, test_users: list[tuple[UserCreatedResponse, st
     _, token1 = test_users[0]
     post_data = {"title": "Like Test", "content": "Testing likes", "category": "General"}
     resp = client.post("/posts/", json=post_data, cookies={"session_token": token1})
+    print(resp.json())
     assert resp.status_code == 201
     return PostResponse.model_validate(resp.json())
 
-def test_post_response_includes_like_comment_counts(client: TestClient, test_users, test_post):
+def test_post_response_includes_upvote_comment_counts(client: TestClient, test_users, test_post):
     _, token1 = test_users[0]
 
     resp = client.get(f"/posts/{test_post.id}", cookies={"session_token": token1})
     assert resp.status_code == 200
     data = resp.json()
 
-    for key in ("likes_count", "comments_count", "liked_by_user"):
+    for key in ("upvotes_count", "comments_count", "liked_by_user"):
         assert key in data
 
-    assert data["likes_count"] == 0
+    assert data["upvotes_count"] == 0
     assert data["comments_count"] == 0
     assert data["liked_by_user"] is False
 
 
-def test_upvote_post_increments_like_count_and_sets_flag(client: TestClient, test_users, test_post):
+def test_upvote_post_increments_upvote_count_and_sets_flag(client: TestClient, test_users, test_post):
     _, token1 = test_users[0]
 
     resp = client.post(f"/post/{test_post.id}/upvote", cookies={"session_token": token1})
     assert resp.status_code == 201
 
     upvote_data = resp.json()
-    assert "likes_count" in upvote_data
-    assert upvote_data["likes_count"] == 1
+    assert "upvotes_count" in upvote_data
+    assert upvote_data["upvotes_count"] == 1
 
     post_resp = client.get(f"/posts/{test_post.id}", cookies={"session_token": token1})
     post_data = post_resp.json()
-    assert post_data["likes_count"] == 1
+    assert post_data["upvotes_count"] == 1
     assert post_data["liked_by_user"] is True
 
 
@@ -437,8 +438,8 @@ def test_remove_upvote_decrements_like_count(client: TestClient, test_users, tes
     assert resp.status_code == 200
 
     data = resp.json()
-    assert "likes_count" in data
-    assert data["likes_count"] == 0
+    assert "upvotes_count" in data
+    assert data["upvotes_count"] == 0
 
     post_resp = client.get(f"/posts/{test_post.id}", cookies={"session_token": token1})
     assert post_resp.json()["liked_by_user"] is False
@@ -452,7 +453,7 @@ def test_multiple_users_upvote_counts_accumulate(client: TestClient, test_users,
 
     post_resp = client.get(f"/posts/{test_post.id}", cookies={"session_token": token1})
     post_data = post_resp.json()
-    assert post_data["likes_count"] == 2
+    assert post_data["upvotes_count"] == 2
     assert post_data["liked_by_user"] is True
 
 
