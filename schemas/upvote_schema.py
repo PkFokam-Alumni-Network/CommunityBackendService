@@ -14,8 +14,8 @@ class UpvoteResponse(BaseModel):
 class UpvoteCreatedResponse(BaseModel):
     message: str
     upvote: UpvoteResponse
-    upvotes_count: int
+    upvotes_count: Optional[int] = None
 
 class UpvoteDeletedResponse(BaseModel):
     message: str
-    upvotes_count: int
+    upvotes_count: Optional[int] = None

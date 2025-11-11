@@ -8,7 +8,7 @@ from core.logging_config import LOGGER
 from utils.func_utils import decode_jwt
 
 router = APIRouter(tags=["Authentication"])
-WEEK = 86400 * 7
+MAX_AGE = 86400 * 30 # 30 days
 @router.post(
     "/login",
     status_code=status.HTTP_200_OK,
@@ -27,7 +27,7 @@ def login(
             httponly=True,
             secure=True,
             samesite="none",
-            max_age=WEEK
+            max_age=MAX_AGE
         )
         return login_response
     except ValueError as e:

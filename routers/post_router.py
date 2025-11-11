@@ -18,10 +18,10 @@ def create_post(post_data: PostCreate, session: Session = Depends(get_db), curre
     return post_service.add_post(post_data=post_data, user_id=current_user.id, db=session)
 
 @router.get("/recent", status_code=status.HTTP_200_OK, response_model=List[PostResponse])
-def get_recent_posts(category: Optional[str] = Query(None, description="Filter by category"), page: int = Query(1, ge=1), limit: int = Query(10, ge=1, le=100), session: Session = Depends(get_db)) -> List[PostResponse]:
+def get_recent_posts(category: Optional[str] = Query(None, description="Filter by category"), page: int = Query(1, ge=1), limit: int = Query(10, ge=1, le=100), session: Session = Depends(get_db), current_user: User = Depends(get_current_user)) -> List[PostResponse]:
     if category:
-        return post_service.get_recent_posts_by_category(category=category, db=session, limit=limit, page=page)
-    return post_service.get_recent_posts(db=session, limit=limit, page=page)
+        return post_service.get_recent_posts_by_category(category=category, user_id=current_user.id, db=session, limit=limit, page=page)
+    return post_service.get_recent_posts(user_id=current_user.id, db=session, limit=limit, page=page)
 
 @router.get("/{post_id}", status_code=status.HTTP_200_OK, response_model=PostResponse)
 def get_post(post_id: int, session: Session = Depends(get_db), current_user: User = Depends(get_current_user)) -> PostResponse:

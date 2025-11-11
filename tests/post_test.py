@@ -48,17 +48,17 @@ def test_users(client: TestClient) -> list[tuple[User, str]]:
 def test_create_get_post(client: TestClient, test_users: list[tuple[User, str]]):
     user1, token1 = test_users[0]
     
+    client.cookies.set("session_token", token1)
+
     post_data = {
         "title": "First Test Post",
         "content": "This is a test",
         "category": "General"
     }
     
-    # Set cookie in request
     response = client.post(
         "/posts/",
         json=post_data,
-        cookies={"session_token": token1}
     )
     assert response.status_code == 201
 
@@ -86,6 +86,7 @@ def test_create_post_without_authentication(client: TestClient):
 
 def test_get_recent_posts(client: TestClient, test_users: list[tuple[User, str]]):
     for i, (_, token) in enumerate(test_users, start=1):
+        client.cookies.set("session_token", token)
         for category in ["Career", "Immigration", "Job search"]:
             post_response = client.post(
                 "/posts/",
@@ -94,7 +95,6 @@ def test_get_recent_posts(client: TestClient, test_users: list[tuple[User, str]]
                     "content": f"Content {i}",
                     "category": f"{category}"
                 },
-                cookies={"session_token": token}
             )
             assert post_response.status_code == 201
 
@@ -106,6 +106,7 @@ def test_get_recent_posts(client: TestClient, test_users: list[tuple[User, str]]
 def test_get_recent_posts_by_category(client: TestClient, test_users: list[tuple[User, str]]):
     _, token1 = test_users[0]
     
+    client.cookies.set("session_token", token1)
     client.post(
         "/posts/",
         json={
@@ -113,7 +114,6 @@ def test_get_recent_posts_by_category(client: TestClient, test_users: list[tuple
             "content": "About science",
             "category": "Science"
         },
-        cookies={"session_token": token1}
     )
 
     response = client.get("/posts/recent?category=Science")
@@ -121,7 +121,10 @@ def test_get_recent_posts_by_category(client: TestClient, test_users: list[tuple
     assert all(post["category"] == "Science" for post in response.json())
 
 
-def test_get_non_existing_post(client: TestClient):
+def test_get_non_existing_post(client: TestClient, test_users: list[tuple[User, str]]):
+    _, token1 = test_users[0]
+    
+    client.cookies.set("session_token", token1)
     response = client.get("/posts/999")
     assert response.status_code == 404
     assert response.json()["detail"] == "Post not found"
@@ -130,6 +133,7 @@ def test_get_non_existing_post(client: TestClient):
 def test_update_post_success(client: TestClient, test_users: list[tuple[User, str]]):
     _, token1 = test_users[0]
     
+    client.cookies.set("session_token", token1)
     post_data = {
         "title": "Update Me",
         "content": "Before update",
@@ -138,7 +142,6 @@ def test_update_post_success(client: TestClient, test_users: list[tuple[User, st
     post = client.post(
         "/posts/",
         json=post_data,
-        cookies={"session_token": token1}
     ).json()
 
     post_id = post["id"]
@@ -150,7 +153,6 @@ def test_update_post_success(client: TestClient, test_users: list[tuple[User, st
     response = client.put(
         f"/posts/{post_id}",
         json=update_post_data,
-        cookies={"session_token": token1}
     )
     assert response.status_code == 200
     assert response.json()["title"] == "Updated Title"
@@ -159,6 +161,7 @@ def test_update_post_success(client: TestClient, test_users: list[tuple[User, st
 def test_update_post_unauthorized(client: TestClient, test_users: list[tuple[User, str]]):
     (_, token1), (_, token2) = test_users
     
+    client.cookies.set("session_token", token1)
     post = client.post(
         "/posts/",
         json={
@@ -166,10 +169,10 @@ def test_update_post_unauthorized(client: TestClient, test_users: list[tuple[Use
             "content": "Don't touch",
             "category": "Privacy"
         },
-        cookies={"session_token": token1}
     ).json()
 
     # User2 tries to update user1's post
+    client.cookies.set("session_token", token2)
     response = client.put(
         f"/posts/{post['id']}",
         json={
@@ -177,7 +180,6 @@ def test_update_post_unauthorized(client: TestClient, test_users: list[tuple[Use
             "content": "Unauthorized",
             "category": "Hack"
         },
-        cookies={"session_token": token2}
     )
 
     assert response.status_code == 401
