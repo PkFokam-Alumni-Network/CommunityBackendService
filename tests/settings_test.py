@@ -36,7 +36,7 @@ def assert_default_settings(s: Settings):
     assert s.BASE_URL is None
     assert s.DOCS_AUTH_USERNAME is None
     assert s.DOCS_AUTH_PASSWORD is None
-    assert s.cors_origins == ["http://localhost:5173", "http://127.0.0.1:5173"]
+    assert s.cors_origins == ["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3001", "http://127.0.0.1:3001"]
 
 
 def test_settings_defaults_without_env_vars():
