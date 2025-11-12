@@ -84,20 +84,24 @@ class CommentService:
         db_comment = self.comment_repository.get_comment_by_id(db=db, comment_id=comment_id)
         self._verify_comment_ownership(db_comment, user_id)
 
-        attachment_url = updated_data.attachment
-        if updated_data.attachment_type == AttachmentType.IMAGE:
-            attachment_url = self.save_comment_attachment(
-                post_id=db_comment.post_id,
-                attachment=updated_data.attachment
-            )
+        # --- Only handle attachment if explicitly provided ---
+        if updated_data.attachment is not None and updated_data.attachment_type is not None:
+            if updated_data.attachment_type == AttachmentType.IMAGE:
+                attachment_url = self.save_comment_attachment(
+                    post_id=db_comment.post_id,
+                    attachment=updated_data.attachment
+                )
+            else:
+                attachment_url = updated_data.attachment
+
+            db_comment.attachment_url = attachment_url
+            db_comment.attachment_type = updated_data.attachment_type
 
         for key, value in updated_data.model_dump(exclude_unset=True).items():
-            if key != "attachment" and hasattr(db_comment, key):
+            if key not in ("attachment", "attachment_type") and hasattr(db_comment, key):
                 setattr(db_comment, key, value)
-        
-        db_comment.attachment_url = attachment_url
+
         updated_comment = self.comment_repository.update_comment(db=db, updated_comment=db_comment)
-        
         author = self._create_author(updated_comment.author_id, db)
         return self._create_comment_response(updated_comment, author)
 
