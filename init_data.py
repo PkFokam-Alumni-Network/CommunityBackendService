@@ -10,7 +10,7 @@ Examples:
     python init_data.py --announcements 3 (create 3 announcements)
     python init_data.py --events 3 (create 3 events)
     python init_data.py --all (3 of each)
-    python init_data.py --all --users 3 --announcements 2 --events 1 (create a maximum of 3 of each even if you specified a value more than 3)
+    python init_data.py  --all --users 3 --announcements 2 --events 1 (create a maximum of 3 of each even if you specified a value more than 3)
 
 """
 
